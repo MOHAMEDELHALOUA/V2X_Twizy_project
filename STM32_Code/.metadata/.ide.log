@@ -573,3 +573,79 @@
 2025-06-22 10:31:26,475 [INFO] CADModel:165 - CPN selected for project levelSTM32WB55RGV6
 2025-06-22 10:31:26,476 [INFO] CADModel:114 - Register for checkConnection events
 2025-06-22 10:31:26,524 [INFO] OpenFileManager:385 - Restore cursor
+2025-06-22 13:03:56,794 [INFO] NvicIntPanel:101 - NVIC parent = com.st.microxplorer.plugins.ip.nvic.MultiNvicIntPanel[,0,0,0x0,invalid,layout=javax.swing.BoxLayout,alignmentX=0.0,alignmentY=0.0,border=,flags=9,maximumSize=,minimumSize=,preferredSize=]
+2025-06-22 13:04:09,665 [INFO] NvicIntPanel:101 - NVIC parent = com.st.microxplorer.plugins.ip.nvic.MultiNvicIntPanel[,0,0,0x0,invalid,layout=javax.swing.BoxLayout,alignmentX=0.0,alignmentY=0.0,border=,flags=9,maximumSize=,minimumSize=,preferredSize=]
+2025-06-22 13:12:55,354 [INFO] NvicIntPanel:101 - NVIC parent = com.st.microxplorer.plugins.ip.nvic.MultiNvicIntPanel[,0,0,0x0,invalid,layout=javax.swing.BoxLayout,alignmentX=0.0,alignmentY=0.0,border=,flags=9,maximumSize=,minimumSize=,preferredSize=]
+2025-06-22 13:15:05,796 [INFO] UtilMem:75 - End SaveConfig() Used Memory: 427236696 Bytes (667942912)
+2025-06-22 13:15:08,107 [ERROR] IocParser:95 - Exception caught: Cannot invoke "java.lang.CharSequence.length()" because "this.text" is null
+2025-06-22 13:15:09,996 [INFO] UtilMem:75 - End SaveConfig() Used Memory: 527899992 Bytes (667942912)
+2025-06-22 13:15:11,039 [ERROR] IocParser:95 - Exception caught: Cannot invoke "java.lang.CharSequence.length()" because "this.text" is null
+2025-06-22 13:15:13,128 [INFO] UtilMem:75 - End SaveConfig() Used Memory: 225552216 Bytes (667942912)
+2025-06-22 13:15:14,156 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: SPI
+2025-06-22 13:15:14,156 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: NVIC
+2025-06-22 13:15:14,156 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: DMA
+2025-06-22 13:15:14,156 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: MEMORYMAP
+2025-06-22 13:15:14,156 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: NUCLEO-WB55RG
+2025-06-22 13:15:14,156 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: SYS
+2025-06-22 13:15:14,157 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: GPIO
+2025-06-22 13:15:14,157 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: RCC
+2025-06-22 13:15:14,158 [INFO] CodeGenerator:882 - code generatio: config db path: /opt/st/stm32cubeide_1.18.0/plugins/com.st.stm32cube.common.mx_6.14.0.202502271554//db/
+2025-06-22 13:15:14,416 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/license.tmp_save
+2025-06-22 13:15:14,780 [ERROR] IocParser:95 - Exception caught: Cannot invoke "java.lang.CharSequence.length()" because "this.text" is null
+2025-06-22 13:15:15,103 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/license.tmp
+2025-06-22 13:15:15,351 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/gpio.tmp_save
+2025-06-22 13:15:15,603 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/gpio.tmp
+2025-06-22 13:15:15,691 [WARN] IPConfigManager:103 - WARNING: Missing Config File for MEMORYMAP ip!!
+2025-06-22 13:15:15,692 [WARN] IP:2250 - DefaultDataRegion not found: check if there is a RefParameter without a condition.
+2025-06-22 13:15:15,957 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/dma.tmp_save
+2025-06-22 13:15:16,046 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/dma.tmp
+2025-06-22 13:15:16,048 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/dma_GV.tmp_save
+2025-06-22 13:15:16,143 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/dma_GV.tmp
+2025-06-22 13:15:16,181 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Inc/stm32wbxx_nucleo_conf.h_save
+2025-06-22 13:15:16,317 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Inc/stm32wbxx_nucleo_conf.h
+2025-06-22 13:15:16,319 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/bsp_inc.tmp_save
+2025-06-22 13:15:16,409 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/bsp_inc.tmp
+2025-06-22 13:15:16,411 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/bsp_common_vars.tmp_save
+2025-06-22 13:15:16,501 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/bsp_common_vars.tmp
+2025-06-22 13:15:16,503 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/bsp_common_init.tmp_save
+2025-06-22 13:15:16,617 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/bsp_common_init.tmp
+2025-06-22 13:15:16,619 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/bsp_common_demo_before_while.tmp_save
+2025-06-22 13:15:16,716 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/bsp_common_demo_before_while.tmp
+2025-06-22 13:15:16,718 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/bsp_common_demo_inside_while.tmp_save
+2025-06-22 13:15:16,792 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/bsp_common_demo_inside_while.tmp
+2025-06-22 13:15:16,793 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/bsp_common_demo_fct.tmp_save
+2025-06-22 13:15:16,850 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/bsp_common_demo_fct.tmp
+2025-06-22 13:15:16,855 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Src/stm32wbxx_it.c_save
+2025-06-22 13:15:17,055 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Src/stm32wbxx_it.c
+2025-06-22 13:15:17,057 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Inc/stm32wbxx_it.h_save
+2025-06-22 13:15:17,111 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Inc/stm32wbxx_it.h
+2025-06-22 13:15:17,132 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Src/stm32wbxx_hal_msp.c_save
+2025-06-22 13:15:17,259 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Src/stm32wbxx_hal_msp.c
+2025-06-22 13:15:17,261 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/system.tmp_save
+2025-06-22 13:15:17,314 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/system.tmp
+2025-06-22 13:15:17,326 [INFO] CodeEngine:319 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Inc/stm32wbxx_hal_conf.h_save
+2025-06-22 13:15:17,402 [INFO] CodeEngine:343 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Inc/stm32wbxx_hal_conf.h
+2025-06-22 13:15:17,433 [WARN] IPConfigManager:3174 - Warning: the RefConfig RCC_PClockConfig is not available in your config.xml file
+2025-06-22 13:15:17,443 [ERROR] ApiDbMcu:464 - Can't load MEMORYMAP-STM32xx root dir null
+2025-06-22 13:15:17,444 [ERROR] ApiDbMcu:536 - Cannot parse MEMORYMAP_Config file : file do not exist
+2025-06-22 13:15:17,448 [INFO] ApiDbMcu:508 - Load IP Config File for SPI1
+2025-06-22 13:15:17,453 [INFO] ApiDbMcu:508 - Load IP Config File for RCC
+2025-06-22 13:15:17,460 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Inc/main.h_save
+2025-06-22 13:15:17,593 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Inc/main.h
+2025-06-22 13:15:17,595 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Src/main.c_save
+2025-06-22 13:15:17,785 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Src/main.c
+2025-06-22 13:15:18,187 [INFO] ProjectBuilder:3324 - Time for Copy HAL[1] : 166mS.
+2025-06-22 13:15:18,191 [INFO] ProjectBuilder:4912 - Project Generator version: 4.6.0-B36
+2025-06-22 13:15:18,285 [INFO] ConfigFileManager:1590 - The Die is : DIE495
+2025-06-22 13:15:18,293 [INFO] ApiDbMcu:508 - Load IP Config File for FATFS
+2025-06-22 13:15:18,301 [INFO] ApiDbMcu:508 - Load IP Config File for FREERTOS
+2025-06-22 13:15:18,344 [INFO] ApiDbMcu:508 - Load IP Config File for STM32_WPAN
+2025-06-22 13:15:18,386 [INFO] ApiDbMcu:508 - Load IP Config File for TOUCHSENSING
+2025-06-22 13:15:18,485 [INFO] ApiDbMcu:508 - Load IP Config File for USB_DEVICE
+2025-06-22 13:15:19,087 [INFO] LogOutputStream:77 - [STDOUT_REDIRECT] 
+2025-06-22 13:15:21,540 [INFO] ProjectBuilder:5191 - Time for Generating toolchain IDE Files: 3348mS.
+2025-06-22 13:15:21,541 [INFO] ProjectBuilder:3181 - Time for Copy CMSIS : 1mS.
+2025-06-22 13:15:21,542 [INFO] ProjectBuilder:3181 - Time for Copy CMSIS : 0mS.
+2025-06-22 13:54:06,858 [INFO] LogOutputStream:77 - [STDOUT_REDIRECT] StartTraceHandler.execute(), success : Collect=false
+2025-06-22 13:54:08,635 [INFO] LogOutputStream:77 - [STDOUT_REDIRECT] StartTraceHandler.execute(), success : Collect=true
+2025-06-22 14:03:45,198 [ERROR] AdobePublisher:162 - Exception while opening the connection: java.net.SocketTimeoutException: Connect timed out

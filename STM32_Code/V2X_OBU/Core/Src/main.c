@@ -45,6 +45,7 @@
 COM_InitTypeDef BspCOMInit;
 
 SPI_HandleTypeDef hspi1;
+DMA_HandleTypeDef hdma_spi1_rx;
 
 /* USER CODE BEGIN PV */
 
@@ -54,6 +55,7 @@ SPI_HandleTypeDef hspi1;
 void SystemClock_Config(void);
 void PeriphCommonClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_SPI1_Init(void);
 /* USER CODE BEGIN PFP */
 
@@ -61,9 +63,23 @@ static void MX_SPI1_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-//int i = 0;
-//UART_HandleTypeDef huart2;
-SPI_HandleTypeDef hspi1;
+typedef struct __attribute__((packed)){
+	unsigned int value;
+	uint8_t MacAddress[6];
+}Item;
+
+volatile uint32_t last_received_time = 0;
+#define SPI_TIMEOUT_MS 1000  // 1 second timeout
+
+// Function prototypes
+void SPI_Slave_Init(void);
+void ProcessReceivedData(void);
+
+volatile Item receivedData;
+volatile uint8_t spi_rx_buffer[sizeof(Item)]={0};
+volatile uint8_t data_received_flag=0;
+
+extern SPI_HandleTypeDef hspi1;
 /* USER CODE END 0 */
 
 /**
@@ -74,9 +90,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-	char* msg = "\r\nLoop:\r\n";
-	uint8_t tx_data = 'A';
-	uint8_t rx_data = 'B';
+	SPI_Slave_Init();
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -100,30 +114,32 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
+  HAL_GPIO_WritePin (GPIOB, GPIO_PIN_4, GPIO_PIN_SET);
+  HAL_Delay(20);
   HAL_GPIO_WritePin (GPIOB, GPIO_PIN_4, GPIO_PIN_RESET);
 
   /* Send or receive something to the ESP32*/
-  printf("STM32 msg: %s | tx_data: %c | rx_data: %c\r\n", msg, tx_data, rx_data);
-
+  printf("STM32 will start receiving data via SPI...");
   /* USER CODE END 2 */
 
   /* Initialize leds */
-//  BSP_LED_Init(LED_BLUE);
-//  BSP_LED_Init(LED_GREEN);
-//  BSP_LED_Init(LED_RED);
+  BSP_LED_Init(LED_BLUE);
+  BSP_LED_Init(LED_GREEN);
+  BSP_LED_Init(LED_RED);
 
   /* Initialize COM1 port (115200, 8 bits (7-bit data + 1 stop bit), no parity */
-//  BspCOMInit.BaudRate   = 115200;
-//  BspCOMInit.WordLength = COM_WORDLENGTH_8B;
-//  BspCOMInit.StopBits   = COM_STOPBITS_1;
-//  BspCOMInit.Parity     = COM_PARITY_NONE;
-//  BspCOMInit.HwFlowCtl  = COM_HWCONTROL_NONE;
-//  if (BSP_COM_Init(COM1, &BspCOMInit) != BSP_ERROR_NONE)
-//  {
-//    Error_Handler();
-//  }
+  BspCOMInit.BaudRate   = 115200;
+  BspCOMInit.WordLength = COM_WORDLENGTH_8B;
+  BspCOMInit.StopBits   = COM_STOPBITS_1;
+  BspCOMInit.Parity     = COM_PARITY_NONE;
+  BspCOMInit.HwFlowCtl  = COM_HWCONTROL_NONE;
+  if (BSP_COM_Init(COM1, &BspCOMInit) != BSP_ERROR_NONE)
+  {
+    Error_Handler();
+  }
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
@@ -132,15 +148,23 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	    HAL_Delay(1);
-	    HAL_StatusTypeDef status = HAL_SPI_TransmitReceive(&hspi1, &tx_data, &rx_data, 1, HAL_MAX_DELAY);
-	    // Check if transaction was successful
-	    if (status == HAL_OK) {
-	        printf("SPI OK - Sent: %c, Received: %c\r\n", tx_data, rx_data);
-	    } else {
-	        printf("SPI Error: %d\r\n", status);
-	    }
-
+	if (data_received_flag) {
+		data_received_flag = 0;
+		last_received_time = HAL_GetTick();  // Update timestamp on new data
+		printf("Received: %u, MAC: %02X:%02X:%02X:%02X:%02X:%02X\n",
+			   receivedData.value,
+			   receivedData.MacAddress[0], receivedData.MacAddress[1],
+			   receivedData.MacAddress[2], receivedData.MacAddress[3],
+			   receivedData.MacAddress[4], receivedData.MacAddress[5]);
+	}
+	else {
+		// Check if timeout occurred (no data for SPI_TIMEOUT_MS)
+		if (HAL_GetTick() - last_received_time > SPI_TIMEOUT_MS) {
+			printf("No data received for %lu ms!\n", SPI_TIMEOUT_MS);
+			last_received_time = HAL_GetTick();  // Reset timeout
+		}
+	}
+	HAL_Delay(1);  // Reduce CPU usage
   }
   /* USER CODE END 3 */
 }
@@ -254,6 +278,23 @@ static void MX_SPI1_Init(void)
 }
 
 /**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMAMUX1_CLK_ENABLE();
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Channel1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -315,8 +356,29 @@ int _write(int file, char *ptr, int len)
   return len;
 }
 
-/* USER CODE END 4 */
+// Initialize SPI for receiving data
+void SPI_Slave_Init(void) {
+    // Start SPI receive with interrupt
+    HAL_SPI_Receive_DMA(&hspi1, (uint8_t*)spi_rx_buffer, sizeof(Item));
+}
+void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
+    // Callback: No restart needed!
+    if (hspi->Instance == SPI1) {
+        printf("Raw SPI Bytes: ");
+        for (int i = 0; i < sizeof(Item); i++) {
+            printf("%02X ", spi_rx_buffer[i]);
+        }
+        printf("\n");
 
+        memcpy((void*)&receivedData, (void*)spi_rx_buffer, sizeof(Item));
+        data_received_flag = 1;
+    }
+    // Optional: Error handling
+    void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
+        printf("SPI Error: %lu\n", hspi->ErrorCode);
+    }
+}
+/* USER CODE END 4 */
 /**
   * @brief  This function is executed in case of error occurrence.
   * @retval None
