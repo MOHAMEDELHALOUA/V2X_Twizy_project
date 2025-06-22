@@ -31,17 +31,50 @@ typedef struct {
 
 Item incomingReadings;
 
-// ESP-NOW receive callback
-void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len) {
-    // Copy received data
-    memcpy(&incomingReadings, incomingData, sizeof(incomingReadings));
+//function initializatio:
+void send_to_stm32_via_spi(Item* data);
+void OnDataRecv(const esp_now_recv_info_t *recv_info, const uint8_t *incomingData, int len);
+esp_err_t init_esp_now(void);
+esp_err_t init_spi(void);
+extern "C" void app_main(void);
+
+// Main application
+void app_main(void) {
+    esp_err_t ret;
+
+    // Initialize NVS
+    ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        ret = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK(ret);
     
-    ESP_LOGI(TAG, "Received ESP-NOW data from MAC: %02X:%02X:%02X:%02X:%02X:%02X", 
-             mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-    ESP_LOGI(TAG, "Value received: %u", incomingReadings.value);
+    // Initialize event loop
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
     
-    // Send received data to STM32 via SPI
-    send_to_stm32_via_spi(&incomingReadings);
+    ESP_LOGI(TAG, "Starting ESP32 ESP-NOW to SPI Bridge...");
+    
+    // Initialize SPI
+    ret = init_spi();
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "SPI initialization failed");
+        return;
+    }
+    
+    // Initialize ESP-NOW
+    ret = init_esp_now();
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "ESP-NOW initialization failed");
+        return;
+    }
+    
+    ESP_LOGI(TAG, "ESP32 Bridge ready - waiting for ESP-NOW data...");
+    
+    // Main loop - just keep the system running
+    while (1) {
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
 }
 
 // Function to send data to STM32 via SPI
@@ -77,59 +110,19 @@ void send_to_stm32_via_spi(Item* data) {
         ESP_LOGE(TAG, "Failed to send data to STM32: %s", esp_err_to_name(ret));
     }
 }
-
-// Initialize SPI
-esp_err_t init_spi(void) {
-    esp_err_t ret;
+// ESP-NOW receive callback
+void OnDataRecv(const esp_now_recv_info_t *recv_info, const uint8_t *incomingData, int len) {
+    // Copy received data
+    memcpy(&incomingReadings, incomingData, sizeof(incomingReadings));
     
-    // SPI bus configuration
-    spi_bus_config_t buscfg = {
-        .mosi_io_num = GPIO_MOSI,
-        .miso_io_num = GPIO_MISO,
-        .sclk_io_num = GPIO_SCLK,
-        .quadwp_io_num = -1,
-        .quadhd_io_num = -1,
-        .max_transfer_sz = 4096,
-        .flags = 0,
-        .isr_cpu_id = ESP_INTR_CPU_AFFINITY_AUTO,
-        .intr_flags = 0
-    };
+    // Access MAC address from recv_info structure
+    ESP_LOGI(TAG, "Received ESP-NOW data from MAC: %02X:%02X:%02X:%02X:%02X:%02X", 
+             recv_info->src_addr[0], recv_info->src_addr[1], recv_info->src_addr[2], 
+             recv_info->src_addr[3], recv_info->src_addr[4], recv_info->src_addr[5]);
+    ESP_LOGI(TAG, "Value received: %u", incomingReadings.value);
     
-    // SPI device configuration
-    spi_device_interface_config_t devcfg = {
-        .command_bits = 0,
-        .address_bits = 0,
-        .dummy_bits = 0,
-        .mode = 0,                      // SPI mode 0
-        .clock_source = SPI_CLK_SRC_DEFAULT,
-        .duty_cycle_pos = 128,          // 50% duty cycle
-        .cs_ena_pretrans = 0,
-        .cs_ena_posttrans = 3,          // Keep CS low 3 cycles after transaction
-        .clock_speed_hz = 1000000,      // 1 MHz
-        .input_delay_ns = 0,
-        .spics_io_num = GPIO_CS,        // CS pin
-        .flags = 0,
-        .queue_size = 1,
-        .pre_cb = NULL,
-        .post_cb = NULL
-    };
-    
-    // Initialize SPI bus
-    ret = spi_bus_initialize(SPI2_HOST, &buscfg, SPI_DMA_CH_AUTO);
-    if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to initialize SPI bus: %s", esp_err_to_name(ret));
-        return ret;
-    }
-    
-    // Add SPI device
-    ret = spi_bus_add_device(SPI2_HOST, &devcfg, &spi_handle);
-    if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to add SPI device: %s", esp_err_to_name(ret));
-        return ret;
-    }
-    
-    ESP_LOGI(TAG, "SPI initialized successfully");
-    return ESP_OK;
+    // Send received data to STM32 via SPI
+    send_to_stm32_via_spi(&incomingReadings);
 }
 
 // Initialize ESP-NOW
@@ -174,41 +167,45 @@ esp_err_t init_esp_now(void) {
     return ESP_OK;
 }
 
-// Main application
-void app_main(void) {
+// Initialize SPI
+esp_err_t init_spi(void) {
     esp_err_t ret;
     
-    // Initialize NVS
-    ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        ret = nvs_flash_init();
-    }
-    ESP_ERROR_CHECK(ret);
-    
-    // Initialize event loop
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
-    
-    ESP_LOGI(TAG, "Starting ESP32 ESP-NOW to SPI Bridge...");
-    
-    // Initialize SPI
-    ret = init_spi();
+    // SPI bus configuration
+    // Initialize everything to 0 first, then set what you need
+    spi_bus_config_t buscfg = {0};
+    buscfg.mosi_io_num = GPIO_MOSI;
+    buscfg.miso_io_num = GPIO_MISO;
+    buscfg.sclk_io_num = GPIO_SCLK;
+    buscfg.quadwp_io_num = -1;
+    buscfg.quadhd_io_num = -1;
+    buscfg.max_transfer_sz = 4096;
+    buscfg.isr_cpu_id = ESP_INTR_CPU_AFFINITY_AUTO;
+    // All other fields automatically set to 0/-1
+    // Initialize everything to 0 first, then set what you need
+    spi_device_interface_config_t devcfg = {0};
+    devcfg.mode = 0;                        // SPI mode 0
+    devcfg.clock_source = SPI_CLK_SRC_DEFAULT;
+    devcfg.duty_cycle_pos = 128;            // 50% duty cycle
+    devcfg.cs_ena_posttrans = 3;            // Keep CS low 3 cycles after transaction
+    devcfg.clock_speed_hz = 1000000;        // 1 MHz
+    devcfg.spics_io_num = GPIO_CS;          // CS pin
+    devcfg.queue_size = 1;
+    // All other fields automatically set to 0/NULL
+  // Initialize SPI bus
+    ret = spi_bus_initialize(SPI2_HOST, &buscfg, SPI_DMA_CH_AUTO);
     if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "SPI initialization failed");
-        return;
+        ESP_LOGE(TAG, "Failed to initialize SPI bus: %s", esp_err_to_name(ret));
+        return ret;
     }
     
-    // Initialize ESP-NOW
-    ret = init_esp_now();
+    // Add SPI device
+    ret = spi_bus_add_device(SPI2_HOST, &devcfg, &spi_handle);
     if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "ESP-NOW initialization failed");
-        return;
+        ESP_LOGE(TAG, "Failed to add SPI device: %s", esp_err_to_name(ret));
+        return ret;
     }
     
-    ESP_LOGI(TAG, "ESP32 Bridge ready - waiting for ESP-NOW data...");
-    
-    // Main loop - just keep the system running
-    while (1) {
-        vTaskDelay(pdMS_TO_TICKS(1000));
-    }
+    ESP_LOGI(TAG, "SPI initialized successfully");
+    return ESP_OK;
 }

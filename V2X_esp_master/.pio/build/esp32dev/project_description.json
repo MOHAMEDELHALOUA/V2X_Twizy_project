@@ -1,7 +1,7 @@
 {
     "version":            "1.2",
     "project_name":       "V2X_esp_master",
-    "project_version":    "fe1185c-dirty",
+    "project_version":    "5995e75-dirty",
     "project_path":       "/home/elhaloua/ESP_projects/V2X_project/V2X_esp_master",
     "idf_path":           "/home/elhaloua/.platformio/packages/framework-espidf",
     "build_dir":          "/home/elhaloua/ESP_projects/V2X_project/V2X_esp_master/.pio/build/esp32dev",
