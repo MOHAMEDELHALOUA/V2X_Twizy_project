@@ -1,32 +1,25 @@
-14:29:44 **** Incremental Build of configuration Debug for project V2X_OBU ****
+16:56:58 **** Incremental Build of configuration Debug for project V2X_OBU ****
 make -j8 all 
 arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_NUCLEO_64 -DUSE_HAL_DRIVER -DSTM32WB55xx -c -I../Core/Inc -I../Drivers/STM32WBxx_HAL_Driver/Inc -I../Drivers/STM32WBxx_HAL_Driver/Inc/Legacy -I../Drivers/BSP/P-NUCLEO-WB55.Nucleo -I../Drivers/CMSIS/Device/ST/STM32WBxx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
 ../Core/Src/main.c: In function 'main':
-../Core/Src/main.c:163:56: warning: format '%lu' expects argument of type 'long unsigned int', but argument 2 has type 'int' [-Wformat=]
-  163 |                         printf("No data received for %lu ms!\n", SPI_TIMEOUT_MS);
-      |                                                      ~~^
-      |                                                        |
-      |                                                        long unsigned int
-      |                                                      %u
-../Core/Src/main.c: At top level:
-../Core/Src/main.c:377:10: warning: 'HAL_SPI_ErrorCallback' defined but not used [-Wunused-function]
-  377 |     void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
-      |          ^~~~~~~~~~~~~~~~~~~~~
+../Core/Src/main.c:164:27: warning: unused variable 'status' [-Wunused-variable]
+  164 |         HAL_StatusTypeDef status = HAL_SPI_Receive_IT(&hspi1, (uint8_t *)&receivedData, sizeof(Item));
+      |                           ^~~~~~
 arm-none-eabi-g++ -o "V2X_OBU.elf" @"objects.list"   -mcpu=cortex-m4 -T"/home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/STM32WB55RGVX_FLASH.ld" --specs=nosys.specs -Wl,-Map="V2X_OBU.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group
 Finished building target: V2X_OBU.elf
  
 arm-none-eabi-size  V2X_OBU.elf 
 arm-none-eabi-objdump -h -S V2X_OBU.elf  > "V2X_OBU.list"
    text	   data	    bss	    dec	    hex	filename
-  23872	    120	   2296	  26288	   66b0	V2X_OBU.elf
+  21732	    120	   2184	  24036	   5de4	V2X_OBU.elf
 Finished building: default.size.stdout
  
 Finished building: V2X_OBU.list
  
-14:29:48 **** Incremental Build of configuration Debug for project V2X_OBU ****
+16:57:17 **** Incremental Build of configuration Debug for project V2X_OBU ****
 make -j8 all 
 arm-none-eabi-size  V2X_OBU.elf 
    text	   data	    bss	    dec	    hex	filename
-  23872	    120	   2296	  26288	   66b0	V2X_OBU.elf
+  21732	    120	   2184	  24036	   5de4	V2X_OBU.elf
 Finished building: default.size.stdout
  

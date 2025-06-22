@@ -105,10 +105,14 @@ void send_to_stm32_via_spi(Item* data) {
     
     if (ret == ESP_OK) {
         ESP_LOGI(TAG, "Data sent to STM32 successfully");
-        ESP_LOGI(TAG, "Sent value: %u", data->value);
+        ESP_LOGI(TAG, "Sent value: %u, and MAC: %02X:%02X:%02X:%02X:%02X:%02X", 
+              data->value, 
+             data->MacAddress[0], data->MacAddress[1], data->MacAddress[2], 
+             data->MacAddress[3], data->MacAddress[4], data->MacAddress[5]);
     } else {
         ESP_LOGE(TAG, "Failed to send data to STM32: %s", esp_err_to_name(ret));
     }
+    vTaskDelay(pdMS_TO_TICKS(10)); // optional safety delay
 }
 // ESP-NOW receive callback
 void OnDataRecv(const esp_now_recv_info_t *recv_info, const uint8_t *incomingData, int len) {
