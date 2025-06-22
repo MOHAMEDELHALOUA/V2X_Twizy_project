@@ -1,10 +1,10 @@
-16:57:17 **** Incremental Build of configuration Debug for project V2X_OBU ****
+19:16:06 **** Incremental Build of configuration Debug for project V2X_OBU ****
 make -j8 all 
 arm-none-eabi-size  V2X_OBU.elf 
    text	   data	    bss	    dec	    hex	filename
-  21732	    120	   2184	  24036	   5de4	V2X_OBU.elf
+  23904	    120	   2184	  26208	   6660	V2X_OBU.elf
 Finished building: default.size.stdout
  
 
-16:57:17 Build Finished. 0 errors, 0 warnings. (took 130ms)
+19:16:06 Build Finished. 0 errors, 0 warnings. (took 187ms)
 
