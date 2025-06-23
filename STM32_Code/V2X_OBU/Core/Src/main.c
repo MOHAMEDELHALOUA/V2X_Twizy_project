@@ -83,7 +83,7 @@ void StartTskQueueCtl(void *argument);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-typedef struct __attribute__((packed)){
+typedef struct {
 	unsigned int value;
 	uint8_t MacAddress[6];
 }Item;

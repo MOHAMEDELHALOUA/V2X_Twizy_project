@@ -3133,3 +3133,344 @@
 2025-06-23 16:26:40,277 [INFO] WebApp:191 - Connection restablished
 2025-06-23 16:26:48,229 [INFO] WebApp:194 - Connection lost
 2025-06-23 16:26:53,541 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:27:12,185 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:27:18,002 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:27:25,219 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:27:30,101 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:27:38,222 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:27:43,475 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:27:51,258 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:27:56,110 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:29:10,165 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:29:15,302 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:29:34,466 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:29:39,129 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:29:58,159 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:30:03,046 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:30:22,307 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:30:27,152 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:31:08,315 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:31:13,293 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:31:21,271 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:31:26,133 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:31:34,429 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:31:39,495 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:31:47,152 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:31:52,285 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:32:11,223 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:32:16,352 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:32:24,204 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:32:29,339 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:32:59,177 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:33:04,120 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:33:12,224 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:33:17,275 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:34:09,158 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:34:13,916 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:34:22,236 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:34:27,181 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:34:35,131 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:34:40,039 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:34:48,197 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:34:53,093 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:35:01,184 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:35:06,271 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:35:14,167 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:35:18,684 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:36:00,237 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:36:05,005 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:36:13,437 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:36:18,808 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:37:10,217 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:37:15,349 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:37:23,211 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:37:28,284 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:37:58,627 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:38:03,480 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:38:11,202 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:38:16,324 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:38:46,025 [INFO] Gpio:277 - dependency for GPIO [SPI1]
+2025-06-23 16:39:11,076 [INFO] NvicIntPanel:101 - NVIC parent = com.st.microxplorer.plugins.ip.nvic.MultiNvicIntPanel[,0,0,450x254,layout=javax.swing.BoxLayout,alignmentX=0.0,alignmentY=0.0,border=,flags=9,maximumSize=,minimumSize=,preferredSize=]
+2025-06-23 16:39:19,181 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:39:20,437 [INFO] NvicIntPanel:101 - NVIC parent = com.st.microxplorer.plugins.ip.nvic.MultiNvicIntPanel[,0,0,0x0,invalid,layout=javax.swing.BoxLayout,alignmentX=0.0,alignmentY=0.0,border=,flags=9,maximumSize=,minimumSize=,preferredSize=]
+2025-06-23 16:39:24,000 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:39:26,301 [INFO] NvicIntPanel:101 - NVIC parent = com.st.microxplorer.plugins.ip.nvic.MultiNvicIntPanel[,0,0,0x0,invalid,layout=javax.swing.BoxLayout,alignmentX=0.0,alignmentY=0.0,border=,flags=9,maximumSize=,minimumSize=,preferredSize=]
+2025-06-23 16:39:32,139 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:39:37,335 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:39:56,354 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:39:56,818 [INFO] NvicIntPanel:101 - NVIC parent = com.st.microxplorer.plugins.ip.nvic.MultiNvicIntPanel[,0,0,0x0,invalid,layout=javax.swing.BoxLayout,alignmentX=0.0,alignmentY=0.0,border=,flags=9,maximumSize=,minimumSize=,preferredSize=]
+2025-06-23 16:40:01,270 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:40:03,989 [INFO] NvicIntPanel:101 - NVIC parent = com.st.microxplorer.plugins.ip.nvic.MultiNvicIntPanel[,0,0,0x0,invalid,layout=javax.swing.BoxLayout,alignmentX=0.0,alignmentY=0.0,border=,flags=9,maximumSize=,minimumSize=,preferredSize=]
+2025-06-23 16:40:09,157 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:40:14,111 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:42:34,181 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:42:39,387 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:42:47,145 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:42:52,016 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:43:37,220 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:43:42,552 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:43:50,188 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:43:55,124 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:44:03,136 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:44:08,282 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:44:16,238 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:44:20,910 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:44:30,473 [INFO] NvicIntPanel:101 - NVIC parent = com.st.microxplorer.plugins.ip.nvic.MultiNvicIntPanel[,0,0,0x0,invalid,layout=javax.swing.BoxLayout,alignmentX=0.0,alignmentY=0.0,border=,flags=9,maximumSize=,minimumSize=,preferredSize=]
+2025-06-23 16:44:39,308 [INFO] NvicIntPanel:101 - NVIC parent = com.st.microxplorer.plugins.ip.nvic.MultiNvicIntPanel[,0,0,0x0,invalid,layout=javax.swing.BoxLayout,alignmentX=0.0,alignmentY=0.0,border=,flags=9,maximumSize=,minimumSize=,preferredSize=]
+2025-06-23 16:44:42,374 [INFO] UtilMem:75 - End SaveConfig() Used Memory: 525095032 Bytes (786432000)
+2025-06-23 16:44:44,129 [ERROR] IocParser:95 - Exception caught: Cannot invoke "java.lang.CharSequence.length()" because "this.text" is null
+2025-06-23 16:45:38,173 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:45:43,092 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:45:51,158 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:45:56,028 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:46:35,546 [INFO] NvicIntPanel:101 - NVIC parent = com.st.microxplorer.plugins.ip.nvic.MultiNvicIntPanel[,0,0,0x0,invalid,layout=javax.swing.BoxLayout,alignmentX=0.0,alignmentY=0.0,border=,flags=9,maximumSize=,minimumSize=,preferredSize=]
+2025-06-23 16:46:44,581 [INFO] NvicIntPanel:101 - NVIC parent = com.st.microxplorer.plugins.ip.nvic.MultiNvicIntPanel[,0,0,0x0,invalid,layout=javax.swing.BoxLayout,alignmentX=0.0,alignmentY=0.0,border=,flags=9,maximumSize=,minimumSize=,preferredSize=]
+2025-06-23 16:46:48,741 [INFO] UtilMem:75 - End SaveConfig() Used Memory: 719920968 Bytes (786432000)
+2025-06-23 16:46:49,303 [ERROR] IocParser:95 - Exception caught: Cannot invoke "java.lang.CharSequence.length()" because "this.text" is null
+2025-06-23 16:46:50,111 [INFO] UtilMem:75 - End SaveConfig() Used Memory: 310683160 Bytes (786432000)
+2025-06-23 16:46:51,973 [INFO] UtilMem:75 - End SaveConfig() Used Memory: 357080616 Bytes (786432000)
+2025-06-23 16:46:52,185 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: SPI
+2025-06-23 16:46:52,186 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: NVIC
+2025-06-23 16:46:52,186 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: FREERTOS
+2025-06-23 16:46:52,186 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: DMA
+2025-06-23 16:46:52,186 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: MEMORYMAP
+2025-06-23 16:46:52,186 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: NUCLEO-WB55RG
+2025-06-23 16:46:52,186 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: SYS
+2025-06-23 16:46:52,187 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: GPIO
+2025-06-23 16:46:52,187 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: RCC
+2025-06-23 16:46:52,187 [INFO] CodeGenerator:882 - code generatio: config db path: /opt/st/stm32cubeide_1.18.0/plugins/com.st.stm32cube.common.mx_6.14.0.202502271554//db/
+2025-06-23 16:46:52,349 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/license.tmp_save
+2025-06-23 16:46:52,509 [ERROR] IocParser:95 - Exception caught: Cannot invoke "java.lang.CharSequence.length()" because "this.text" is null
+2025-06-23 16:46:52,818 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/license.tmp
+2025-06-23 16:46:52,878 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/gpio.tmp_save
+2025-06-23 16:46:53,192 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/gpio.tmp
+2025-06-23 16:46:53,280 [WARN] IPConfigManager:103 - WARNING: Missing Config File for MEMORYMAP ip!!
+2025-06-23 16:46:53,282 [WARN] IP:2250 - DefaultDataRegion not found: check if there is a RefParameter without a condition.
+2025-06-23 16:46:53,435 [INFO] Middleware:1452 - No code input for Bsp Dependency
+2025-06-23 16:46:53,454 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_inc.tmp_save
+2025-06-23 16:46:53,566 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_inc.tmp
+2025-06-23 16:46:53,567 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_kernelInit.tmp_save
+2025-06-23 16:46:53,672 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_kernelInit.tmp
+2025-06-23 16:46:53,673 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_kernelStart.tmp_save
+2025-06-23 16:46:53,775 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_kernelStart.tmp
+2025-06-23 16:46:53,776 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_typedefs.tmp_save
+2025-06-23 16:46:53,896 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_typedefs.tmp
+2025-06-23 16:46:53,897 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_vars.tmp_save
+2025-06-23 16:46:54,039 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_vars.tmp
+2025-06-23 16:46:54,040 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_pfp.tmp_save
+2025-06-23 16:46:54,118 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_pfp.tmp
+2025-06-23 16:46:54,119 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_obj_creat.tmp_save
+2025-06-23 16:46:54,200 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_obj_creat.tmp
+2025-06-23 16:46:54,210 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_default_thread.tmp_save
+2025-06-23 16:46:54,278 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_default_thread.tmp
+2025-06-23 16:46:54,279 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_threads.tmp_save
+2025-06-23 16:46:54,344 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_threads.tmp
+2025-06-23 16:46:54,353 [INFO] Middleware:1452 - No code input for Bsp Dependency
+2025-06-23 16:46:54,356 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_inc.tmp_save
+2025-06-23 16:46:54,420 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_inc.tmp
+2025-06-23 16:46:54,422 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_kernelInit.tmp_save
+2025-06-23 16:46:54,482 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_kernelInit.tmp
+2025-06-23 16:46:54,483 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_kernelStart.tmp_save
+2025-06-23 16:46:54,546 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_kernelStart.tmp
+2025-06-23 16:46:54,547 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_typedefs.tmp_save
+2025-06-23 16:46:54,613 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_typedefs.tmp
+2025-06-23 16:46:54,614 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_vars.tmp_save
+2025-06-23 16:46:54,679 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_vars.tmp
+2025-06-23 16:46:54,680 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_pfp.tmp_save
+2025-06-23 16:46:54,742 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_pfp.tmp
+2025-06-23 16:46:54,743 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_obj_creat.tmp_save
+2025-06-23 16:46:54,808 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_obj_creat.tmp
+2025-06-23 16:46:54,809 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_default_thread.tmp_save
+2025-06-23 16:46:54,875 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_default_thread.tmp
+2025-06-23 16:46:54,877 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_threads.tmp_save
+2025-06-23 16:46:54,956 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_threads.tmp
+2025-06-23 16:46:54,957 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Inc/FreeRTOSConfig.h_save
+2025-06-23 16:46:55,090 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Inc/FreeRTOSConfig.h
+2025-06-23 16:46:55,097 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Src/app_freertos.c_save
+2025-06-23 16:46:55,186 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Src/app_freertos.c
+2025-06-23 16:46:55,277 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/dma.tmp_save
+2025-06-23 16:46:55,369 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/dma.tmp
+2025-06-23 16:46:55,371 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/dma_GV.tmp_save
+2025-06-23 16:46:55,431 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/dma_GV.tmp
+2025-06-23 16:46:55,450 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Inc/stm32wbxx_nucleo_conf.h_save
+2025-06-23 16:46:55,516 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Inc/stm32wbxx_nucleo_conf.h
+2025-06-23 16:46:55,518 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/bsp_inc.tmp_save
+2025-06-23 16:46:55,585 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/bsp_inc.tmp
+2025-06-23 16:46:55,586 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/bsp_common_vars.tmp_save
+2025-06-23 16:46:55,636 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/bsp_common_vars.tmp
+2025-06-23 16:46:55,637 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/bsp_common_init.tmp_save
+2025-06-23 16:46:55,685 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/bsp_common_init.tmp
+2025-06-23 16:46:55,686 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/bsp_common_demo_before_while.tmp_save
+2025-06-23 16:46:55,735 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/bsp_common_demo_before_while.tmp
+2025-06-23 16:46:55,736 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/bsp_common_demo_inside_while.tmp_save
+2025-06-23 16:46:55,783 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/bsp_common_demo_inside_while.tmp
+2025-06-23 16:46:55,784 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/bsp_common_demo_fct.tmp_save
+2025-06-23 16:46:55,832 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/bsp_common_demo_fct.tmp
+2025-06-23 16:46:55,855 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Src/stm32wbxx_it.c_save
+2025-06-23 16:46:56,013 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Src/stm32wbxx_it.c
+2025-06-23 16:46:56,014 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Inc/stm32wbxx_it.h_save
+2025-06-23 16:46:56,069 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Inc/stm32wbxx_it.h
+2025-06-23 16:46:56,073 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Src/stm32wbxx_hal_msp.c_save
+2025-06-23 16:46:56,179 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Src/stm32wbxx_hal_msp.c
+2025-06-23 16:46:56,189 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/system.tmp_save
+2025-06-23 16:46:56,240 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/system.tmp
+2025-06-23 16:46:56,241 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Src/stm32wbxx_hal_timebase_tim.c_save
+2025-06-23 16:46:56,295 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Src/stm32wbxx_hal_timebase_tim.c
+2025-06-23 16:46:56,306 [INFO] CodeEngine:319 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Inc/stm32wbxx_hal_conf.h_save
+2025-06-23 16:46:56,378 [INFO] CodeEngine:343 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Inc/stm32wbxx_hal_conf.h
+2025-06-23 16:46:56,388 [WARN] IPConfigManager:3174 - Warning: the RefConfig RCC_PClockConfig is not available in your config.xml file
+2025-06-23 16:46:56,393 [ERROR] ApiDbMcu:464 - Can't load MEMORYMAP-STM32xx root dir null
+2025-06-23 16:46:56,393 [ERROR] ApiDbMcu:536 - Cannot parse MEMORYMAP_Config file : file do not exist
+2025-06-23 16:46:56,396 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Inc/main.h_save
+2025-06-23 16:46:56,481 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Inc/main.h
+2025-06-23 16:46:56,482 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Src/main.c_save
+2025-06-23 16:46:56,610 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Src/main.c
+2025-06-23 16:46:57,101 [INFO] ProjectBuilder:3324 - Time for Copy HAL[1] : 288mS.
+2025-06-23 16:46:57,103 [INFO] ProjectBuilder:4912 - Project Generator version: 4.6.0-B36
+2025-06-23 16:46:57,197 [INFO] ConfigFileManager:1590 - The Die is : DIE495
+2025-06-23 16:46:58,516 [INFO] ProjectBuilder:5191 - Time for Generating toolchain IDE Files: 1413mS.
+2025-06-23 16:46:58,516 [INFO] ProjectBuilder:3181 - Time for Copy CMSIS : 0mS.
+2025-06-23 16:46:58,517 [INFO] ProjectBuilder:3181 - Time for Copy CMSIS : 0mS.
+2025-06-23 16:50:40,216 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:50:45,291 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:51:04,167 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:51:09,283 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:52:45,419 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:52:50,141 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:52:58,195 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:53:12,310 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:54:49,285 [INFO] UtilMem:75 - End SaveConfig() Used Memory: 511527608 Bytes (786432000)
+2025-06-23 16:54:49,834 [ERROR] IocParser:95 - Exception caught: Cannot invoke "java.lang.CharSequence.length()" because "this.text" is null
+2025-06-23 16:54:50,400 [INFO] UtilMem:75 - End SaveConfig() Used Memory: 531450552 Bytes (786432000)
+2025-06-23 16:54:52,155 [INFO] UtilMem:75 - End SaveConfig() Used Memory: 577587896 Bytes (786432000)
+2025-06-23 16:54:52,276 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: SPI
+2025-06-23 16:54:52,276 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: NVIC
+2025-06-23 16:54:52,276 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: FREERTOS
+2025-06-23 16:54:52,276 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: MEMORYMAP
+2025-06-23 16:54:52,276 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: NUCLEO-WB55RG
+2025-06-23 16:54:52,276 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: SYS
+2025-06-23 16:54:52,277 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: GPIO
+2025-06-23 16:54:52,277 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: RCC
+2025-06-23 16:54:52,277 [INFO] CodeGenerator:882 - code generatio: config db path: /opt/st/stm32cubeide_1.18.0/plugins/com.st.stm32cube.common.mx_6.14.0.202502271554//db/
+2025-06-23 16:54:52,366 [ERROR] IocParser:95 - Exception caught: Cannot invoke "java.lang.CharSequence.length()" because "this.text" is null
+2025-06-23 16:54:52,417 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/license.tmp_save
+2025-06-23 16:54:52,541 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/license.tmp
+2025-06-23 16:54:52,611 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/gpio.tmp_save
+2025-06-23 16:54:52,708 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/gpio.tmp
+2025-06-23 16:54:52,748 [WARN] IPConfigManager:103 - WARNING: Missing Config File for MEMORYMAP ip!!
+2025-06-23 16:54:52,749 [WARN] IP:2250 - DefaultDataRegion not found: check if there is a RefParameter without a condition.
+2025-06-23 16:54:52,841 [INFO] Middleware:1452 - No code input for Bsp Dependency
+2025-06-23 16:54:52,843 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_inc.tmp_save
+2025-06-23 16:54:52,932 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_inc.tmp
+2025-06-23 16:54:52,933 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_kernelInit.tmp_save
+2025-06-23 16:54:52,992 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_kernelInit.tmp
+2025-06-23 16:54:52,993 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_kernelStart.tmp_save
+2025-06-23 16:54:53,052 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_kernelStart.tmp
+2025-06-23 16:54:53,053 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_typedefs.tmp_save
+2025-06-23 16:54:53,117 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_typedefs.tmp
+2025-06-23 16:54:53,118 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_vars.tmp_save
+2025-06-23 16:54:53,177 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_vars.tmp
+2025-06-23 16:54:53,178 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_pfp.tmp_save
+2025-06-23 16:54:53,227 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_pfp.tmp
+2025-06-23 16:54:53,227 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_obj_creat.tmp_save
+2025-06-23 16:54:53,292 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_obj_creat.tmp
+2025-06-23 16:54:53,293 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_default_thread.tmp_save
+2025-06-23 16:54:53,353 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_default_thread.tmp
+2025-06-23 16:54:53,354 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_threads.tmp_save
+2025-06-23 16:54:53,404 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_threads.tmp
+2025-06-23 16:54:53,414 [INFO] Middleware:1452 - No code input for Bsp Dependency
+2025-06-23 16:54:53,416 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_inc.tmp_save
+2025-06-23 16:54:53,467 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_inc.tmp
+2025-06-23 16:54:53,467 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_kernelInit.tmp_save
+2025-06-23 16:54:53,516 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_kernelInit.tmp
+2025-06-23 16:54:53,517 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_kernelStart.tmp_save
+2025-06-23 16:54:53,567 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_kernelStart.tmp
+2025-06-23 16:54:53,568 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_typedefs.tmp_save
+2025-06-23 16:54:53,633 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_typedefs.tmp
+2025-06-23 16:54:53,635 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_vars.tmp_save
+2025-06-23 16:54:53,710 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_vars.tmp
+2025-06-23 16:54:53,711 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_pfp.tmp_save
+2025-06-23 16:54:53,763 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_pfp.tmp
+2025-06-23 16:54:53,764 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_obj_creat.tmp_save
+2025-06-23 16:54:53,817 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_obj_creat.tmp
+2025-06-23 16:54:53,818 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_default_thread.tmp_save
+2025-06-23 16:54:53,869 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_default_thread.tmp
+2025-06-23 16:54:53,870 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_threads.tmp_save
+2025-06-23 16:54:53,918 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/rtos_threads.tmp
+2025-06-23 16:54:53,918 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Inc/FreeRTOSConfig.h_save
+2025-06-23 16:54:54,002 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Inc/FreeRTOSConfig.h
+2025-06-23 16:54:54,003 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Src/app_freertos.c_save
+2025-06-23 16:54:54,059 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Src/app_freertos.c
+2025-06-23 16:54:54,069 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Inc/stm32wbxx_nucleo_conf.h_save
+2025-06-23 16:54:54,117 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Inc/stm32wbxx_nucleo_conf.h
+2025-06-23 16:54:54,118 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/bsp_inc.tmp_save
+2025-06-23 16:54:54,165 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/bsp_inc.tmp
+2025-06-23 16:54:54,166 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/bsp_common_vars.tmp_save
+2025-06-23 16:54:54,213 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/bsp_common_vars.tmp
+2025-06-23 16:54:54,214 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/bsp_common_init.tmp_save
+2025-06-23 16:54:54,263 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/bsp_common_init.tmp
+2025-06-23 16:54:54,264 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/bsp_common_demo_before_while.tmp_save
+2025-06-23 16:54:54,313 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/bsp_common_demo_before_while.tmp
+2025-06-23 16:54:54,313 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/bsp_common_demo_inside_while.tmp_save
+2025-06-23 16:54:54,362 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/bsp_common_demo_inside_while.tmp
+2025-06-23 16:54:54,363 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/bsp_common_demo_fct.tmp_save
+2025-06-23 16:54:54,411 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/bsp_common_demo_fct.tmp
+2025-06-23 16:54:54,415 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Src/stm32wbxx_it.c_save
+2025-06-23 16:54:54,488 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Src/stm32wbxx_it.c
+2025-06-23 16:54:54,489 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Inc/stm32wbxx_it.h_save
+2025-06-23 16:54:54,539 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Inc/stm32wbxx_it.h
+2025-06-23 16:54:54,542 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Src/stm32wbxx_hal_msp.c_save
+2025-06-23 16:54:54,652 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Src/stm32wbxx_hal_msp.c
+2025-06-23 16:54:54,665 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/system.tmp_save
+2025-06-23 16:54:54,712 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/MXTmpFiles/system.tmp
+2025-06-23 16:54:54,713 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Src/stm32wbxx_hal_timebase_tim.c_save
+2025-06-23 16:54:54,779 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Src/stm32wbxx_hal_timebase_tim.c
+2025-06-23 16:54:54,782 [INFO] CodeEngine:319 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Inc/stm32wbxx_hal_conf.h_save
+2025-06-23 16:54:54,834 [INFO] CodeEngine:343 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Inc/stm32wbxx_hal_conf.h
+2025-06-23 16:54:54,838 [WARN] IPConfigManager:3174 - Warning: the RefConfig RCC_PClockConfig is not available in your config.xml file
+2025-06-23 16:54:54,840 [ERROR] ApiDbMcu:464 - Can't load MEMORYMAP-STM32xx root dir null
+2025-06-23 16:54:54,840 [ERROR] ApiDbMcu:536 - Cannot parse MEMORYMAP_Config file : file do not exist
+2025-06-23 16:54:54,843 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Inc/main.h_save
+2025-06-23 16:54:54,898 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Inc/main.h
+2025-06-23 16:54:54,899 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Src/main.c_save
+2025-06-23 16:54:55,007 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/Core/Src/main.c
+2025-06-23 16:54:55,380 [INFO] ProjectBuilder:3324 - Time for Copy HAL[1] : 81mS.
+2025-06-23 16:54:55,382 [INFO] ProjectBuilder:4912 - Project Generator version: 4.6.0-B36
+2025-06-23 16:54:55,476 [INFO] ConfigFileManager:1590 - The Die is : DIE495
+2025-06-23 16:54:56,305 [INFO] ProjectBuilder:5191 - Time for Generating toolchain IDE Files: 923mS.
+2025-06-23 16:54:56,306 [INFO] ProjectBuilder:3181 - Time for Copy CMSIS : 0mS.
+2025-06-23 16:54:56,307 [INFO] ProjectBuilder:3181 - Time for Copy CMSIS : 0mS.
+2025-06-23 16:58:08,190 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:58:13,175 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:58:21,253 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:58:25,940 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:58:34,298 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:58:39,178 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:58:47,350 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:58:52,333 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:59:33,134 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:59:38,246 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:59:46,218 [INFO] WebApp:194 - Connection lost
+2025-06-23 16:59:51,259 [INFO] WebApp:191 - Connection restablished
+2025-06-23 16:59:59,202 [INFO] WebApp:194 - Connection lost
+2025-06-23 17:00:04,077 [INFO] WebApp:191 - Connection restablished
+2025-06-23 17:00:23,185 [INFO] WebApp:194 - Connection lost
+2025-06-23 17:00:28,174 [INFO] WebApp:191 - Connection restablished
+2025-06-23 17:00:58,210 [INFO] WebApp:194 - Connection lost
+2025-06-23 17:01:04,408 [INFO] WebApp:191 - Connection restablished
+2025-06-23 17:01:10,282 [INFO] WebApp:194 - Connection lost
+2025-06-23 17:01:21,147 [INFO] WebApp:191 - Connection restablished
+2025-06-23 17:01:58,203 [INFO] WebApp:194 - Connection lost
+2025-06-23 17:02:03,063 [INFO] WebApp:191 - Connection restablished
+2025-06-23 17:02:11,185 [INFO] WebApp:194 - Connection lost
+2025-06-23 17:02:16,284 [INFO] WebApp:191 - Connection restablished
+2025-06-23 17:02:24,150 [INFO] WebApp:194 - Connection lost
+2025-06-23 17:02:28,902 [INFO] WebApp:191 - Connection restablished
+2025-06-23 17:02:37,228 [INFO] WebApp:194 - Connection lost
+2025-06-23 17:02:42,519 [INFO] WebApp:191 - Connection restablished
+2025-06-23 17:02:50,212 [INFO] WebApp:194 - Connection lost
+2025-06-23 17:02:55,492 [INFO] WebApp:191 - Connection restablished
+2025-06-23 17:03:11,278 [INFO] WebApp:194 - Connection lost
+2025-06-23 17:03:16,917 [INFO] WebApp:191 - Connection restablished
+2025-06-23 17:03:24,190 [INFO] WebApp:194 - Connection lost
+2025-06-23 17:03:29,182 [INFO] WebApp:191 - Connection restablished
