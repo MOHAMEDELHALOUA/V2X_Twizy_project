@@ -2,5 +2,5 @@
 ../Drivers/STM32WBxx_HAL_Driver/Inc/stm32wbxx_ll_bus.h:1274:22:LL_APB2_GRP1_EnableClock	1
 ../Drivers/STM32WBxx_HAL_Driver/Inc/stm32wbxx_ll_bus.h:1328:22:LL_APB2_GRP1_DisableClock	1
 ../Core/Src/stm32wbxx_hal_msp.c:63:6:HAL_MspInit	1
-../Core/Src/stm32wbxx_hal_msp.c:83:6:HAL_SPI_MspInit	2
-../Core/Src/stm32wbxx_hal_msp.c:124:6:HAL_SPI_MspDeInit	2
+../Core/Src/stm32wbxx_hal_msp.c:85:6:HAL_SPI_MspInit	2
+../Core/Src/stm32wbxx_hal_msp.c:126:6:HAL_SPI_MspDeInit	2

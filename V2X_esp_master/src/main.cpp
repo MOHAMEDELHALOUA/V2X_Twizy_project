@@ -10,6 +10,7 @@
 #include "driver/spi_master.h"
 #include "esp_log.h"
 #include "driver/gpio.h"
+#include "freertos/queue.h"
 
 // SPI Pins
 #define GPIO_MOSI 23
@@ -30,17 +31,24 @@ typedef struct {
 } Item;
 
 Item incomingReadings;
+QueueHandle_t dataQueue;
 
 //function initializatio:
 void send_to_stm32_via_spi(Item* data);
 void OnDataRecv(const esp_now_recv_info_t *recv_info, const uint8_t *incomingData, int len);
 esp_err_t init_esp_now(void);
 esp_err_t init_spi(void);
+void spi_tx_task(void *pvParameters);
 extern "C" void app_main(void);
 
 // Main application
 void app_main(void) {
-    esp_err_t ret;
+  dataQueue = xQueueCreate(10, sizeof(Item)); // Store up to 10 items
+  if (dataQueue == NULL) {
+      ESP_LOGE(TAG, "Failed to create queue");
+      return;
+  }
+  esp_err_t ret;
 
     // Initialize NVS
     ret = nvs_flash_init();
@@ -70,13 +78,22 @@ void app_main(void) {
     }
     
     ESP_LOGI(TAG, "ESP32 Bridge ready - waiting for ESP-NOW data...");
-    
+
+    //Create task to send data via spi to stm32
+    xTaskCreate(spi_tx_task, "SPI_TX_TASK", 4096, NULL, 5, NULL);
     // Main loop - just keep the system running
     while (1) {
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
-
+void spi_tx_task(void *pvParameters) {
+    Item item;
+    while (1) {
+        if (xQueueReceive(dataQueue, &item, portMAX_DELAY) == pdTRUE) {
+            send_to_stm32_via_spi(&item);
+        }
+    }
+}
 // Function to send data to STM32 via SPI
 void send_to_stm32_via_spi(Item* data) {
     esp_err_t ret;
@@ -112,22 +129,36 @@ void send_to_stm32_via_spi(Item* data) {
     } else {
         ESP_LOGE(TAG, "Failed to send data to STM32: %s", esp_err_to_name(ret));
     }
-    vTaskDelay(pdMS_TO_TICKS(10)); // optional safety delay
+    vTaskDelay(pdMS_TO_TICKS(0)); // optional safety delay
 }
 // ESP-NOW receive callback
 void OnDataRecv(const esp_now_recv_info_t *recv_info, const uint8_t *incomingData, int len) {
-    // Copy received data
-    memcpy(&incomingReadings, incomingData, sizeof(incomingReadings));
-    
-    // Access MAC address from recv_info structure
-    ESP_LOGI(TAG, "Received ESP-NOW data from MAC: %02X:%02X:%02X:%02X:%02X:%02X", 
-             recv_info->src_addr[0], recv_info->src_addr[1], recv_info->src_addr[2], 
-             recv_info->src_addr[3], recv_info->src_addr[4], recv_info->src_addr[5]);
-    ESP_LOGI(TAG, "Value received: %u", incomingReadings.value);
-    
-    // Send received data to STM32 via SPI
-    send_to_stm32_via_spi(&incomingReadings);
+    Item item;
+    memcpy(&item, incomingData, sizeof(Item));
+    memcpy(item.MacAddress, recv_info->src_addr, 6); // Ensure MAC is correct
+
+    if (xQueueSend(dataQueue, &item, portMAX_DELAY) != pdTRUE) {
+        ESP_LOGW(TAG, "Queue full, dropping packet");
+    } else {
+        ESP_LOGI(TAG, "Queued item from MAC %02X:%02X:%02X:%02X:%02X:%02X, value %u",
+                 item.MacAddress[0], item.MacAddress[1], item.MacAddress[2],
+                 item.MacAddress[3], item.MacAddress[4], item.MacAddress[5],
+                 item.value);
+    }
 }
+//void OnDataRecv(const esp_now_recv_info_t *recv_info, const uint8_t *incomingData, int len) {
+//    // Copy received data
+//    memcpy(&incomingReadings, incomingData, sizeof(incomingReadings));
+//    
+//    // Access MAC address from recv_info structure
+//    ESP_LOGI(TAG, "Received ESP-NOW data from MAC: %02X:%02X:%02X:%02X:%02X:%02X", 
+//             recv_info->src_addr[0], recv_info->src_addr[1], recv_info->src_addr[2], 
+//             recv_info->src_addr[3], recv_info->src_addr[4], recv_info->src_addr[5]);
+//    ESP_LOGI(TAG, "Value received: %u", incomingReadings.value);
+//    
+//    // Send received data to STM32 via SPI
+//    send_to_stm32_via_spi(&incomingReadings);
+//}
 
 // Initialize ESP-NOW
 esp_err_t init_esp_now(void) {

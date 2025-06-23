@@ -18,26 +18,25 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "cmsis_os.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
 #include <string.h>
+#include "queue.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -46,8 +45,28 @@ COM_InitTypeDef BspCOMInit;
 
 SPI_HandleTypeDef hspi1;
 
+/* Definitions for SenderTask */
+osThreadId_t SenderTaskHandle;
+const osThreadAttr_t SenderTask_attributes = {
+  .name = "SenderTask",
+  .priority = (osPriority_t) osPriorityNormal,
+  .stack_size = 128 * 4
+};
+/* Definitions for TskSPI */
+osThreadId_t TskSPIHandle;
+const osThreadAttr_t TskSPI_attributes = {
+  .name = "TskSPI",
+  .priority = (osPriority_t) osPriorityHigh,
+  .stack_size = 128 * 4
+};
+/* Definitions for TskQueueCtrl */
+osThreadId_t TskQueueCtrlHandle;
+const osThreadAttr_t TskQueueCtrl_attributes = {
+  .name = "TskQueueCtrl",
+  .priority = (osPriority_t) osPriorityHigh,
+  .stack_size = 128 * 4
+};
 /* USER CODE BEGIN PV */
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -55,8 +74,11 @@ void SystemClock_Config(void);
 void PeriphCommonClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_SPI1_Init(void);
-/* USER CODE BEGIN PFP */
+void StartSenderTask(void *argument);
+void StartTskSPI(void *argument);
+void StartTskQueueCtl(void *argument);
 
+/* USER CODE BEGIN PFP */
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -66,39 +88,23 @@ typedef struct __attribute__((packed)){
 	uint8_t MacAddress[6];
 }Item;
 
-volatile uint32_t last_received_time = 0;
-#define SPI_TIMEOUT_MS 1000  // 1 second timeout
-
+#define SPI_TIMEOUT_MS 1000
 volatile Item receivedData;
-volatile uint8_t spi_rx_buffer[sizeof(Item)]={0};
-volatile uint8_t data_received_flag=0;
-uint8_t i = 0;
-extern SPI_HandleTypeDef hspi1;
-volatile uint8_t spi_reception_active = 0;
 uint32_t spi_timeout_counter = 0;
-// Function to safely restart SPI reception
-void RestartSPIReception(void) {
-    if (!spi_reception_active) {
-        spi_reception_active = 1;
-        HAL_StatusTypeDef status = HAL_SPI_Receive_IT(&hspi1, (uint8_t *)&receivedData, sizeof(Item));
-        if (status != HAL_OK) {
-            printf("SPI Restart Error: %d\n", status);
-            spi_reception_active = 0;
-        }
-    }
-}
+
 // Function to validate received data
 uint8_t ValidateReceivedData(Item *data) {
-    // Basic validation - check if MAC address is not all zeros
-    uint8_t mac_valid = 0;
     for (int i = 0; i < 6; i++) {
         if (data->MacAddress[i] != 0) {
-            mac_valid = 1;
-            break;
+            return 1;
         }
     }
-    return mac_valid;
+    return 0;
 }
+
+//Define the queue:
+xQueueHandle SPIQueue;
+
 /* USER CODE END 0 */
 
 /**
@@ -117,7 +123,6 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -127,24 +132,50 @@ int main(void)
   PeriphCommonClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
-  /* Send or receive something to the ESP32*/
-  printf("STM32 will start receiving data via SPI...");
-//  spi_reception_active = 1;
-//  HAL_StatusTypeDef spi_status = HAL_SPI_Receive_IT(&hspi1, (uint8_t *)&receivedData, sizeof(Item));
-//  if (spi_status != HAL_OK) {
-//      printf("Initial SPI setup failed: %d\n", spi_status);
-//      spi_reception_active = 0;
-//  }
 
-
+  printf("STM32 will start receiving data via SPI...\n");
   /* USER CODE END 2 */
+
+  /* Init scheduler */
+  osKernelInitialize();
+
+  /* USER CODE BEGIN RTOS_MUTEX */
+  /* USER CODE END RTOS_MUTEX */
+
+  /* USER CODE BEGIN RTOS_SEMAPHORES */
+  /* USER CODE END RTOS_SEMAPHORES */
+
+  /* USER CODE BEGIN RTOS_TIMERS */
+  /* USER CODE END RTOS_TIMERS */
+
+  /* USER CODE BEGIN RTOS_QUEUES */
+  SPIQueue = xQueueCreate(8, sizeof(Item));
+  if (SPIQueue == NULL) {
+      Error_Handler(); // Handle queue creation failure
+  }
+  /* USER CODE END RTOS_QUEUES */
+
+  /* Create the thread(s) */
+  /* creation of SenderTask */
+  SenderTaskHandle = osThreadNew(StartSenderTask, NULL, &SenderTask_attributes);
+
+  /* creation of TskSPI */
+  TskSPIHandle = osThreadNew(StartTskSPI, NULL, &TskSPI_attributes);
+
+  /* creation of TskQueueCtrl */
+  TskQueueCtrlHandle = osThreadNew(StartTskQueueCtl, NULL, &TskQueueCtrl_attributes);
+
+  /* USER CODE BEGIN RTOS_THREADS */
+  /* USER CODE END RTOS_THREADS */
+
+  /* USER CODE BEGIN RTOS_EVENTS */
+  /* USER CODE END RTOS_EVENTS */
 
   /* Initialize leds */
   BSP_LED_Init(LED_BLUE);
@@ -162,6 +193,11 @@ int main(void)
     Error_Handler();
   }
 
+  /* Start scheduler */
+  osKernelStart();
+
+  /* We should never get here as control is now taken by the scheduler */
+
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
@@ -169,53 +205,6 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	// Try to receive data with timeout
-	HAL_StatusTypeDef status = HAL_SPI_Receive(&hspi1, (uint8_t *)&receivedData, sizeof(Item), 1000);
-
-	if (status == HAL_OK) {
-		// Reset timeout counter on success
-		spi_timeout_counter = 0;
-
-		// Check if MAC address is valid (not all zeros)
-		uint8_t mac_valid = 0;
-		for (int i = 0; i < 6; i++) {
-			if (receivedData.MacAddress[i] != 0) {
-				mac_valid = 1;
-				break;
-			}
-		}
-
-		if (mac_valid) {
-			printf("SPI OK - Received: %u, MAC: %02X:%02X:%02X:%02X:%02X:%02X\n",
-				receivedData.value,
-				receivedData.MacAddress[0], receivedData.MacAddress[1],
-				receivedData.MacAddress[2], receivedData.MacAddress[3],
-				receivedData.MacAddress[4], receivedData.MacAddress[5]);
-		} else {
-			printf("SPI Warning - Received data with invalid MAC\n");
-		}
-	}
-	else if (status == HAL_TIMEOUT) {
-		// Timeout is normal when no data is being sent
-		spi_timeout_counter++;
-		if (spi_timeout_counter % 10 == 0) {  // Print every 10 seconds
-			printf("SPI Waiting for data... (%lu)\n", spi_timeout_counter);
-		}
-	}
-	else {
-		// Handle other errors
-		printf("SPI Error: %d, resetting...\n", status);
-
-		// Reset SPI peripheral
-		HAL_SPI_DeInit(&hspi1);
-		HAL_Delay(10);
-		MX_SPI1_Init();
-
-		spi_timeout_counter = 0;
-	}
-
-	// Small delay to prevent overwhelming the system
-	HAL_Delay(10);
   }
   /* USER CODE END 3 */
 }
@@ -285,7 +274,6 @@ void PeriphCommonClock_Config(void)
     Error_Handler();
   }
   /* USER CODE BEGIN Smps */
-
   /* USER CODE END Smps */
 }
 
@@ -298,11 +286,9 @@ static void MX_SPI1_Init(void)
 {
 
   /* USER CODE BEGIN SPI1_Init 0 */
-
   /* USER CODE END SPI1_Init 0 */
 
   /* USER CODE BEGIN SPI1_Init 1 */
-
   /* USER CODE END SPI1_Init 1 */
   /* SPI1 parameter configuration*/
   hspi1.Instance = SPI1;
@@ -323,7 +309,6 @@ static void MX_SPI1_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN SPI1_Init 2 */
-
   /* USER CODE END SPI1_Init 2 */
 
 }
@@ -337,7 +322,6 @@ static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
   /* USER CODE BEGIN MX_GPIO_Init_1 */
-
   /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
@@ -373,7 +357,6 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
-
   /* USER CODE END MX_GPIO_Init_2 */
 }
 
@@ -382,38 +365,127 @@ int _write(int file, char *ptr, int len)
 {
   (void)file;
   int DataIdx;
-
   for (DataIdx = 0; DataIdx < len; DataIdx++)
   {
     ITM_SendChar(*ptr++);
   }
   return len;
 }
-void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
-    if (hspi->Instance == SPI1) {
-        spi_reception_active = 0;
-        last_received_time = HAL_GetTick();
+/* USER CODE END 4 */
 
-        // Validate received data
-        if (ValidateReceivedData((Item*)&receivedData)) {
-            printf("SPI OK - Received: %u, MAC: %02X:%02X:%02X:%02X:%02X:%02X\n",
-                receivedData.value,
-                receivedData.MacAddress[0], receivedData.MacAddress[1],
-                receivedData.MacAddress[2], receivedData.MacAddress[3],
-                receivedData.MacAddress[4], receivedData.MacAddress[5]);
-
-            data_received_flag = 1;
-            HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
-        } else {
-            printf("SPI Error - Invalid data received\n");
-        }
-
-        // Add delay before restarting reception
-        // Don't restart immediately - let main loop handle it
-    }
+/* USER CODE BEGIN Header_StartSenderTask */
+/**
+  * @brief  Function implementing the SenderTask thread.
+  * @param  argument: Not used
+  * @retval None
+  */
+/* USER CODE END Header_StartSenderTask */
+void StartSenderTask(void *argument)
+{
+  /* USER CODE BEGIN 5 */
+	int i = 0;
+  /* Infinite loop */
+  for(;;)
+  {
+	printf("i : %d\n",i++);
+    osDelay(10);
+  }
+  /* USER CODE END 5 */
 }
 
-/* USER CODE END 4 */
+/* USER CODE BEGIN Header_StartTskSPI */
+/**
+* @brief Function implementing the TskSPI thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartTskSPI */
+void StartTskSPI(void *argument)
+{
+  /* USER CODE BEGIN StartTskSPI */
+  /* Infinite loop */
+  for(;;)
+  {
+		HAL_StatusTypeDef status = HAL_SPI_Receive(&hspi1, (uint8_t *)&receivedData, sizeof(Item), 1000);
+		if (status == HAL_OK) {
+			BSP_LED_Toggle(LED_BLUE);
+			osDelay(20);
+			spi_timeout_counter = 0;
+			if (ValidateReceivedData((Item*)&receivedData)) {
+				xQueueSend(SPIQueue, &receivedData, 0);
+			} else {
+				printf("SPI Warning - Received corrupted data with invalid MAC\n");
+			}
+		}
+		else if (status == HAL_TIMEOUT) {
+			spi_timeout_counter++;
+			if (spi_timeout_counter % 10 == 0) {
+				printf("SPI Waiting for data... (%lu)\n", spi_timeout_counter);
+			}
+		}
+		else {
+			printf("SPI Error: %d, resetting...\n", status);
+			HAL_SPI_DeInit(&hspi1);
+			osDelay(10);
+			MX_SPI1_Init();
+			spi_timeout_counter = 0;
+		}
+  }
+  /* USER CODE END StartTskSPI */
+}
+
+/* USER CODE BEGIN Header_StartTskQueueCtl */
+/**
+* @brief Function implementing the TskQueueCtrl thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartTskQueueCtl */
+void StartTskQueueCtl(void *argument)
+{
+  /* USER CODE BEGIN StartTskQueueCtl */
+	Item QueueData;
+  /* Infinite loop */
+  for(;;)
+  {
+	if (xQueueReceive(SPIQueue, &QueueData, portMAX_DELAY) != pdTRUE)
+		{
+			printf("Error in Receiving from Queue\n");
+		}
+	else
+	{
+		BSP_LED_Toggle(LED_GREEN);
+		printf("Successfully RECEIVED the queue data \n");
+		printf("SPI OK - Received: %u, MAC: %02X:%02X:%02X:%02X:%02X:%02X\n",
+				QueueData.value,
+				QueueData.MacAddress[0], QueueData.MacAddress[1],
+				QueueData.MacAddress[2], QueueData.MacAddress[3],
+				QueueData.MacAddress[4], QueueData.MacAddress[5]);
+	}
+  }
+  osDelay(20);
+  /* USER CODE END StartTskQueueCtl */
+}
+
+/**
+  * @brief  Period elapsed callback in non blocking mode
+  * @note   This function is called  when TIM2 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param  htim : TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  /* USER CODE BEGIN Callback 0 */
+  /* USER CODE END Callback 0 */
+  if (htim->Instance == TIM2)
+  {
+    HAL_IncTick();
+  }
+  /* USER CODE BEGIN Callback 1 */
+  /* USER CODE END Callback 1 */
+}
 
 /**
   * @brief  This function is executed in case of error occurrence.

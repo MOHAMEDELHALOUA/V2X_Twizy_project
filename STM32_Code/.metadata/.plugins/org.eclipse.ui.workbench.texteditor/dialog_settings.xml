@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<item key="hasShownOverlayPopupBefore" value="true"/>
+	<item key="replaceBarOpen" value="false"/>
+	<list key="searchhistory">
+		<item value="GPIO_pin"/>
+		<item value="GPIO_PIN_4"/>
+		<item value="hspi1.Init.DataSize"/>
+		<item value="Read_ESP32_Data"/>
+		<item value="GPIO"/>
+		<item value="Master"/>
+		<item value="MX_SPI1_Init"/>
+		<item value="SPI_Slave_Init"/>
+	</list>
+</section>
