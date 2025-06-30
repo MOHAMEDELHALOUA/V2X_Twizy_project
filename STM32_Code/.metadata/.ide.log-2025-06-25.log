@@ -1,0 +1,287 @@
+2025-06-26 08:57:16,393 [INFO] WebApp:194 - Connection lost
+2025-06-26 09:00:47,626 [INFO] WebApp:191 - Connection restablished
+2025-06-26 09:16:11,318 [INFO] NvicIntPanel:101 - NVIC parent = com.st.microxplorer.plugins.ip.nvic.MultiNvicIntPanel[,0,0,450x142,layout=javax.swing.BoxLayout,alignmentX=0.0,alignmentY=0.0,border=,flags=9,maximumSize=,minimumSize=,preferredSize=]
+2025-06-26 09:16:15,531 [INFO] UtilMem:75 - End SaveConfig() Used Memory: 535959944 Bytes (993001472)
+2025-06-26 09:16:15,811 [INFO] UtilMem:75 - End SaveConfig() Used Memory: 552214920 Bytes (993001472)
+2025-06-26 09:16:16,781 [ERROR] IocParser:95 - Exception caught: Cannot invoke "java.lang.CharSequence.length()" because "this.text" is null
+2025-06-26 09:16:17,844 [INFO] UtilMem:75 - End SaveConfig() Used Memory: 643441032 Bytes (993001472)
+2025-06-26 09:16:18,476 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: SPI
+2025-06-26 09:16:18,477 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: NVIC
+2025-06-26 09:16:18,477 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: MEMORYMAP
+2025-06-26 09:16:18,477 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: NUCLEO-WB55RG
+2025-06-26 09:16:18,478 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: SYS
+2025-06-26 09:16:18,479 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: GPIO
+2025-06-26 09:16:18,480 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: RCC
+2025-06-26 09:16:18,493 [INFO] CodeGenerator:882 - code generatio: config db path: /opt/st/stm32cubeide_1.18.0/plugins/com.st.stm32cube.common.mx_6.14.0.202502271554//db/
+2025-06-26 09:16:18,618 [ERROR] IocParser:95 - Exception caught: Cannot invoke "java.lang.CharSequence.length()" because "this.text" is null
+2025-06-26 09:16:18,757 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/license.tmp_save
+2025-06-26 09:16:19,184 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/license.tmp
+2025-06-26 09:16:19,237 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/gpio.tmp_save
+2025-06-26 09:16:19,491 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/gpio.tmp
+2025-06-26 09:16:19,494 [WARN] IPConfigManager:103 - WARNING: Missing Config File for MEMORYMAP ip!!
+2025-06-26 09:16:19,495 [WARN] IP:2250 - DefaultDataRegion not found: check if there is a RefParameter without a condition.
+2025-06-26 09:16:19,756 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/stm32wbxx_nucleo_conf.h_save
+2025-06-26 09:16:19,956 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/stm32wbxx_nucleo_conf.h
+2025-06-26 09:16:19,957 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_inc.tmp_save
+2025-06-26 09:16:20,073 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_inc.tmp
+2025-06-26 09:16:20,074 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_vars.tmp_save
+2025-06-26 09:16:20,198 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_vars.tmp
+2025-06-26 09:16:20,200 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_init.tmp_save
+2025-06-26 09:16:20,310 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_init.tmp
+2025-06-26 09:16:20,311 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_demo_before_while.tmp_save
+2025-06-26 09:16:20,420 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_demo_before_while.tmp
+2025-06-26 09:16:20,421 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_demo_inside_while.tmp_save
+2025-06-26 09:16:20,553 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_demo_inside_while.tmp
+2025-06-26 09:16:20,556 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_demo_fct.tmp_save
+2025-06-26 09:16:20,644 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_demo_fct.tmp
+2025-06-26 09:16:20,649 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Src/stm32wbxx_it.c_save
+2025-06-26 09:16:21,082 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Src/stm32wbxx_it.c
+2025-06-26 09:16:21,084 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/stm32wbxx_it.h_save
+2025-06-26 09:16:21,161 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/stm32wbxx_it.h
+2025-06-26 09:16:21,195 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Src/stm32wbxx_hal_msp.c_save
+2025-06-26 09:16:21,335 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Src/stm32wbxx_hal_msp.c
+2025-06-26 09:16:21,337 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/system.tmp_save
+2025-06-26 09:16:21,400 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/system.tmp
+2025-06-26 09:16:21,412 [INFO] CodeEngine:319 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/stm32wbxx_hal_conf.h_save
+2025-06-26 09:16:21,503 [INFO] CodeEngine:343 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/stm32wbxx_hal_conf.h
+2025-06-26 09:16:21,518 [WARN] IPConfigManager:3174 - Warning: the RefConfig RCC_PClockConfig is not available in your config.xml file
+2025-06-26 09:16:21,524 [ERROR] ApiDbMcu:464 - Can't load MEMORYMAP-STM32xx root dir null
+2025-06-26 09:16:21,524 [ERROR] ApiDbMcu:536 - Cannot parse MEMORYMAP_Config file : file do not exist
+2025-06-26 09:16:21,530 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/main.h_save
+2025-06-26 09:16:21,693 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/main.h
+2025-06-26 09:16:21,695 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Src/main.c_save
+2025-06-26 09:16:21,826 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Src/main.c
+2025-06-26 09:16:22,742 [INFO] ProjectBuilder:3324 - Time for Copy HAL[1] : 300mS.
+2025-06-26 09:16:22,745 [INFO] ProjectBuilder:4912 - Project Generator version: 4.6.0-B36
+2025-06-26 09:16:22,902 [INFO] ConfigFileManager:1590 - The Die is : DIE495
+2025-06-26 09:16:24,468 [INFO] ProjectBuilder:5191 - Time for Generating toolchain IDE Files: 1723mS.
+2025-06-26 09:16:24,470 [INFO] ProjectBuilder:3181 - Time for Copy CMSIS : 0mS.
+2025-06-26 09:16:24,471 [INFO] ProjectBuilder:3181 - Time for Copy CMSIS : 0mS.
+2025-06-26 09:45:39,735 [INFO] NvicIntPanel:101 - NVIC parent = com.st.microxplorer.plugins.ip.nvic.MultiNvicIntPanel[,0,0,0x0,invalid,layout=javax.swing.BoxLayout,alignmentX=0.0,alignmentY=0.0,border=,flags=9,maximumSize=,minimumSize=,preferredSize=]
+2025-06-26 09:45:54,668 [INFO] UtilMem:75 - End SaveConfig() Used Memory: 738407832 Bytes (993001472)
+2025-06-26 09:45:54,978 [INFO] UtilMem:75 - End SaveConfig() Used Memory: 754434944 Bytes (993001472)
+2025-06-26 09:45:56,006 [ERROR] IocParser:95 - Exception caught: Cannot invoke "java.lang.CharSequence.length()" because "this.text" is null
+2025-06-26 09:45:57,339 [INFO] UtilMem:75 - End SaveConfig() Used Memory: 837571832 Bytes (993001472)
+2025-06-26 09:45:57,628 [ERROR] IocParser:95 - Exception caught: Cannot invoke "java.lang.CharSequence.length()" because "this.text" is null
+2025-06-26 09:45:58,028 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: SPI
+2025-06-26 09:45:58,028 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: NVIC
+2025-06-26 09:45:58,029 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: MEMORYMAP
+2025-06-26 09:45:58,029 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: NUCLEO-WB55RG
+2025-06-26 09:45:58,029 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: SYS
+2025-06-26 09:45:58,030 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: GPIO
+2025-06-26 09:45:58,031 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: RCC
+2025-06-26 09:45:58,031 [INFO] CodeGenerator:882 - code generatio: config db path: /opt/st/stm32cubeide_1.18.0/plugins/com.st.stm32cube.common.mx_6.14.0.202502271554//db/
+2025-06-26 09:45:58,541 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/license.tmp_save
+2025-06-26 09:45:58,973 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/license.tmp
+2025-06-26 09:45:59,120 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/gpio.tmp_save
+2025-06-26 09:45:59,470 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/gpio.tmp
+2025-06-26 09:45:59,471 [WARN] IPConfigManager:103 - WARNING: Missing Config File for MEMORYMAP ip!!
+2025-06-26 09:45:59,473 [WARN] IP:2250 - DefaultDataRegion not found: check if there is a RefParameter without a condition.
+2025-06-26 09:45:59,895 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/stm32wbxx_nucleo_conf.h_save
+2025-06-26 09:46:00,054 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/stm32wbxx_nucleo_conf.h
+2025-06-26 09:46:00,055 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_inc.tmp_save
+2025-06-26 09:46:00,179 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_inc.tmp
+2025-06-26 09:46:00,181 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_vars.tmp_save
+2025-06-26 09:46:00,313 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_vars.tmp
+2025-06-26 09:46:00,315 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_init.tmp_save
+2025-06-26 09:46:00,414 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_init.tmp
+2025-06-26 09:46:00,416 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_demo_before_while.tmp_save
+2025-06-26 09:46:00,491 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_demo_before_while.tmp
+2025-06-26 09:46:00,492 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_demo_inside_while.tmp_save
+2025-06-26 09:46:00,583 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_demo_inside_while.tmp
+2025-06-26 09:46:00,584 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_demo_fct.tmp_save
+2025-06-26 09:46:00,655 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_demo_fct.tmp
+2025-06-26 09:46:00,661 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Src/stm32wbxx_it.c_save
+2025-06-26 09:46:01,011 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Src/stm32wbxx_it.c
+2025-06-26 09:46:01,013 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/stm32wbxx_it.h_save
+2025-06-26 09:46:01,099 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/stm32wbxx_it.h
+2025-06-26 09:46:01,104 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Src/stm32wbxx_hal_msp.c_save
+2025-06-26 09:46:01,236 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Src/stm32wbxx_hal_msp.c
+2025-06-26 09:46:01,238 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/system.tmp_save
+2025-06-26 09:46:01,319 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/system.tmp
+2025-06-26 09:46:01,329 [INFO] CodeEngine:319 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/stm32wbxx_hal_conf.h_save
+2025-06-26 09:46:01,431 [INFO] CodeEngine:343 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/stm32wbxx_hal_conf.h
+2025-06-26 09:46:01,439 [WARN] IPConfigManager:3174 - Warning: the RefConfig RCC_PClockConfig is not available in your config.xml file
+2025-06-26 09:46:01,442 [ERROR] ApiDbMcu:464 - Can't load MEMORYMAP-STM32xx root dir null
+2025-06-26 09:46:01,442 [ERROR] ApiDbMcu:536 - Cannot parse MEMORYMAP_Config file : file do not exist
+2025-06-26 09:46:01,446 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/main.h_save
+2025-06-26 09:46:01,536 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/main.h
+2025-06-26 09:46:01,538 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Src/main.c_save
+2025-06-26 09:46:01,671 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Src/main.c
+2025-06-26 09:46:01,887 [INFO] ProjectBuilder:3324 - Time for Copy HAL[1] : 23mS.
+2025-06-26 09:46:01,888 [INFO] ProjectBuilder:4912 - Project Generator version: 4.6.0-B36
+2025-06-26 09:46:01,993 [INFO] ConfigFileManager:1590 - The Die is : DIE495
+2025-06-26 09:46:03,681 [INFO] ProjectBuilder:5191 - Time for Generating toolchain IDE Files: 1793mS.
+2025-06-26 09:46:03,682 [INFO] ProjectBuilder:3181 - Time for Copy CMSIS : 0mS.
+2025-06-26 09:46:03,683 [INFO] ProjectBuilder:3181 - Time for Copy CMSIS : 0mS.
+2025-06-26 10:26:16,195 [INFO] NvicIntPanel:101 - NVIC parent = com.st.microxplorer.plugins.ip.nvic.MultiNvicIntPanel[,0,0,0x0,invalid,layout=javax.swing.BoxLayout,alignmentX=0.0,alignmentY=0.0,border=,flags=9,maximumSize=,minimumSize=,preferredSize=]
+2025-06-26 10:26:16,449 [INFO] NvicIntPanel:101 - NVIC parent = com.st.microxplorer.plugins.ip.nvic.MultiNvicIntPanel[,0,0,0x0,invalid,layout=javax.swing.BoxLayout,alignmentX=0.0,alignmentY=0.0,border=,flags=9,maximumSize=,minimumSize=,preferredSize=]
+2025-06-26 10:26:16,724 [INFO] NvicIntPanel:101 - NVIC parent = com.st.microxplorer.plugins.ip.nvic.MultiNvicIntPanel[,0,0,0x0,invalid,layout=javax.swing.BoxLayout,alignmentX=0.0,alignmentY=0.0,border=,flags=9,maximumSize=,minimumSize=,preferredSize=]
+2025-06-26 10:26:18,687 [INFO] UtilMem:75 - End SaveConfig() Used Memory: 759144440 Bytes (1073741824)
+2025-06-26 10:26:18,944 [INFO] UtilMem:75 - End SaveConfig() Used Memory: 783679920 Bytes (1073741824)
+2025-06-26 10:26:20,788 [ERROR] IocParser:95 - Exception caught: Cannot invoke "java.lang.CharSequence.length()" because "this.text" is null
+2025-06-26 10:26:21,361 [INFO] UtilMem:75 - End SaveConfig() Used Memory: 923140528 Bytes (1073741824)
+2025-06-26 10:26:21,756 [ERROR] IocParser:95 - Exception caught: Cannot invoke "java.lang.CharSequence.length()" because "this.text" is null
+2025-06-26 10:26:21,942 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: SPI
+2025-06-26 10:26:21,942 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: NVIC
+2025-06-26 10:26:21,942 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: MEMORYMAP
+2025-06-26 10:26:21,943 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: NUCLEO-WB55RG
+2025-06-26 10:26:21,943 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: SYS
+2025-06-26 10:26:21,944 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: GPIO
+2025-06-26 10:26:21,944 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: RCC
+2025-06-26 10:26:21,952 [INFO] CodeGenerator:882 - code generatio: config db path: /opt/st/stm32cubeide_1.18.0/plugins/com.st.stm32cube.common.mx_6.14.0.202502271554//db/
+2025-06-26 10:26:22,088 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/license.tmp_save
+2025-06-26 10:26:22,476 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/license.tmp
+2025-06-26 10:26:22,535 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/gpio.tmp_save
+2025-06-26 10:26:22,782 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/gpio.tmp
+2025-06-26 10:26:22,784 [WARN] IPConfigManager:103 - WARNING: Missing Config File for MEMORYMAP ip!!
+2025-06-26 10:26:22,786 [WARN] IP:2250 - DefaultDataRegion not found: check if there is a RefParameter without a condition.
+2025-06-26 10:26:23,097 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/stm32wbxx_nucleo_conf.h_save
+2025-06-26 10:26:23,248 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/stm32wbxx_nucleo_conf.h
+2025-06-26 10:26:23,250 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_inc.tmp_save
+2025-06-26 10:26:23,391 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_inc.tmp
+2025-06-26 10:26:23,393 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_vars.tmp_save
+2025-06-26 10:26:23,536 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_vars.tmp
+2025-06-26 10:26:23,538 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_init.tmp_save
+2025-06-26 10:26:23,649 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_init.tmp
+2025-06-26 10:26:23,651 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_demo_before_while.tmp_save
+2025-06-26 10:26:23,760 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_demo_before_while.tmp
+2025-06-26 10:26:23,762 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_demo_inside_while.tmp_save
+2025-06-26 10:26:23,870 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_demo_inside_while.tmp
+2025-06-26 10:26:23,872 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_demo_fct.tmp_save
+2025-06-26 10:26:23,959 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_demo_fct.tmp
+2025-06-26 10:26:24,064 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Src/stm32wbxx_it.c_save
+2025-06-26 10:26:24,378 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Src/stm32wbxx_it.c
+2025-06-26 10:26:24,381 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/stm32wbxx_it.h_save
+2025-06-26 10:26:24,448 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/stm32wbxx_it.h
+2025-06-26 10:26:24,455 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Src/stm32wbxx_hal_msp.c_save
+2025-06-26 10:26:24,604 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Src/stm32wbxx_hal_msp.c
+2025-06-26 10:26:24,612 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/system.tmp_save
+2025-06-26 10:26:24,693 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/system.tmp
+2025-06-26 10:26:24,709 [INFO] CodeEngine:319 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/stm32wbxx_hal_conf.h_save
+2025-06-26 10:26:24,860 [INFO] CodeEngine:343 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/stm32wbxx_hal_conf.h
+2025-06-26 10:26:24,907 [WARN] IPConfigManager:3174 - Warning: the RefConfig RCC_PClockConfig is not available in your config.xml file
+2025-06-26 10:26:24,911 [ERROR] ApiDbMcu:464 - Can't load MEMORYMAP-STM32xx root dir null
+2025-06-26 10:26:24,911 [ERROR] ApiDbMcu:536 - Cannot parse MEMORYMAP_Config file : file do not exist
+2025-06-26 10:26:24,918 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/main.h_save
+2025-06-26 10:26:25,022 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/main.h
+2025-06-26 10:26:25,024 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Src/main.c_save
+2025-06-26 10:26:25,200 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Src/main.c
+2025-06-26 10:26:25,790 [INFO] ProjectBuilder:3324 - Time for Copy HAL[1] : 224mS.
+2025-06-26 10:26:25,793 [INFO] ProjectBuilder:4912 - Project Generator version: 4.6.0-B36
+2025-06-26 10:26:25,949 [INFO] ConfigFileManager:1590 - The Die is : DIE495
+2025-06-26 10:26:27,490 [INFO] ProjectBuilder:5191 - Time for Generating toolchain IDE Files: 1697mS.
+2025-06-26 10:26:27,491 [INFO] ProjectBuilder:3181 - Time for Copy CMSIS : 0mS.
+2025-06-26 10:26:27,492 [INFO] ProjectBuilder:3181 - Time for Copy CMSIS : 0mS.
+2025-06-26 10:27:36,706 [INFO] NvicIntPanel:101 - NVIC parent = com.st.microxplorer.plugins.ip.nvic.MultiNvicIntPanel[,0,0,0x0,invalid,layout=javax.swing.BoxLayout,alignmentX=0.0,alignmentY=0.0,border=,flags=9,maximumSize=,minimumSize=,preferredSize=]
+2025-06-26 10:27:37,752 [INFO] UtilMem:75 - End SaveConfig() Used Memory: 887472272 Bytes (1073741824)
+2025-06-26 10:27:37,870 [INFO] UtilMem:75 - End SaveConfig() Used Memory: 903123576 Bytes (1073741824)
+2025-06-26 10:27:39,510 [ERROR] IocParser:95 - Exception caught: Cannot invoke "java.lang.CharSequence.length()" because "this.text" is null
+2025-06-26 10:27:39,992 [INFO] UtilMem:75 - End SaveConfig() Used Memory: 861671280 Bytes (1073741824)
+2025-06-26 10:27:40,127 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: SPI
+2025-06-26 10:27:40,127 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: NVIC
+2025-06-26 10:27:40,127 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: MEMORYMAP
+2025-06-26 10:27:40,128 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: NUCLEO-WB55RG
+2025-06-26 10:27:40,128 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: SYS
+2025-06-26 10:27:40,128 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: GPIO
+2025-06-26 10:27:40,129 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: RCC
+2025-06-26 10:27:40,130 [INFO] CodeGenerator:882 - code generatio: config db path: /opt/st/stm32cubeide_1.18.0/plugins/com.st.stm32cube.common.mx_6.14.0.202502271554//db/
+2025-06-26 10:27:40,231 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/license.tmp_save
+2025-06-26 10:27:40,372 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/license.tmp
+2025-06-26 10:27:40,439 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/gpio.tmp_save
+2025-06-26 10:27:40,517 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/gpio.tmp
+2025-06-26 10:27:40,518 [WARN] IPConfigManager:103 - WARNING: Missing Config File for MEMORYMAP ip!!
+2025-06-26 10:27:40,519 [WARN] IP:2250 - DefaultDataRegion not found: check if there is a RefParameter without a condition.
+2025-06-26 10:27:40,620 [ERROR] IocParser:95 - Exception caught: Cannot invoke "java.lang.CharSequence.length()" because "this.text" is null
+2025-06-26 10:27:40,693 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/stm32wbxx_nucleo_conf.h_save
+2025-06-26 10:27:40,795 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/stm32wbxx_nucleo_conf.h
+2025-06-26 10:27:40,799 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_inc.tmp_save
+2025-06-26 10:27:40,871 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_inc.tmp
+2025-06-26 10:27:40,872 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_vars.tmp_save
+2025-06-26 10:27:40,939 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_vars.tmp
+2025-06-26 10:27:40,940 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_init.tmp_save
+2025-06-26 10:27:41,003 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_init.tmp
+2025-06-26 10:27:41,004 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_demo_before_while.tmp_save
+2025-06-26 10:27:41,074 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_demo_before_while.tmp
+2025-06-26 10:27:41,075 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_demo_inside_while.tmp_save
+2025-06-26 10:27:41,135 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_demo_inside_while.tmp
+2025-06-26 10:27:41,137 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_demo_fct.tmp_save
+2025-06-26 10:27:41,190 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_demo_fct.tmp
+2025-06-26 10:27:41,196 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Src/stm32wbxx_it.c_save
+2025-06-26 10:27:41,336 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Src/stm32wbxx_it.c
+2025-06-26 10:27:41,338 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/stm32wbxx_it.h_save
+2025-06-26 10:27:41,423 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/stm32wbxx_it.h
+2025-06-26 10:27:41,427 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Src/stm32wbxx_hal_msp.c_save
+2025-06-26 10:27:41,517 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Src/stm32wbxx_hal_msp.c
+2025-06-26 10:27:41,518 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/system.tmp_save
+2025-06-26 10:27:41,570 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/system.tmp
+2025-06-26 10:27:41,572 [INFO] CodeEngine:319 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/stm32wbxx_hal_conf.h_save
+2025-06-26 10:27:41,637 [INFO] CodeEngine:343 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/stm32wbxx_hal_conf.h
+2025-06-26 10:27:41,642 [WARN] IPConfigManager:3174 - Warning: the RefConfig RCC_PClockConfig is not available in your config.xml file
+2025-06-26 10:27:41,646 [ERROR] ApiDbMcu:464 - Can't load MEMORYMAP-STM32xx root dir null
+2025-06-26 10:27:41,646 [ERROR] ApiDbMcu:536 - Cannot parse MEMORYMAP_Config file : file do not exist
+2025-06-26 10:27:41,650 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/main.h_save
+2025-06-26 10:27:41,713 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/main.h
+2025-06-26 10:27:41,715 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Src/main.c_save
+2025-06-26 10:27:41,814 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Src/main.c
+2025-06-26 10:27:42,009 [INFO] ProjectBuilder:3324 - Time for Copy HAL[1] : 34mS.
+2025-06-26 10:27:42,010 [INFO] ProjectBuilder:4912 - Project Generator version: 4.6.0-B36
+2025-06-26 10:27:42,084 [INFO] ConfigFileManager:1590 - The Die is : DIE495
+2025-06-26 10:27:42,815 [INFO] ProjectBuilder:5191 - Time for Generating toolchain IDE Files: 805mS.
+2025-06-26 10:27:42,816 [INFO] ProjectBuilder:3181 - Time for Copy CMSIS : 0mS.
+2025-06-26 10:27:42,817 [INFO] ProjectBuilder:3181 - Time for Copy CMSIS : 0mS.
+2025-06-26 11:01:31,557 [INFO] UtilMem:75 - End SaveConfig() Used Memory: 378425040 Bytes (1073741824)
+2025-06-26 11:01:31,722 [INFO] UtilMem:75 - End SaveConfig() Used Memory: 394680016 Bytes (1073741824)
+2025-06-26 11:01:33,947 [INFO] UtilMem:75 - End SaveConfig() Used Memory: 473845456 Bytes (1073741824)
+2025-06-26 11:01:34,088 [ERROR] IocParser:95 - Exception caught: null
+2025-06-26 11:01:34,403 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: NVIC
+2025-06-26 11:01:34,404 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: MEMORYMAP
+2025-06-26 11:01:34,404 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: NUCLEO-WB55RG
+2025-06-26 11:01:34,404 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: SYS
+2025-06-26 11:01:34,404 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: GPIO
+2025-06-26 11:01:34,405 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: RCC
+2025-06-26 11:01:34,406 [INFO] CodeGenerator:882 - code generatio: config db path: /opt/st/stm32cubeide_1.18.0/plugins/com.st.stm32cube.common.mx_6.14.0.202502271554//db/
+2025-06-26 11:01:34,565 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/license.tmp_save
+2025-06-26 11:01:34,697 [ERROR] IocParser:95 - Exception caught: null
+2025-06-26 11:01:34,980 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/license.tmp
+2025-06-26 11:01:35,008 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/gpio.tmp_save
+2025-06-26 11:01:35,192 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/gpio.tmp
+2025-06-26 11:01:35,194 [WARN] IPConfigManager:103 - WARNING: Missing Config File for MEMORYMAP ip!!
+2025-06-26 11:01:35,195 [WARN] IP:2250 - DefaultDataRegion not found: check if there is a RefParameter without a condition.
+2025-06-26 11:01:35,258 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/stm32wbxx_nucleo_conf.h_save
+2025-06-26 11:01:35,384 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/stm32wbxx_nucleo_conf.h
+2025-06-26 11:01:35,386 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_inc.tmp_save
+2025-06-26 11:01:35,539 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_inc.tmp
+2025-06-26 11:01:35,541 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_vars.tmp_save
+2025-06-26 11:01:35,703 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_vars.tmp
+2025-06-26 11:01:35,705 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_init.tmp_save
+2025-06-26 11:01:35,855 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_init.tmp
+2025-06-26 11:01:35,856 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_demo_before_while.tmp_save
+2025-06-26 11:01:35,958 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_demo_before_while.tmp
+2025-06-26 11:01:35,959 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_demo_inside_while.tmp_save
+2025-06-26 11:01:36,058 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_demo_inside_while.tmp
+2025-06-26 11:01:36,059 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_demo_fct.tmp_save
+2025-06-26 11:01:36,146 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/bsp_common_demo_fct.tmp
+2025-06-26 11:01:36,150 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Src/stm32wbxx_it.c_save
+2025-06-26 11:01:36,491 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Src/stm32wbxx_it.c
+2025-06-26 11:01:36,493 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/stm32wbxx_it.h_save
+2025-06-26 11:01:36,554 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/stm32wbxx_it.h
+2025-06-26 11:01:36,558 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Src/stm32wbxx_hal_msp.c_save
+2025-06-26 11:01:36,698 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Src/stm32wbxx_hal_msp.c
+2025-06-26 11:01:36,700 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/system.tmp_save
+2025-06-26 11:01:36,782 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/MXTmpFiles/system.tmp
+2025-06-26 11:01:36,792 [INFO] CodeEngine:319 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/stm32wbxx_hal_conf.h_save
+2025-06-26 11:01:36,883 [INFO] CodeEngine:343 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/stm32wbxx_hal_conf.h
+2025-06-26 11:01:36,893 [WARN] IPConfigManager:3174 - Warning: the RefConfig RCC_PClockConfig is not available in your config.xml file
+2025-06-26 11:01:36,898 [ERROR] ApiDbMcu:464 - Can't load MEMORYMAP-STM32xx root dir null
+2025-06-26 11:01:36,898 [ERROR] ApiDbMcu:536 - Cannot parse MEMORYMAP_Config file : file do not exist
+2025-06-26 11:01:36,904 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/main.h_save
+2025-06-26 11:01:37,028 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Inc/main.h
+2025-06-26 11:01:37,029 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Src/main.c_save
+2025-06-26 11:01:37,181 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/V2X_project/STM32_Code/test_stm_esp/Core/Src/main.c
+2025-06-26 11:01:37,410 [INFO] ProjectBuilder:3324 - Time for Copy HAL[1] : 26mS.
+2025-06-26 11:01:37,412 [INFO] ProjectBuilder:4912 - Project Generator version: 4.6.0-B36
+2025-06-26 11:01:37,518 [INFO] ConfigFileManager:1590 - The Die is : DIE495
+2025-06-26 11:01:38,643 [INFO] ProjectBuilder:5191 - Time for Generating toolchain IDE Files: 1231mS.
+2025-06-26 11:01:38,644 [INFO] ProjectBuilder:3181 - Time for Copy CMSIS : 1mS.
+2025-06-26 11:01:38,645 [INFO] ProjectBuilder:3181 - Time for Copy CMSIS : 0mS.

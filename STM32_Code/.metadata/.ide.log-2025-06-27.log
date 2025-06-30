@@ -1,0 +1,452 @@
+2025-06-28 09:11:26,856 [INFO] WebApp:194 - Connection lost
+2025-06-28 09:25:10,305 [INFO] WebApp:191 - Connection restablished
+2025-06-28 10:40:22,314 [INFO] WebApp:194 - Connection lost
+2025-06-28 10:40:28,390 [INFO] WebApp:191 - Connection restablished
+2025-06-28 10:40:30,047 [INFO] WebApp:194 - Connection lost
+2025-06-28 10:40:30,311 [INFO] WebApp:191 - Connection restablished
+2025-06-28 12:11:15,944 [INFO] EditThreadDialog:704 - RAM SIZE (in KB): 256
+2025-06-28 12:11:15,945 [INFO] EditThreadDialog:706 - RAM SIZE (in words): 65536
+2025-06-28 12:11:30,623 [INFO] TasksAndQueuesTab:757 - Dynamic
+2025-06-28 12:11:30,624 [WARN] TasksAndQueuesTab:763 - 128 128
+2025-06-28 12:11:30,625 [WARN] TasksAndQueuesTab:775 - max value is: 768.0
+2025-06-28 12:11:30,625 [INFO] TasksAndQueuesTab:757 - Dynamic
+2025-06-28 12:11:30,626 [WARN] TasksAndQueuesTab:763 - 128 128
+2025-06-28 12:11:30,626 [WARN] TasksAndQueuesTab:775 - max value is: 768.0
+2025-06-28 12:12:25,695 [INFO] EditThreadDialog:704 - RAM SIZE (in KB): 256
+2025-06-28 12:12:25,697 [INFO] EditThreadDialog:706 - RAM SIZE (in words): 65536
+2025-06-28 12:12:27,150 [INFO] EditThreadDialog:704 - RAM SIZE (in KB): 256
+2025-06-28 12:12:27,150 [INFO] EditThreadDialog:706 - RAM SIZE (in words): 65536
+2025-06-28 12:12:37,117 [INFO] TasksAndQueuesTab:757 - Dynamic
+2025-06-28 12:12:37,117 [WARN] TasksAndQueuesTab:763 - 128 128
+2025-06-28 12:12:37,118 [WARN] TasksAndQueuesTab:775 - max value is: 768.0
+2025-06-28 12:12:37,119 [INFO] TasksAndQueuesTab:757 - Dynamic
+2025-06-28 12:12:37,119 [WARN] TasksAndQueuesTab:763 - 128 128
+2025-06-28 12:12:37,119 [WARN] TasksAndQueuesTab:775 - max value is: 768.0
+2025-06-28 12:12:48,674 [INFO] UtilMem:75 - End SaveConfig() Used Memory: 703618136 Bytes (1073741824)
+2025-06-28 12:12:48,879 [INFO] UtilMem:75 - End SaveConfig() Used Memory: 716723288 Bytes (1073741824)
+2025-06-28 12:12:52,310 [ERROR] IocParser:95 - Exception caught: null
+2025-06-28 12:12:52,569 [INFO] UtilMem:75 - End SaveConfig() Used Memory: 894981208 Bytes (1073741824)
+2025-06-28 12:12:53,231 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: NVIC
+2025-06-28 12:12:53,231 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: FREERTOS
+2025-06-28 12:12:53,231 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: MEMORYMAP
+2025-06-28 12:12:53,231 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: NUCLEO-WB55RG
+2025-06-28 12:12:53,231 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: SYS
+2025-06-28 12:12:53,233 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: GPIO
+2025-06-28 12:12:53,233 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: RCC
+2025-06-28 12:12:53,233 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: LPUART
+2025-06-28 12:12:53,234 [INFO] CodeGenerator:882 - code generatio: config db path: /opt/st/stm32cubeide_1.18.0/plugins/com.st.stm32cube.common.mx_6.14.0.202502271554//db/
+2025-06-28 12:12:53,526 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/license.tmp_save
+2025-06-28 12:12:53,844 [ERROR] IocParser:95 - Exception caught: null
+2025-06-28 12:12:54,048 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/license.tmp
+2025-06-28 12:12:54,161 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/gpio.tmp_save
+2025-06-28 12:12:54,330 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/gpio.tmp
+2025-06-28 12:12:54,434 [WARN] IPConfigManager:103 - WARNING: Missing Config File for MEMORYMAP ip!!
+2025-06-28 12:12:54,435 [WARN] IP:2250 - DefaultDataRegion not found: check if there is a RefParameter without a condition.
+2025-06-28 12:12:54,544 [INFO] Middleware:1452 - No code input for Bsp Dependency
+2025-06-28 12:12:54,549 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_inc.tmp_save
+2025-06-28 12:12:54,663 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_inc.tmp
+2025-06-28 12:12:54,664 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_kernelInit.tmp_save
+2025-06-28 12:12:54,777 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_kernelInit.tmp
+2025-06-28 12:12:54,779 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_kernelStart.tmp_save
+2025-06-28 12:12:54,915 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_kernelStart.tmp
+2025-06-28 12:12:54,916 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_typedefs.tmp_save
+2025-06-28 12:12:55,093 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_typedefs.tmp
+2025-06-28 12:12:55,095 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_vars.tmp_save
+2025-06-28 12:12:55,205 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_vars.tmp
+2025-06-28 12:12:55,207 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_pfp.tmp_save
+2025-06-28 12:12:55,300 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_pfp.tmp
+2025-06-28 12:12:55,301 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_obj_creat.tmp_save
+2025-06-28 12:12:55,497 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_obj_creat.tmp
+2025-06-28 12:12:55,509 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_default_thread.tmp_save
+2025-06-28 12:12:55,572 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_default_thread.tmp
+2025-06-28 12:12:55,574 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_threads.tmp_save
+2025-06-28 12:12:55,637 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_threads.tmp
+2025-06-28 12:12:55,648 [INFO] Middleware:1452 - No code input for Bsp Dependency
+2025-06-28 12:12:55,651 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_inc.tmp_save
+2025-06-28 12:12:55,713 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_inc.tmp
+2025-06-28 12:12:55,715 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_kernelInit.tmp_save
+2025-06-28 12:12:55,778 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_kernelInit.tmp
+2025-06-28 12:12:55,781 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_kernelStart.tmp_save
+2025-06-28 12:12:55,875 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_kernelStart.tmp
+2025-06-28 12:12:55,879 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_typedefs.tmp_save
+2025-06-28 12:12:55,969 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_typedefs.tmp
+2025-06-28 12:12:55,971 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_vars.tmp_save
+2025-06-28 12:12:56,037 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_vars.tmp
+2025-06-28 12:12:56,038 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_pfp.tmp_save
+2025-06-28 12:12:56,098 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_pfp.tmp
+2025-06-28 12:12:56,100 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_obj_creat.tmp_save
+2025-06-28 12:12:56,163 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_obj_creat.tmp
+2025-06-28 12:12:56,164 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_default_thread.tmp_save
+2025-06-28 12:12:56,228 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_default_thread.tmp
+2025-06-28 12:12:56,229 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_threads.tmp_save
+2025-06-28 12:12:56,290 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_threads.tmp
+2025-06-28 12:12:56,292 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/FreeRTOSConfig.h_save
+2025-06-28 12:12:56,417 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/FreeRTOSConfig.h
+2025-06-28 12:12:56,419 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/app_freertos.c_save
+2025-06-28 12:12:56,566 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/app_freertos.c
+2025-06-28 12:12:56,625 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/stm32wbxx_nucleo_conf.h_save
+2025-06-28 12:12:56,680 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/stm32wbxx_nucleo_conf.h
+2025-06-28 12:12:56,681 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_inc.tmp_save
+2025-06-28 12:12:56,732 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_inc.tmp
+2025-06-28 12:12:56,734 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_vars.tmp_save
+2025-06-28 12:12:56,781 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_vars.tmp
+2025-06-28 12:12:56,783 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_init.tmp_save
+2025-06-28 12:12:56,845 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_init.tmp
+2025-06-28 12:12:56,846 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_demo_before_while.tmp_save
+2025-06-28 12:12:56,901 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_demo_before_while.tmp
+2025-06-28 12:12:56,902 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_demo_inside_while.tmp_save
+2025-06-28 12:12:56,949 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_demo_inside_while.tmp
+2025-06-28 12:12:56,950 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_demo_fct.tmp_save
+2025-06-28 12:12:56,997 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_demo_fct.tmp
+2025-06-28 12:12:57,003 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/stm32wbxx_it.c_save
+2025-06-28 12:12:57,238 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/stm32wbxx_it.c
+2025-06-28 12:12:57,240 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/stm32wbxx_it.h_save
+2025-06-28 12:12:57,318 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/stm32wbxx_it.h
+2025-06-28 12:12:57,345 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/stm32wbxx_hal_msp.c_save
+2025-06-28 12:12:57,475 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/stm32wbxx_hal_msp.c
+2025-06-28 12:12:57,476 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/system.tmp_save
+2025-06-28 12:12:57,527 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/system.tmp
+2025-06-28 12:12:57,528 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/stm32wbxx_hal_timebase_tim.c_save
+2025-06-28 12:12:57,604 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/stm32wbxx_hal_timebase_tim.c
+2025-06-28 12:12:57,641 [INFO] CodeEngine:319 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/stm32wbxx_hal_conf.h_save
+2025-06-28 12:12:57,728 [INFO] CodeEngine:343 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/stm32wbxx_hal_conf.h
+2025-06-28 12:12:57,737 [WARN] IPConfigManager:3174 - Warning: the RefConfig RCC_PClockConfig is not available in your config.xml file
+2025-06-28 12:12:57,742 [ERROR] ApiDbMcu:464 - Can't load MEMORYMAP-STM32xx root dir null
+2025-06-28 12:12:57,743 [ERROR] ApiDbMcu:536 - Cannot parse MEMORYMAP_Config file : file do not exist
+2025-06-28 12:12:57,748 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/main.h_save
+2025-06-28 12:12:57,861 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/main.h
+2025-06-28 12:12:57,863 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/main.c_save
+2025-06-28 12:12:58,027 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/main.c
+2025-06-28 12:12:58,662 [INFO] ProjectBuilder:3324 - Time for Copy HAL[1] : 261mS.
+2025-06-28 12:12:58,665 [INFO] ProjectBuilder:4912 - Project Generator version: 4.6.0-B36
+2025-06-28 12:12:58,787 [INFO] ConfigFileManager:1590 - The Die is : DIE495
+2025-06-28 12:13:02,142 [INFO] ProjectBuilder:5191 - Time for Generating toolchain IDE Files: 3477mS.
+2025-06-28 12:13:02,142 [INFO] ProjectBuilder:3181 - Time for Copy CMSIS : 0mS.
+2025-06-28 12:13:02,144 [INFO] ProjectBuilder:3181 - Time for Copy CMSIS : 0mS.
+2025-06-28 12:13:35,276 [INFO] UtilMem:75 - End SaveConfig() Used Memory: 906674192 Bytes (1073741824)
+2025-06-28 12:13:35,424 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: NVIC
+2025-06-28 12:13:35,424 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: FREERTOS
+2025-06-28 12:13:35,425 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: MEMORYMAP
+2025-06-28 12:13:35,425 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: NUCLEO-WB55RG
+2025-06-28 12:13:35,425 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: SYS
+2025-06-28 12:13:35,425 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: GPIO
+2025-06-28 12:13:35,426 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: RCC
+2025-06-28 12:13:35,426 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: LPUART
+2025-06-28 12:13:35,426 [INFO] CodeGenerator:882 - code generatio: config db path: /opt/st/stm32cubeide_1.18.0/plugins/com.st.stm32cube.common.mx_6.14.0.202502271554//db/
+2025-06-28 12:13:35,595 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/license.tmp_save
+2025-06-28 12:13:35,788 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/license.tmp
+2025-06-28 12:13:35,822 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/gpio.tmp_save
+2025-06-28 12:13:36,018 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/gpio.tmp
+2025-06-28 12:13:36,111 [WARN] IPConfigManager:103 - WARNING: Missing Config File for MEMORYMAP ip!!
+2025-06-28 12:13:36,112 [WARN] IP:2250 - DefaultDataRegion not found: check if there is a RefParameter without a condition.
+2025-06-28 12:13:36,223 [INFO] Middleware:1452 - No code input for Bsp Dependency
+2025-06-28 12:13:36,228 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_inc.tmp_save
+2025-06-28 12:13:36,409 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_inc.tmp
+2025-06-28 12:13:36,410 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_kernelInit.tmp_save
+2025-06-28 12:13:36,462 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_kernelInit.tmp
+2025-06-28 12:13:36,462 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_kernelStart.tmp_save
+2025-06-28 12:13:36,511 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_kernelStart.tmp
+2025-06-28 12:13:36,512 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_typedefs.tmp_save
+2025-06-28 12:13:36,570 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_typedefs.tmp
+2025-06-28 12:13:36,571 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_vars.tmp_save
+2025-06-28 12:13:36,636 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_vars.tmp
+2025-06-28 12:13:36,637 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_pfp.tmp_save
+2025-06-28 12:13:36,686 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_pfp.tmp
+2025-06-28 12:13:36,687 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_obj_creat.tmp_save
+2025-06-28 12:13:36,743 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_obj_creat.tmp
+2025-06-28 12:13:36,744 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_default_thread.tmp_save
+2025-06-28 12:13:36,791 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_default_thread.tmp
+2025-06-28 12:13:36,792 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_threads.tmp_save
+2025-06-28 12:13:36,839 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_threads.tmp
+2025-06-28 12:13:36,848 [INFO] Middleware:1452 - No code input for Bsp Dependency
+2025-06-28 12:13:36,851 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_inc.tmp_save
+2025-06-28 12:13:36,907 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_inc.tmp
+2025-06-28 12:13:36,908 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_kernelInit.tmp_save
+2025-06-28 12:13:36,958 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_kernelInit.tmp
+2025-06-28 12:13:36,959 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_kernelStart.tmp_save
+2025-06-28 12:13:37,006 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_kernelStart.tmp
+2025-06-28 12:13:37,007 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_typedefs.tmp_save
+2025-06-28 12:13:37,057 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_typedefs.tmp
+2025-06-28 12:13:37,057 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_vars.tmp_save
+2025-06-28 12:13:37,107 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_vars.tmp
+2025-06-28 12:13:37,108 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_pfp.tmp_save
+2025-06-28 12:13:37,156 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_pfp.tmp
+2025-06-28 12:13:37,157 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_obj_creat.tmp_save
+2025-06-28 12:13:37,206 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_obj_creat.tmp
+2025-06-28 12:13:37,207 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_default_thread.tmp_save
+2025-06-28 12:13:37,257 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_default_thread.tmp
+2025-06-28 12:13:37,258 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_threads.tmp_save
+2025-06-28 12:13:37,306 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_threads.tmp
+2025-06-28 12:13:37,307 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/FreeRTOSConfig.h_save
+2025-06-28 12:13:37,391 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/FreeRTOSConfig.h
+2025-06-28 12:13:37,392 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/app_freertos.c_save
+2025-06-28 12:13:37,459 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/app_freertos.c
+2025-06-28 12:13:37,469 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/stm32wbxx_nucleo_conf.h_save
+2025-06-28 12:13:37,519 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/stm32wbxx_nucleo_conf.h
+2025-06-28 12:13:37,521 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_inc.tmp_save
+2025-06-28 12:13:37,569 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_inc.tmp
+2025-06-28 12:13:37,570 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_vars.tmp_save
+2025-06-28 12:13:37,617 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_vars.tmp
+2025-06-28 12:13:37,618 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_init.tmp_save
+2025-06-28 12:13:37,668 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_init.tmp
+2025-06-28 12:13:37,669 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_demo_before_while.tmp_save
+2025-06-28 12:13:37,716 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_demo_before_while.tmp
+2025-06-28 12:13:37,717 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_demo_inside_while.tmp_save
+2025-06-28 12:13:37,768 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_demo_inside_while.tmp
+2025-06-28 12:13:37,769 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_demo_fct.tmp_save
+2025-06-28 12:13:37,819 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_demo_fct.tmp
+2025-06-28 12:13:37,823 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/stm32wbxx_it.c_save
+2025-06-28 12:13:37,967 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/stm32wbxx_it.c
+2025-06-28 12:13:37,968 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/stm32wbxx_it.h_save
+2025-06-28 12:13:37,969 [ERROR] IocParser:95 - Exception caught: null
+2025-06-28 12:13:38,026 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/stm32wbxx_it.h
+2025-06-28 12:13:38,030 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/stm32wbxx_hal_msp.c_save
+2025-06-28 12:13:38,123 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/stm32wbxx_hal_msp.c
+2025-06-28 12:13:38,124 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/system.tmp_save
+2025-06-28 12:13:38,171 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/system.tmp
+2025-06-28 12:13:38,173 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/stm32wbxx_hal_timebase_tim.c_save
+2025-06-28 12:13:38,231 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/stm32wbxx_hal_timebase_tim.c
+2025-06-28 12:13:38,233 [INFO] CodeEngine:319 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/stm32wbxx_hal_conf.h_save
+2025-06-28 12:13:38,295 [INFO] CodeEngine:343 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/stm32wbxx_hal_conf.h
+2025-06-28 12:13:38,299 [WARN] IPConfigManager:3174 - Warning: the RefConfig RCC_PClockConfig is not available in your config.xml file
+2025-06-28 12:13:38,301 [ERROR] ApiDbMcu:464 - Can't load MEMORYMAP-STM32xx root dir null
+2025-06-28 12:13:38,302 [ERROR] ApiDbMcu:536 - Cannot parse MEMORYMAP_Config file : file do not exist
+2025-06-28 12:13:38,304 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/main.h_save
+2025-06-28 12:13:38,364 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/main.h
+2025-06-28 12:13:38,365 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/main.c_save
+2025-06-28 12:13:38,469 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/main.c
+2025-06-28 12:13:38,669 [INFO] ProjectBuilder:3324 - Time for Copy HAL[1] : 56mS.
+2025-06-28 12:13:38,671 [INFO] ProjectBuilder:4912 - Project Generator version: 4.6.0-B36
+2025-06-28 12:13:38,744 [INFO] ConfigFileManager:1590 - The Die is : DIE495
+2025-06-28 12:13:40,358 [INFO] ProjectBuilder:5191 - Time for Generating toolchain IDE Files: 1687mS.
+2025-06-28 12:13:40,358 [INFO] ProjectBuilder:3181 - Time for Copy CMSIS : 0mS.
+2025-06-28 12:13:40,360 [INFO] ProjectBuilder:3181 - Time for Copy CMSIS : 0mS.
+2025-06-28 12:16:42,730 [INFO] EditThreadDialog:704 - RAM SIZE (in KB): 256
+2025-06-28 12:16:42,731 [INFO] EditThreadDialog:706 - RAM SIZE (in words): 65536
+2025-06-28 12:16:54,775 [INFO] EditThreadDialog:704 - RAM SIZE (in KB): 256
+2025-06-28 12:16:54,775 [INFO] EditThreadDialog:706 - RAM SIZE (in words): 65536
+2025-06-28 12:17:33,784 [INFO] EditThreadDialog:704 - RAM SIZE (in KB): 256
+2025-06-28 12:17:33,784 [INFO] EditThreadDialog:706 - RAM SIZE (in words): 65536
+2025-06-28 12:17:56,688 [INFO] EditThreadDialog:704 - RAM SIZE (in KB): 256
+2025-06-28 12:17:56,688 [INFO] EditThreadDialog:706 - RAM SIZE (in words): 65536
+2025-06-28 12:18:11,382 [INFO] TasksAndQueuesTab:757 - Dynamic
+2025-06-28 12:18:11,382 [WARN] TasksAndQueuesTab:763 - 128 128
+2025-06-28 12:18:11,382 [WARN] TasksAndQueuesTab:775 - max value is: 768.0
+2025-06-28 12:18:17,749 [INFO] EditThreadDialog:704 - RAM SIZE (in KB): 256
+2025-06-28 12:18:17,749 [INFO] EditThreadDialog:706 - RAM SIZE (in words): 65536
+2025-06-28 12:18:24,577 [INFO] TasksAndQueuesTab:757 - Dynamic
+2025-06-28 12:18:24,577 [WARN] TasksAndQueuesTab:763 - 128 128
+2025-06-28 12:18:24,577 [WARN] TasksAndQueuesTab:775 - max value is: 768.0
+2025-06-28 12:18:26,370 [INFO] EditThreadDialog:704 - RAM SIZE (in KB): 256
+2025-06-28 12:18:26,370 [INFO] EditThreadDialog:706 - RAM SIZE (in words): 65536
+2025-06-28 12:18:35,985 [INFO] TasksAndQueuesTab:757 - Dynamic
+2025-06-28 12:18:35,985 [WARN] TasksAndQueuesTab:763 - 128 128
+2025-06-28 12:18:35,985 [WARN] TasksAndQueuesTab:775 - max value is: 768.0
+2025-06-28 12:18:37,396 [INFO] EditThreadDialog:704 - RAM SIZE (in KB): 256
+2025-06-28 12:18:37,396 [INFO] EditThreadDialog:706 - RAM SIZE (in words): 65536
+2025-06-28 12:18:42,428 [INFO] EditThreadDialog:704 - RAM SIZE (in KB): 256
+2025-06-28 12:18:42,428 [INFO] EditThreadDialog:706 - RAM SIZE (in words): 65536
+2025-06-28 12:19:14,425 [INFO] TasksAndQueuesTab:757 - Dynamic
+2025-06-28 12:19:14,426 [WARN] TasksAndQueuesTab:763 - 128 128
+2025-06-28 12:19:14,426 [WARN] TasksAndQueuesTab:775 - max value is: 768.0
+2025-06-28 12:19:14,426 [INFO] TasksAndQueuesTab:757 - Dynamic
+2025-06-28 12:19:14,426 [WARN] TasksAndQueuesTab:763 - 128 128
+2025-06-28 12:19:14,426 [WARN] TasksAndQueuesTab:775 - max value is: 768.0
+2025-06-28 12:19:20,141 [INFO] UtilMem:75 - End SaveConfig() Used Memory: 584498496 Bytes (1073741824)
+2025-06-28 12:19:20,253 [INFO] UtilMem:75 - End SaveConfig() Used Memory: 600191416 Bytes (1073741824)
+2025-06-28 12:19:22,072 [INFO] UtilMem:75 - End SaveConfig() Used Memory: 683354584 Bytes (1073741824)
+2025-06-28 12:19:22,187 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: NVIC
+2025-06-28 12:19:22,187 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: FREERTOS
+2025-06-28 12:19:22,187 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: MEMORYMAP
+2025-06-28 12:19:22,187 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: NUCLEO-WB55RG
+2025-06-28 12:19:22,187 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: SYS
+2025-06-28 12:19:22,187 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: GPIO
+2025-06-28 12:19:22,187 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: RCC
+2025-06-28 12:19:22,187 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: LPUART
+2025-06-28 12:19:22,188 [INFO] CodeGenerator:882 - code generatio: config db path: /opt/st/stm32cubeide_1.18.0/plugins/com.st.stm32cube.common.mx_6.14.0.202502271554//db/
+2025-06-28 12:19:22,322 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/license.tmp_save
+2025-06-28 12:19:22,458 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/license.tmp
+2025-06-28 12:19:22,496 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/gpio.tmp_save
+2025-06-28 12:19:22,595 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/gpio.tmp
+2025-06-28 12:19:22,651 [WARN] IPConfigManager:103 - WARNING: Missing Config File for MEMORYMAP ip!!
+2025-06-28 12:19:22,652 [WARN] IP:2250 - DefaultDataRegion not found: check if there is a RefParameter without a condition.
+2025-06-28 12:19:22,731 [INFO] Middleware:1452 - No code input for Bsp Dependency
+2025-06-28 12:19:22,733 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_inc.tmp_save
+2025-06-28 12:19:22,784 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_inc.tmp
+2025-06-28 12:19:22,785 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_kernelInit.tmp_save
+2025-06-28 12:19:22,833 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_kernelInit.tmp
+2025-06-28 12:19:22,834 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_kernelStart.tmp_save
+2025-06-28 12:19:22,884 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_kernelStart.tmp
+2025-06-28 12:19:22,885 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_typedefs.tmp_save
+2025-06-28 12:19:22,952 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_typedefs.tmp
+2025-06-28 12:19:22,953 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_vars.tmp_save
+2025-06-28 12:19:23,018 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_vars.tmp
+2025-06-28 12:19:23,019 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_pfp.tmp_save
+2025-06-28 12:19:23,069 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_pfp.tmp
+2025-06-28 12:19:23,070 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_obj_creat.tmp_save
+2025-06-28 12:19:23,137 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_obj_creat.tmp
+2025-06-28 12:19:23,138 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_default_thread.tmp_save
+2025-06-28 12:19:23,186 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_default_thread.tmp
+2025-06-28 12:19:23,186 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_threads.tmp_save
+2025-06-28 12:19:23,233 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_threads.tmp
+2025-06-28 12:19:23,240 [INFO] Middleware:1452 - No code input for Bsp Dependency
+2025-06-28 12:19:23,242 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_inc.tmp_save
+2025-06-28 12:19:23,296 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_inc.tmp
+2025-06-28 12:19:23,297 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_kernelInit.tmp_save
+2025-06-28 12:19:23,362 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_kernelInit.tmp
+2025-06-28 12:19:23,363 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_kernelStart.tmp_save
+2025-06-28 12:19:23,409 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_kernelStart.tmp
+2025-06-28 12:19:23,410 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_typedefs.tmp_save
+2025-06-28 12:19:23,458 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_typedefs.tmp
+2025-06-28 12:19:23,458 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_vars.tmp_save
+2025-06-28 12:19:23,508 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_vars.tmp
+2025-06-28 12:19:23,509 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_pfp.tmp_save
+2025-06-28 12:19:23,556 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_pfp.tmp
+2025-06-28 12:19:23,557 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_obj_creat.tmp_save
+2025-06-28 12:19:23,606 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_obj_creat.tmp
+2025-06-28 12:19:23,607 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_default_thread.tmp_save
+2025-06-28 12:19:23,654 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_default_thread.tmp
+2025-06-28 12:19:23,655 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_threads.tmp_save
+2025-06-28 12:19:23,702 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_threads.tmp
+2025-06-28 12:19:23,703 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/FreeRTOSConfig.h_save
+2025-06-28 12:19:23,779 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/FreeRTOSConfig.h
+2025-06-28 12:19:23,780 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/app_freertos.c_save
+2025-06-28 12:19:23,836 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/app_freertos.c
+2025-06-28 12:19:23,846 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/stm32wbxx_nucleo_conf.h_save
+2025-06-28 12:19:23,895 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/stm32wbxx_nucleo_conf.h
+2025-06-28 12:19:23,895 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_inc.tmp_save
+2025-06-28 12:19:23,942 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_inc.tmp
+2025-06-28 12:19:23,943 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_vars.tmp_save
+2025-06-28 12:19:23,990 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_vars.tmp
+2025-06-28 12:19:23,991 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_init.tmp_save
+2025-06-28 12:19:24,037 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_init.tmp
+2025-06-28 12:19:24,038 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_demo_before_while.tmp_save
+2025-06-28 12:19:24,086 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_demo_before_while.tmp
+2025-06-28 12:19:24,087 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_demo_inside_while.tmp_save
+2025-06-28 12:19:24,134 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_demo_inside_while.tmp
+2025-06-28 12:19:24,135 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_demo_fct.tmp_save
+2025-06-28 12:19:24,182 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_demo_fct.tmp
+2025-06-28 12:19:24,185 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/stm32wbxx_it.c_save
+2025-06-28 12:19:24,195 [ERROR] IocParser:95 - Exception caught: null
+2025-06-28 12:19:24,259 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/stm32wbxx_it.c
+2025-06-28 12:19:24,260 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/stm32wbxx_it.h_save
+2025-06-28 12:19:24,308 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/stm32wbxx_it.h
+2025-06-28 12:19:24,312 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/stm32wbxx_hal_msp.c_save
+2025-06-28 12:19:24,396 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/stm32wbxx_hal_msp.c
+2025-06-28 12:19:24,397 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/system.tmp_save
+2025-06-28 12:19:24,444 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/system.tmp
+2025-06-28 12:19:24,445 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/stm32wbxx_hal_timebase_tim.c_save
+2025-06-28 12:19:24,495 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/stm32wbxx_hal_timebase_tim.c
+2025-06-28 12:19:24,497 [INFO] CodeEngine:319 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/stm32wbxx_hal_conf.h_save
+2025-06-28 12:19:24,550 [INFO] CodeEngine:343 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/stm32wbxx_hal_conf.h
+2025-06-28 12:19:24,553 [WARN] IPConfigManager:3174 - Warning: the RefConfig RCC_PClockConfig is not available in your config.xml file
+2025-06-28 12:19:24,557 [ERROR] ApiDbMcu:464 - Can't load MEMORYMAP-STM32xx root dir null
+2025-06-28 12:19:24,557 [ERROR] ApiDbMcu:536 - Cannot parse MEMORYMAP_Config file : file do not exist
+2025-06-28 12:19:24,560 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/main.h_save
+2025-06-28 12:19:24,612 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/main.h
+2025-06-28 12:19:24,613 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/main.c_save
+2025-06-28 12:19:24,714 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/main.c
+2025-06-28 12:19:24,908 [INFO] ProjectBuilder:3324 - Time for Copy HAL[1] : 23mS.
+2025-06-28 12:19:24,910 [INFO] ProjectBuilder:4912 - Project Generator version: 4.6.0-B36
+2025-06-28 12:19:25,017 [INFO] ConfigFileManager:1590 - The Die is : DIE495
+2025-06-28 12:19:25,880 [INFO] ProjectBuilder:5191 - Time for Generating toolchain IDE Files: 970mS.
+2025-06-28 12:19:25,882 [INFO] ProjectBuilder:3181 - Time for Copy CMSIS : 2mS.
+2025-06-28 12:19:25,884 [INFO] ProjectBuilder:3181 - Time for Copy CMSIS : 0mS.
+2025-06-28 12:56:40,841 [INFO] UtilMem:75 - End SaveConfig() Used Memory: 664614056 Bytes (1073741824)
+2025-06-28 12:56:40,977 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: NVIC
+2025-06-28 12:56:40,977 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: FREERTOS
+2025-06-28 12:56:40,977 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: MEMORYMAP
+2025-06-28 12:56:40,977 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: NUCLEO-WB55RG
+2025-06-28 12:56:40,977 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: SYS
+2025-06-28 12:56:40,977 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: GPIO
+2025-06-28 12:56:40,977 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: RCC
+2025-06-28 12:56:40,977 [INFO] BlockDiagram:2775 - set Specific Code input for plugin: LPUART
+2025-06-28 12:56:40,978 [INFO] CodeGenerator:882 - code generatio: config db path: /opt/st/stm32cubeide_1.18.0/plugins/com.st.stm32cube.common.mx_6.14.0.202502271554//db/
+2025-06-28 12:56:41,073 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/license.tmp_save
+2025-06-28 12:56:41,236 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/license.tmp
+2025-06-28 12:56:41,260 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/gpio.tmp_save
+2025-06-28 12:56:41,343 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/gpio.tmp
+2025-06-28 12:56:41,396 [WARN] IPConfigManager:103 - WARNING: Missing Config File for MEMORYMAP ip!!
+2025-06-28 12:56:41,397 [WARN] IP:2250 - DefaultDataRegion not found: check if there is a RefParameter without a condition.
+2025-06-28 12:56:41,476 [INFO] Middleware:1452 - No code input for Bsp Dependency
+2025-06-28 12:56:41,478 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_inc.tmp_save
+2025-06-28 12:56:41,531 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_inc.tmp
+2025-06-28 12:56:41,531 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_kernelInit.tmp_save
+2025-06-28 12:56:41,584 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_kernelInit.tmp
+2025-06-28 12:56:41,585 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_kernelStart.tmp_save
+2025-06-28 12:56:41,643 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_kernelStart.tmp
+2025-06-28 12:56:41,644 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_typedefs.tmp_save
+2025-06-28 12:56:41,740 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_typedefs.tmp
+2025-06-28 12:56:41,741 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_vars.tmp_save
+2025-06-28 12:56:41,817 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_vars.tmp
+2025-06-28 12:56:41,818 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_pfp.tmp_save
+2025-06-28 12:56:41,872 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_pfp.tmp
+2025-06-28 12:56:41,872 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_obj_creat.tmp_save
+2025-06-28 12:56:41,936 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_obj_creat.tmp
+2025-06-28 12:56:41,936 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_default_thread.tmp_save
+2025-06-28 12:56:41,985 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_default_thread.tmp
+2025-06-28 12:56:41,986 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_threads.tmp_save
+2025-06-28 12:56:42,035 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_threads.tmp
+2025-06-28 12:56:42,043 [INFO] Middleware:1452 - No code input for Bsp Dependency
+2025-06-28 12:56:42,045 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_inc.tmp_save
+2025-06-28 12:56:42,093 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_inc.tmp
+2025-06-28 12:56:42,094 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_kernelInit.tmp_save
+2025-06-28 12:56:42,158 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_kernelInit.tmp
+2025-06-28 12:56:42,159 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_kernelStart.tmp_save
+2025-06-28 12:56:42,205 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_kernelStart.tmp
+2025-06-28 12:56:42,206 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_typedefs.tmp_save
+2025-06-28 12:56:42,254 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_typedefs.tmp
+2025-06-28 12:56:42,255 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_vars.tmp_save
+2025-06-28 12:56:42,303 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_vars.tmp
+2025-06-28 12:56:42,304 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_pfp.tmp_save
+2025-06-28 12:56:42,349 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_pfp.tmp
+2025-06-28 12:56:42,350 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_obj_creat.tmp_save
+2025-06-28 12:56:42,399 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_obj_creat.tmp
+2025-06-28 12:56:42,399 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_default_thread.tmp_save
+2025-06-28 12:56:42,445 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_default_thread.tmp
+2025-06-28 12:56:42,447 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_threads.tmp_save
+2025-06-28 12:56:42,494 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/rtos_threads.tmp
+2025-06-28 12:56:42,495 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/FreeRTOSConfig.h_save
+2025-06-28 12:56:42,570 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/FreeRTOSConfig.h
+2025-06-28 12:56:42,571 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/app_freertos.c_save
+2025-06-28 12:56:42,638 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/app_freertos.c
+2025-06-28 12:56:42,646 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/stm32wbxx_nucleo_conf.h_save
+2025-06-28 12:56:42,705 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/stm32wbxx_nucleo_conf.h
+2025-06-28 12:56:42,706 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_inc.tmp_save
+2025-06-28 12:56:42,755 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_inc.tmp
+2025-06-28 12:56:42,755 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_vars.tmp_save
+2025-06-28 12:56:42,801 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_vars.tmp
+2025-06-28 12:56:42,802 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_init.tmp_save
+2025-06-28 12:56:42,847 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_init.tmp
+2025-06-28 12:56:42,848 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_demo_before_while.tmp_save
+2025-06-28 12:56:42,893 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_demo_before_while.tmp
+2025-06-28 12:56:42,894 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_demo_inside_while.tmp_save
+2025-06-28 12:56:42,940 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_demo_inside_while.tmp
+2025-06-28 12:56:42,940 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_demo_fct.tmp_save
+2025-06-28 12:56:42,987 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/bsp_common_demo_fct.tmp
+2025-06-28 12:56:42,990 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/stm32wbxx_it.c_save
+2025-06-28 12:56:43,120 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/stm32wbxx_it.c
+2025-06-28 12:56:43,121 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/stm32wbxx_it.h_save
+2025-06-28 12:56:43,167 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/stm32wbxx_it.h
+2025-06-28 12:56:43,171 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/stm32wbxx_hal_msp.c_save
+2025-06-28 12:56:43,265 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/stm32wbxx_hal_msp.c
+2025-06-28 12:56:43,266 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/system.tmp_save
+2025-06-28 12:56:43,314 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/MXTmpFiles/system.tmp
+2025-06-28 12:56:43,315 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/stm32wbxx_hal_timebase_tim.c_save
+2025-06-28 12:56:43,365 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/stm32wbxx_hal_timebase_tim.c
+2025-06-28 12:56:43,368 [INFO] CodeEngine:319 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/stm32wbxx_hal_conf.h_save
+2025-06-28 12:56:43,421 [INFO] CodeEngine:343 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/stm32wbxx_hal_conf.h
+2025-06-28 12:56:43,424 [WARN] IPConfigManager:3174 - Warning: the RefConfig RCC_PClockConfig is not available in your config.xml file
+2025-06-28 12:56:43,426 [ERROR] ApiDbMcu:464 - Can't load MEMORYMAP-STM32xx root dir null
+2025-06-28 12:56:43,426 [ERROR] ApiDbMcu:536 - Cannot parse MEMORYMAP_Config file : file do not exist
+2025-06-28 12:56:43,429 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/main.h_save
+2025-06-28 12:56:43,497 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Inc/main.h
+2025-06-28 12:56:43,498 [INFO] CodeEngine:263 - oldGeneratedFile, /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/main.c_save
+2025-06-28 12:56:43,511 [ERROR] IocParser:95 - Exception caught: null
+2025-06-28 12:56:43,624 [INFO] CodeEngine:287 - Generated code: /home/elhaloua/ESP_projects/Test_UART/STM32/Core/Src/main.c
+2025-06-28 12:56:43,802 [INFO] ProjectBuilder:3324 - Time for Copy HAL[1] : 24mS.
+2025-06-28 12:56:43,804 [INFO] ProjectBuilder:4912 - Project Generator version: 4.6.0-B36
+2025-06-28 12:56:43,872 [INFO] ConfigFileManager:1590 - The Die is : DIE495
+2025-06-28 12:56:44,731 [INFO] ProjectBuilder:5191 - Time for Generating toolchain IDE Files: 927mS.
+2025-06-28 12:56:44,732 [INFO] ProjectBuilder:3181 - Time for Copy CMSIS : 1mS.
+2025-06-28 12:56:44,734 [INFO] ProjectBuilder:3181 - Time for Copy CMSIS : 0mS.

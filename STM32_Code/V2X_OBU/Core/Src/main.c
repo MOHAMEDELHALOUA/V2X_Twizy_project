@@ -29,10 +29,18 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
+typedef struct {
+    unsigned int value;
+    uint8_t MacAddress[6];
+}Item;  // Ensure consistent packing
+
+volatile Item receivedData;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define UART_TIMEOUT_MS 1000
+#define UART_TX_INTERVAL 2000   // 2 seconds transmission interval
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -42,8 +50,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 COM_InitTypeDef BspCOMInit;
-
-SPI_HandleTypeDef hspi1;
+UART_HandleTypeDef hlpuart1;
 
 /* Definitions for SenderTask */
 osThreadId_t SenderTaskHandle;
@@ -52,48 +59,40 @@ const osThreadAttr_t SenderTask_attributes = {
   .priority = (osPriority_t) osPriorityNormal,
   .stack_size = 128 * 4
 };
-/* Definitions for TskSPI */
-osThreadId_t TskSPIHandle;
-const osThreadAttr_t TskSPI_attributes = {
-  .name = "TskSPI",
-  .priority = (osPriority_t) osPriorityHigh,
-  .stack_size = 128 * 4
-};
-/* Definitions for TskQueueCtrl */
-osThreadId_t TskQueueCtrlHandle;
-const osThreadAttr_t TskQueueCtrl_attributes = {
-  .name = "TskQueueCtrl",
-  .priority = (osPriority_t) osPriorityHigh,
+/* Definitions for TskUART */
+osThreadId_t TskUARTHandle;
+const osThreadAttr_t TskUART_attributes = {
+  .name = "TskUART",
+  .priority = (osPriority_t) osPriorityNormal,
   .stack_size = 128 * 4
 };
 /* USER CODE BEGIN PV */
+uint32_t uart_timeout_counter = 0;
+uint32_t message_counter = 0;
+uint32_t last_tx_time = 0;
+
+// Define the queue:
+xQueueHandle UARTQueue;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 void PeriphCommonClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_SPI1_Init(void);
+static void MX_LPUART1_UART_Init(void);
 void StartSenderTask(void *argument);
-void StartTskSPI(void *argument);
-void StartTskQueueCtl(void *argument);
+void StartTskUART(void *argument);
 
 /* USER CODE BEGIN PFP */
+uint8_t ValidateReceivedData(Item *data);
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-typedef struct {
-	unsigned int value;
-	uint8_t MacAddress[6];
-}Item;
-
-#define SPI_TIMEOUT_MS 1000
-volatile Item receivedData;
-uint32_t spi_timeout_counter = 0;
-
-// Function to validate received data
+//THIS IS TO VALIDATE RECEIVED DATA
 uint8_t ValidateReceivedData(Item *data) {
+    // Check if at least one byte of MAC address is non-zero
     for (int i = 0; i < 6; i++) {
         if (data->MacAddress[i] != 0) {
             return 1;
@@ -101,10 +100,6 @@ uint8_t ValidateReceivedData(Item *data) {
     }
     return 0;
 }
-
-//Define the queue:
-xQueueHandle SPIQueue;
-
 /* USER CODE END 0 */
 
 /**
@@ -136,10 +131,10 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_SPI1_Init();
+  MX_LPUART1_UART_Init();
   /* USER CODE BEGIN 2 */
 
-  printf("STM32 will start receiving data via SPI...\n");
+  printf("STM32 will start receiving Item struct data via UART...\n");
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -155,8 +150,8 @@ int main(void)
   /* USER CODE END RTOS_TIMERS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
-  SPIQueue = xQueueCreate(8, sizeof(Item));
-  if (SPIQueue == NULL) {
+  UARTQueue = xQueueCreate(10, sizeof(Item));  // Increased queue size
+  if (UARTQueue == NULL) {
       Error_Handler(); // Handle queue creation failure
   }
   /* USER CODE END RTOS_QUEUES */
@@ -165,11 +160,8 @@ int main(void)
   /* creation of SenderTask */
   SenderTaskHandle = osThreadNew(StartSenderTask, NULL, &SenderTask_attributes);
 
-  /* creation of TskSPI */
-  TskSPIHandle = osThreadNew(StartTskSPI, NULL, &TskSPI_attributes);
-
-  /* creation of TskQueueCtrl */
-  TskQueueCtrlHandle = osThreadNew(StartTskQueueCtl, NULL, &TskQueueCtrl_attributes);
+  /* creation of TskUART */
+  TskUARTHandle = osThreadNew(StartTskUART, NULL, &TskUART_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* USER CODE END RTOS_THREADS */
@@ -278,38 +270,50 @@ void PeriphCommonClock_Config(void)
 }
 
 /**
-  * @brief SPI1 Initialization Function
+  * @brief LPUART1 Initialization Function
   * @param None
   * @retval None
   */
-static void MX_SPI1_Init(void)
+static void MX_LPUART1_UART_Init(void)
 {
 
-  /* USER CODE BEGIN SPI1_Init 0 */
-  /* USER CODE END SPI1_Init 0 */
+  /* USER CODE BEGIN LPUART1_Init 0 */
 
-  /* USER CODE BEGIN SPI1_Init 1 */
-  /* USER CODE END SPI1_Init 1 */
-  /* SPI1 parameter configuration*/
-  hspi1.Instance = SPI1;
-  hspi1.Init.Mode = SPI_MODE_SLAVE;
-  hspi1.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
-  hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
-  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
-  hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
-  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-  hspi1.Init.CRCPolynomial = 7;
-  hspi1.Init.CRCLength = SPI_CRC_LENGTH_DATASIZE;
-  hspi1.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
-  if (HAL_SPI_Init(&hspi1) != HAL_OK)
+  /* USER CODE END LPUART1_Init 0 */
+
+  /* USER CODE BEGIN LPUART1_Init 1 */
+
+  /* USER CODE END LPUART1_Init 1 */
+  hlpuart1.Instance = LPUART1;
+  hlpuart1.Init.BaudRate = 115200;
+  hlpuart1.Init.WordLength = UART_WORDLENGTH_8B;
+  hlpuart1.Init.StopBits = UART_STOPBITS_1;
+  hlpuart1.Init.Parity = UART_PARITY_NONE;
+  hlpuart1.Init.Mode = UART_MODE_TX_RX;
+  hlpuart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  hlpuart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  hlpuart1.Init.ClockPrescaler = UART_PRESCALER_DIV1;
+  hlpuart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  hlpuart1.FifoMode = UART_FIFOMODE_DISABLE;
+  if (HAL_UART_Init(&hlpuart1) != HAL_OK)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN SPI1_Init 2 */
-  /* USER CODE END SPI1_Init 2 */
+  if (HAL_UARTEx_SetTxFifoThreshold(&hlpuart1, UART_TXFIFO_THRESHOLD_1_8) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_UARTEx_SetRxFifoThreshold(&hlpuart1, UART_RXFIFO_THRESHOLD_1_8) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_UARTEx_DisableFifoMode(&hlpuart1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN LPUART1_Init 2 */
+
+  /* USER CODE END LPUART1_Init 2 */
 
 }
 
@@ -327,8 +331,8 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
-  __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
@@ -349,12 +353,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : PB4 */
-  GPIO_InitStruct.Pin = GPIO_PIN_4;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
   /* USER CODE END MX_GPIO_Init_2 */
@@ -383,90 +381,100 @@ int _write(int file, char *ptr, int len)
 void StartSenderTask(void *argument)
 {
   /* USER CODE BEGIN 5 */
-	int i = 0;
+  Item itemToSend;
+  Item receivedItem;
+
   /* Infinite loop */
   for(;;)
   {
-	printf("i : %d\n",i++);
-    osDelay(10);
+    // Check if we have received data to process
+    if (xQueueReceive(UARTQueue, &receivedItem, 0) == pdTRUE) {
+      printf("Received from ESP32 - Value: %u, MAC: %02X:%02X:%02X:%02X:%02X:%02X\n",
+             receivedItem.value,
+             receivedItem.MacAddress[0], receivedItem.MacAddress[1], receivedItem.MacAddress[2],
+             receivedItem.MacAddress[3], receivedItem.MacAddress[4], receivedItem.MacAddress[5]);
+
+      BSP_LED_Toggle(LED_GREEN);
+    }
+
+    // Send data to ESP32 periodically
+    uint32_t current_time = HAL_GetTick();
+    if (current_time - last_tx_time >= UART_TX_INTERVAL) {
+      // Prepare data to send
+      itemToSend.value = ++message_counter;
+      uint8_t stm32_mac[6] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF}; // Dummy STM32 MAC
+      memcpy(itemToSend.MacAddress, stm32_mac, 6);
+
+      // Send struct data
+      HAL_StatusTypeDef status = HAL_UART_Transmit(&hlpuart1, (uint8_t*)&itemToSend, sizeof(Item), 1000);
+
+      if (status == HAL_OK) {
+        printf("Sent to ESP32 - Value: %u, MAC: %02X:%02X:%02X:%02X:%02X:%02X\n",
+               itemToSend.value,
+               itemToSend.MacAddress[0], itemToSend.MacAddress[1], itemToSend.MacAddress[2],
+               itemToSend.MacAddress[3], itemToSend.MacAddress[4], itemToSend.MacAddress[5]);
+        BSP_LED_Toggle(LED_BLUE);
+      } else {
+        printf("Failed to send data to ESP32\n");
+        BSP_LED_Toggle(LED_RED);
+      }
+
+      last_tx_time = current_time;
+    }
+
+    osDelay(100);
   }
   /* USER CODE END 5 */
 }
 
-/* USER CODE BEGIN Header_StartTskSPI */
+
+/* USER CODE BEGIN Header_StartTskUART */
 /**
-* @brief Function implementing the TskSPI thread.
+* @brief Function implementing the TskUART thread.
 * @param argument: Not used
 * @retval None
 */
-/* USER CODE END Header_StartTskSPI */
-void StartTskSPI(void *argument)
+/* USER CODE END Header_StartTskUART */
+void StartTskUART(void *argument)
 {
-  /* USER CODE BEGIN StartTskSPI */
+  /* USER CODE BEGIN StartTskUART */
   /* Infinite loop */
   for(;;)
   {
-		HAL_StatusTypeDef status = HAL_SPI_Receive(&hspi1, (uint8_t *)&receivedData, sizeof(Item), 1000);
-		if (status == HAL_OK) {
-			BSP_LED_Toggle(LED_BLUE);
-			osDelay(20);
-			spi_timeout_counter = 0;
-			if (ValidateReceivedData((Item*)&receivedData)) {
-				xQueueSend(SPIQueue, &receivedData, 0);
-			} else {
-				printf("SPI Warning - Received corrupted data with invalid MAC\n");
-			}
-		}
-		else if (status == HAL_TIMEOUT) {
-			spi_timeout_counter++;
-			if (spi_timeout_counter % 10 == 0) {
-				printf("SPI Waiting for data... (%lu)\n", spi_timeout_counter);
-			}
-		}
-		else {
-			printf("SPI Error: %d, resetting...\n", status);
-			HAL_SPI_DeInit(&hspi1);
-			osDelay(10);
-			MX_SPI1_Init();
-			spi_timeout_counter = 0;
-		}
-  }
-  /* USER CODE END StartTskSPI */
-}
+    // Receive Item struct data from ESP32
+    HAL_StatusTypeDef status = HAL_UART_Receive(&hlpuart1, (uint8_t *)&receivedData, sizeof(Item), UART_TIMEOUT_MS);
 
-/* USER CODE BEGIN Header_StartTskQueueCtl */
-/**
-* @brief Function implementing the TskQueueCtrl thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartTskQueueCtl */
-void StartTskQueueCtl(void *argument)
-{
-  /* USER CODE BEGIN StartTskQueueCtl */
-	Item QueueData;
-  /* Infinite loop */
-  for(;;)
-  {
-	if (xQueueReceive(SPIQueue, &QueueData, portMAX_DELAY) != pdTRUE)
-		{
-			printf("Error in Receiving from Queue\n");
-		}
-	else
-	{
-		BSP_LED_Toggle(LED_GREEN);
-		printf("Successfully RECEIVED the queue data \n");
-		printf("SPI OK - Received: %u, MAC: %02X:%02X:%02X:%02X:%02X:%02X\n",
-				QueueData.value,
-				QueueData.MacAddress[0], QueueData.MacAddress[1],
-				QueueData.MacAddress[2], QueueData.MacAddress[3],
-				QueueData.MacAddress[4], QueueData.MacAddress[5]);
-	}
-  }
-  osDelay(20);
-  /* USER CODE END StartTskQueueCtl */
-}
+    if (status == HAL_OK) {
+      uart_timeout_counter = 0;
 
+      // Validate received data
+      if (ValidateReceivedData((Item*)&receivedData)) {
+        // Send valid data to queue
+        if (xQueueSend(UARTQueue, &receivedData, 0) != pdTRUE) {
+          printf("Queue full - message dropped\n");
+        }
+      } else {
+        printf("UART Warning - Received corrupted data with invalid MAC\n");
+      }
+    }
+    else if (status == HAL_TIMEOUT) {
+      uart_timeout_counter++;
+      if (uart_timeout_counter % 100 == 0) {  // Reduced frequency of timeout messages
+        printf("UART Waiting for data... (%lu)\n", uart_timeout_counter);
+      }
+    }
+    else {
+      printf("UART Error: %d, resetting...\n", status);
+      HAL_UART_DeInit(&hlpuart1);
+      osDelay(10);
+      MX_LPUART1_UART_Init();
+      uart_timeout_counter = 0;
+    }
+
+    osDelay(10); // Small delay
+  }
+  /* USER CODE END StartTskUART */
+}
 /**
   * @brief  Period elapsed callback in non blocking mode
   * @note   This function is called  when TIM2 interrupt took place, inside

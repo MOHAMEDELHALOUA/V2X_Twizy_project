@@ -1,0 +1,112 @@
+/* USER CODE BEGIN 0 */
+typedef struct {
+    unsigned int value;
+    uint8_t MacAddress[6];
+} Item;
+
+#define SPI_TIMEOUT_MS 1000
+volatile Item receivedData;
+volatile Item transmittedData;
+uint32_t spi_timeout_counter = 0;
+volatile uint8_t spi_transaction_complete = 0;
+volatile uint8_t spi_rx_buffer[sizeof(Item)];
+volatile uint8_t spi_tx_buffer[sizeof(Item)];
+
+// Function to validate received data
+uint8_t ValidateReceivedData(Item *data) {
+    for (int i = 0; i < 6; i++) {
+        if (data->MacAddress[i] != 0) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+// SPI Transaction Complete Callback
+void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
+    if (hspi->Instance == SPI1) {
+        spi_transaction_complete = 1;
+        // Copy received data
+        memcpy((void*)&receivedData, (void*)spi_rx_buffer, sizeof(Item));
+    }
+}
+
+// SPI Error Callback
+void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
+    if (hspi->Instance == SPI1) {
+        printf("SPI Error occurred\n");
+        // Reset the SPI peripheral
+        HAL_SPI_DeInit(&hspi1);
+        MX_SPI1_Init();
+    }
+}
+
+//Define the queue:
+xQueueHandle SPIQueue;
+/* USER CODE END 0 */
+
+/* Modified SPI Task */
+void StartTskSPI(void *argument)
+{
+    /* USER CODE BEGIN StartTskSPI */
+    uint8_t mac[6] = {0xB0, 0xA7, 0x32, 0x28, 0x3C, 0x14};
+    memcpy((void*)transmittedData.MacAddress, mac, 6);
+    transmittedData.value = 0;
+
+    // Prepare initial transmit buffer
+    memcpy((void*)spi_tx_buffer, (void*)&transmittedData, sizeof(Item));
+
+    // Start the first SPI transaction
+    HAL_StatusTypeDef status = HAL_SPI_TransmitReceive_IT(&hspi1,
+                                                          (uint8_t*)spi_tx_buffer,
+                                                          (uint8_t*)spi_rx_buffer,
+                                                          sizeof(Item));
+
+    if (status != HAL_OK) {
+        printf("Failed to start initial SPI transaction: %d\n", status);
+    }
+
+    /* Infinite loop */
+    for(;;)
+    {
+        // Wait for SPI transaction to complete
+        if (spi_transaction_complete) {
+            spi_transaction_complete = 0;
+            BSP_LED_Toggle(LED_BLUE);
+
+            // Validate and process received data
+            if (ValidateReceivedData((Item*)&receivedData)) {
+                xQueueSend(SPIQueue, &receivedData, 0);
+                printf("Car's data received successfully: Value=%u\n", receivedData.value);
+            } else {
+                printf("SPI Warning - Received corrupted data with invalid MAC\n");
+            }
+
+            // Prepare next transmission
+            transmittedData.value += 1;
+            memcpy((void*)spi_tx_buffer, (void*)&transmittedData, sizeof(Item));
+
+            // Start next SPI transaction
+            status = HAL_SPI_TransmitReceive_IT(&hspi1,
+                                                (uint8_t*)spi_tx_buffer,
+                                                (uint8_t*)spi_rx_buffer,
+                                                sizeof(Item));
+
+            if (status != HAL_OK) {
+                printf("SPI Error: %d, resetting...\n", status);
+                HAL_SPI_DeInit(&hspi1);
+                osDelay(20);
+                MX_SPI1_Init();
+
+                // Restart SPI transaction after reset
+                status = HAL_SPI_TransmitReceive_IT(&hspi1,
+                                                    (uint8_t*)spi_tx_buffer,
+                                                    (uint8_t*)spi_rx_buffer,
+                                                    sizeof(Item));
+            }
+        }
+
+        osDelay(1); // Small delay to prevent task from hogging CPU
+    }
+    /* USER CODE END StartTskSPI */
+}
