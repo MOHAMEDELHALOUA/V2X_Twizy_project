@@ -1,3 +1,11 @@
+#include <Arduino.h>
+#include <WiFi.h>
+#include <esp_now.h>
+#include <SPI.h>
+#include "hal/uart_types.h"
+#include "mcp2515.h"
+#include "can.h"
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_system.h"
@@ -12,13 +20,22 @@
 #include "nvs_flash.h"
 
 // Pin definitions
-#define UART_0_TX 17
-#define UART_0_RX 16
+#define UART_0_TX 35
+#define UART_0_RX 34
 #define UART_NUM UART_NUM_1
 #define LED_PIN GPIO_NUM_2
 
+//pins for uart2 for esp32(2) --esp-now--> esp32(1) --uart2--> stm32
+#define UART_2_TX 17
+#define UART_2_RX 16
+#define UART_NUM UART_NUM_2
+
 // Buffer size
 #define BUF_SIZE 256
+
+//mcp2515
+struct can_frame canMsg;
+MCP2515 mcp2515(5);
 
 // Logging tag
 static const char* TAG = "ESP_NOW_UART";
@@ -29,20 +46,48 @@ typedef struct {
     uint8_t MacAddress[6];  // Sender's MAC
 } Item;  // Ensure consistent packing
 
+// Structure to indentify the other Units
+//typedef struct{
+//    uint8_t vehicleID;
+//    uint8_t AckKey;
+//}AckEntry;
+
+typedef struct {
+    uint32_t can_id;
+    uint8_t dlc;
+    uint8_t data[8];
+} CANFrame;
+
 Item incomingReadings;
 QueueHandle_t NowUARTQueue;
+
+//CANUART2Queue:
+QueueHandle_t CANUARTQueue;
 
 extern "C" void app_main();
 
 void init_uart();
+void init_uart2();
 static void uart_rx_task(void *pvParameter);
 static void uart_tx_task(void *pvParameter);
 static void sendToSTM_uart(Item *data);
 void OnDataRecv(const esp_now_recv_info_t *recv_info, const uint8_t *incomingData, int len);
+void uart2_tx_task(void *pvParameters) {
+    CANFrame frame;
+    while (1) {
+        if (xQueueReceive(CANUARTQueue, &frame, portMAX_DELAY) == pdTRUE) {
+            uart_write_bytes(UART_NUM_2, (const char*)&frame, sizeof(CANFrame));
+        }
+    }
+}
+void can_read_task(void *pvParameters);
+
 esp_err_t init_esp_now(void);
 
 void app_main()
 {
+    int coreID = xPortGetCoreID();
+    printf("Running on core %d\n", coreID);
     // Initialize NVS
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
@@ -69,6 +114,7 @@ void app_main()
     
     // Initialize UART communication
     init_uart();
+    init_uart2();
     
     // Initialize ESP-NOW
     ESP_ERROR_CHECK(init_esp_now());
@@ -76,6 +122,7 @@ void app_main()
     // Create communication tasks with appropriate priorities
     xTaskCreate(uart_rx_task, "uart_rx_task", 4096, NULL, 12, NULL);  // Higher priority for RX
     xTaskCreate(uart_tx_task, "uart_tx_task", 4096, NULL, 11, NULL);  // Slightly lower priority for TX   
+    xTaskCreate(can_read_task, "can_read_task", 4096, NULL, 10, NULL); 
     ESP_LOGI(TAG,"All communication tasks started successfully");
     
     // Main task can now do other work or simply monitor the system
@@ -88,6 +135,8 @@ void app_main()
 
 void init_uart()
 {
+      int coreID = xPortGetCoreID();
+    printf("init_uart Running on core %d\n", coreID);
     const uart_config_t uart_config = {
         .baud_rate = 115200,
         .data_bits = UART_DATA_8_BITS,
@@ -108,9 +157,30 @@ void init_uart()
     
     ESP_LOGI(TAG,"UART initialized successfully");
 }
+void init_uart2()
+{
+    const uart_config_t uart_config = {
+        .baud_rate = 115200,
+        .data_bits = UART_DATA_8_BITS,
+        .parity = UART_PARITY_DISABLE,
+        .stop_bits = UART_STOP_BITS_1,
+        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
+        .rx_flow_ctrl_thresh = 122,
+        .source_clk = UART_SCLK_DEFAULT,
+    };
+
+    ESP_ERROR_CHECK(uart_driver_install(UART_NUM_2, BUF_SIZE * 2, BUF_SIZE * 2, 0, NULL, 0));
+    ESP_ERROR_CHECK(uart_param_config(UART_NUM_2, &uart_config));
+    ESP_ERROR_CHECK(uart_set_pin(UART_NUM_2, UART_2_TX, UART_2_RX, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));
+
+    uart_flush(UART_NUM_2);
+    ESP_LOGI(TAG, "UART2 (CAN UART) initialized successfully");
+}
 
 //Task to send data from the queue to the stm32 via uart
 static void uart_tx_task(void *pvParameters) {
+      int coreID = xPortGetCoreID();
+    printf("uart_tx_task Running on core %d\n", coreID);
     Item item;
     ESP_LOGI(TAG,"UART TX task started");
     
@@ -123,6 +193,8 @@ static void uart_tx_task(void *pvParameters) {
 
 static void sendToSTM_uart(Item *data)
 {
+      int coreID = xPortGetCoreID();
+    printf("sendToSTM_uart Running on core %d\n", coreID);
     // Prepare data to send via uart - send exact struct size
     esp_err_t err = uart_wait_tx_done(UART_NUM, 1000 / portTICK_PERIOD_MS);
     if (err != ESP_OK) {
@@ -150,6 +222,8 @@ static void sendToSTM_uart(Item *data)
 
 static void uart_rx_task(void *pvParameter)
 {
+      int coreID = xPortGetCoreID();
+    printf("uart_rx_task Running on core %d\n", coreID);
     uint8_t *data = (uint8_t *) malloc(BUF_SIZE);
     Item receivedItem;
     
@@ -196,29 +270,87 @@ static void uart_rx_task(void *pvParameter)
 }
 
 // ESP-NOW receive callback
+//void OnDataRecv(const esp_now_recv_info_t *recv_info, const uint8_t *incomingData, int len) {
+//      int coreID = xPortGetCoreID();
+//    printf("OnDataRecv Running on core %d\n", coreID);
+//    if (len != sizeof(Item)) {
+//        ESP_LOGE(TAG,"Received data size mismatch: %d bytes, expected %d", len, sizeof(Item));
+//        return;
+//    }
+//    
+//    Item item;
+//    memcpy(&item, incomingData, sizeof(Item));
+//    // Update MAC address with actual sender
+//    memcpy(item.MacAddress, recv_info->src_addr, 6);
+//
+//    if (xQueueSend(NowUARTQueue, &item, 0) != pdTRUE) {
+//        ESP_LOGE(TAG,"Queue full, dropping packet");
+//    } else {
+//        ESP_LOGI(TAG,"Queued item from MAC %02X:%02X:%02X:%02X:%02X:%02X, value %u",
+//                 item.MacAddress[0], item.MacAddress[1], item.MacAddress[2],
+//                 item.MacAddress[3], item.MacAddress[4], item.MacAddress[5],
+//                 item.value);
+//    }
+//}
+//
 void OnDataRecv(const esp_now_recv_info_t *recv_info, const uint8_t *incomingData, int len) {
+    int coreID = xPortGetCoreID();
+    printf("OnDataRecv Running on core %d\n", coreID);
+
     if (len != sizeof(Item)) {
-        ESP_LOGE(TAG,"Received data size mismatch: %d bytes, expected %d", len, sizeof(Item));
+        ESP_LOGE(TAG, "Received data size mismatch: %d bytes, expected %d", len, sizeof(Item));
         return;
     }
-    
+
     Item item;
     memcpy(&item, incomingData, sizeof(Item));
-    // Update MAC address with actual sender
-    memcpy(item.MacAddress, recv_info->src_addr, 6);
+    memcpy(item.MacAddress, recv_info->src_addr, 6);  // Set sender MAC
 
-    if (xQueueSend(NowUARTQueue, &item, 0) != pdTRUE) {
-        ESP_LOGE(TAG,"Queue full, dropping packet");
+    // Log reception
+    ESP_LOGI(TAG, "Received item from MAC %02X:%02X:%02X:%02X:%02X:%02X, value %u",
+             item.MacAddress[0], item.MacAddress[1], item.MacAddress[2],
+             item.MacAddress[3], item.MacAddress[4], item.MacAddress[5],
+             item.value);
+
+    // Send response back to sender
+    esp_now_peer_info_t peerInfo = {};
+    memcpy(peerInfo.peer_addr, recv_info->src_addr, 6);
+    peerInfo.channel = 0;
+    peerInfo.encrypt = false;
+
+    // Register peer only if it doesn't already exist
+    if (!esp_now_is_peer_exist(recv_info->src_addr)) {
+        if (esp_now_add_peer(&peerInfo) != ESP_OK) {
+            ESP_LOGE(TAG, "Failed to add peer for response");
+        } else {
+            ESP_LOGI(TAG, "Peer added for response");
+        }
+    }
+
+    // Create response
+    Item response;
+    response.value = item.value + 100; // Just to differentiate the reply
+    memcpy(response.MacAddress, recv_info->src_addr, 6);
+
+    esp_err_t err = esp_now_send(recv_info->src_addr, (uint8_t *)&response, sizeof(response));
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to send reply: %s", esp_err_to_name(err));
     } else {
-        ESP_LOGI(TAG,"Queued item from MAC %02X:%02X:%02X:%02X:%02X:%02X, value %u",
-                 item.MacAddress[0], item.MacAddress[1], item.MacAddress[2],
-                 item.MacAddress[3], item.MacAddress[4], item.MacAddress[5],
-                 item.value);
+        ESP_LOGI(TAG, "Reply sent to MAC %02X:%02X:%02X:%02X:%02X:%02X",
+                 recv_info->src_addr[0], recv_info->src_addr[1], recv_info->src_addr[2],
+                 recv_info->src_addr[3], recv_info->src_addr[4], recv_info->src_addr[5]);
+    }
+
+    // Optionally forward to UART
+    if (xQueueSend(NowUARTQueue, &item, 0) != pdTRUE) {
+        ESP_LOGE(TAG, "Queue full, dropping packet");
     }
 }
 
 // Initialize ESP-NOW
 esp_err_t init_esp_now(void) {
+      int coreID = xPortGetCoreID();
+    printf("init_esp_now Running on core %d\n", coreID);
     esp_err_t ret;
     
     // Initialize WiFi in station mode
@@ -258,4 +390,34 @@ esp_err_t init_esp_now(void) {
     ESP_LOGI(TAG,"ESP-NOW initialized successfully");
     return ESP_OK;
 }
+void can_read_task(void *pvParameters) {
+    int coreID = xPortGetCoreID();
+    printf("can_read_task Running on core %d\n", coreID);
 
+    mcp2515.reset();
+    mcp2515.setBitrate(CAN_500KBPS, MCP_8MHZ);  // Change to MCP_16MHZ if needed
+    mcp2515.setNormalMode();
+
+    ESP_LOGI(TAG, "CAN task initialized");
+
+    while (1) {
+        if (mcp2515.readMessage(&canMsg) == MCP2515::ERROR_OK) {
+            // Wrap in Item struct and send to STM32 via UART
+            Item item;
+            item.value = canMsg.can_id;  // You can choose what "value" represents
+            memset(item.MacAddress, 0, sizeof(item.MacAddress));  // No MAC here
+
+            // Optionally: Log CAN message
+            ESP_LOGI(TAG, "CAN ID: 0x%03X, DLC: %d", canMsg.can_id, canMsg.can_dlc);
+            for (int i = 0; i < canMsg.can_dlc; i++) {
+                printf("%02X ", canMsg.data[i]);
+            }
+            printf("\n");
+
+            // Send to STM32 via UART
+            xQueueSend(NowUARTQueue, &item, 0);
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(20));  // Poll every 20ms
+    }
+}

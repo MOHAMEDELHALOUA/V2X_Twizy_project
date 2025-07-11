@@ -58,3 +58,31 @@ Finished building: default.size.stdout
  
 Finished building: V2X_OBU.list
  
+09:37:11 **** Incremental Build of configuration Debug for project V2X_OBU ****
+make -j8 all 
+arm-none-eabi-size  V2X_OBU.elf 
+   text	   data	    bss	    dec	    hex	filename
+  37504	    124	   8964	  46592	   b600	V2X_OBU.elf
+Finished building: default.size.stdout
+ 
+10:12:29 **** Incremental Build of configuration Debug for project V2X_OBU ****
+make -j8 all 
+arm-none-eabi-size  V2X_OBU.elf 
+   text	   data	    bss	    dec	    hex	filename
+  37504	    124	   8964	  46592	   b600	V2X_OBU.elf
+Finished building: default.size.stdout
+ 
+10:26:03 **** Incremental Build of configuration Debug for project V2X_OBU ****
+make -j8 all 
+arm-none-eabi-size  V2X_OBU.elf 
+   text	   data	    bss	    dec	    hex	filename
+  37504	    124	   8964	  46592	   b600	V2X_OBU.elf
+Finished building: default.size.stdout
+ 
+10:37:32 **** Incremental Build of configuration Debug for project V2X_OBU ****
+make -j8 all 
+arm-none-eabi-size  V2X_OBU.elf 
+   text	   data	    bss	    dec	    hex	filename
+  37504	    124	   8964	  46592	   b600	V2X_OBU.elf
+Finished building: default.size.stdout
+ 

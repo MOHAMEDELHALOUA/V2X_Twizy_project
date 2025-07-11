@@ -25,13 +25,18 @@
 #include <stdio.h>
 #include <string.h>
 #include "queue.h"
+#include <stdbool.h>
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 typedef struct {
-    unsigned int value;
-    uint8_t MacAddress[6];
+    unsigned int speed;
+    uint8_t CarID[6];
+    bool BrakingEvent = false;
+    unsigned int SoC;
+    uint8_t position[4];
 }Item;  // Ensure consistent packing
 
 volatile Item receivedData;

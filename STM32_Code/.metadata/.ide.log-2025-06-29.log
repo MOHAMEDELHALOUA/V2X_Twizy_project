@@ -611,3 +611,19 @@
 2025-06-30 09:29:51,977 [ERROR] ConfigurationRetriever:142 - IOException on connection: sw-center.st.com
 2025-06-30 09:29:51,978 [ERROR] IocParser:95 - Exception caught: null
 2025-06-30 09:29:51,979 [ERROR] IocParser:95 - Exception caught: null
+2025-06-30 11:07:42,620 [INFO] MainUpdater:2872 - connection check result : 22
+2025-06-30 11:10:35,667 [INFO] McuFinderGlobals:76 - Set McuFinderConnectedMode to false
+2025-06-30 11:10:35,696 [INFO] MultiScanPanel:200 - Auto-refresh data requested => check proxy status ongoing
+2025-06-30 11:10:35,698 [INFO] MultiScanPanel:204 - Proxy status is invalid
+2025-06-30 11:10:35,706 [INFO] FinderPluginLoader:95 - Searching for filters in installed packs
+2025-06-30 11:10:39,706 [INFO] DetailPanel:341 - Set advertising image to /home/elhaloua/STM32Cube/Repository//en.cubemxfinderstm32wba6.jpg
+2025-06-30 11:10:54,262 [INFO] MultiScanPanel:200 - Auto-refresh data requested => check proxy status ongoing
+2025-06-30 11:10:54,262 [INFO] MultiScanPanel:204 - Proxy status is invalid
+2025-06-30 11:10:54,466 [INFO] DetailPanel:341 - Set advertising image to /home/elhaloua/STM32Cube/Repository//en.cubemxfinderstm32wba6.jpg
+2025-06-30 11:10:54,478 [INFO] DbBoards:642 - Loading board mini-images...
+2025-06-30 11:10:58,171 [INFO] DbBoards:665 - Loaded 211 board mini-images
+2025-06-30 11:12:13,553 [INFO] McuFinderGlobals:76 - Set McuFinderConnectedMode to true
+2025-06-30 11:12:13,609 [INFO] ApiDb:448 - Save user favorites file /home/elhaloua/.stm32cubeide/favorites.mcus.txt: 0 item(s)
+2025-06-30 11:12:13,609 [INFO] ApiDb:452 - User favorites MCUs=[]
+2025-06-30 11:12:13,610 [INFO] ApiDb:448 - Save user favorites file /home/elhaloua/.stm32cubeide/favorites.boards.txt: 0 item(s)
+2025-06-30 11:12:13,610 [INFO] ApiDb:452 - User favorites Boards=[]
