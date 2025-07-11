@@ -1,0 +1,2 @@
+source /home/elhaloua/ESP_projects/V2X_project/V2X_esp_master/.pio/build/esp32dev/gdbinit/symbols
+source /home/elhaloua/ESP_projects/V2X_project/V2X_esp_master/.pio/build/esp32dev/gdbinit/connect

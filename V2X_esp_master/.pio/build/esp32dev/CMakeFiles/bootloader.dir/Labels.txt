@@ -1,0 +1,13 @@
+# Target labels
+ bootloader
+# Source files and their labels
+/home/elhaloua/ESP_projects/V2X_project/V2X_esp_master/.pio/build/esp32dev/CMakeFiles/bootloader
+/home/elhaloua/ESP_projects/V2X_project/V2X_esp_master/.pio/build/esp32dev/CMakeFiles/bootloader.rule
+/home/elhaloua/ESP_projects/V2X_project/V2X_esp_master/.pio/build/esp32dev/CMakeFiles/bootloader-complete.rule
+/home/elhaloua/ESP_projects/V2X_project/V2X_esp_master/.pio/build/esp32dev/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule
+/home/elhaloua/ESP_projects/V2X_project/V2X_esp_master/.pio/build/esp32dev/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule
+/home/elhaloua/ESP_projects/V2X_project/V2X_esp_master/.pio/build/esp32dev/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule
+/home/elhaloua/ESP_projects/V2X_project/V2X_esp_master/.pio/build/esp32dev/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule
+/home/elhaloua/ESP_projects/V2X_project/V2X_esp_master/.pio/build/esp32dev/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule
+/home/elhaloua/ESP_projects/V2X_project/V2X_esp_master/.pio/build/esp32dev/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule
+/home/elhaloua/ESP_projects/V2X_project/V2X_esp_master/.pio/build/esp32dev/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule

@@ -32,12 +32,10 @@
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 typedef struct {
-    unsigned int speed;
-    uint8_t CarID[6];
-    bool BrakingEvent = false;
-    unsigned int SoC;
-    uint8_t position[4];
-}Item;  // Ensure consistent packing
+    unsigned int value;
+    uint8_t MacAddress[6];  // Sender's MAC
+} Item;  // Ensure consistent packing
+
 
 volatile Item receivedData;
 /* USER CODE END PTD */
@@ -432,7 +430,6 @@ void StartSenderTask(void *argument)
   /* USER CODE END 5 */
 }
 
-
 /* USER CODE BEGIN Header_StartTskUART */
 /**
 * @brief Function implementing the TskUART thread.
@@ -480,6 +477,7 @@ void StartTskUART(void *argument)
   }
   /* USER CODE END StartTskUART */
 }
+
 /**
   * @brief  Period elapsed callback in non blocking mode
   * @note   This function is called  when TIM2 interrupt took place, inside
@@ -514,8 +512,7 @@ void Error_Handler(void)
   }
   /* USER CODE END Error_Handler_Debug */
 }
-
-#ifdef  USE_FULL_ASSERT
+#ifdef USE_FULL_ASSERT
 /**
   * @brief  Reports the name of the source file and the source line number
   *         where the assert_param error has occurred.
