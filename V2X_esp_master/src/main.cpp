@@ -13,8 +13,8 @@
 #include "nvs_flash.h"
 
 // Pin definitions
-#define UART_0_TX 17
-#define UART_0_RX 16
+#define UART_1_TX 10
+#define UART_1_RX 9
 #define UART_NUM UART_NUM_1
 #define LED_PIN GPIO_NUM_2
 
@@ -112,7 +112,7 @@ void init_uart()
     // Install UART driver with appropriate buffer sizes
     ESP_ERROR_CHECK(uart_driver_install(UART_NUM, BUF_SIZE * 2, BUF_SIZE * 2, 0, NULL, 0));
     ESP_ERROR_CHECK(uart_param_config(UART_NUM, &uart_config));
-    ESP_ERROR_CHECK(uart_set_pin(UART_NUM, UART_0_TX, UART_0_RX, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));
+    ESP_ERROR_CHECK(uart_set_pin(UART_NUM, UART_1_TX, UART_1_RX, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));
     
     // Flush any existing data
     uart_flush(UART_NUM);
