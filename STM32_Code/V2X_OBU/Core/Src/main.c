@@ -52,10 +52,10 @@ volatile CANFrame CANreceivedData;
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define UART_TIMEOUT_MS 100
-#define UART_TX_INTERVAL 100   // 0.25 seconds transmission interval
-#define UART2_TIMEOUT_MS 100
-#define UART2_TX_INTERVAL 100   // 0.025 seconds transmission interval
+#define UART_TIMEOUT_MS 1000
+#define UART_TX_INTERVAL 2000   // 0.25 seconds transmission interval
+#define UART2_TIMEOUT_MS 1000
+#define UART2_TX_INTERVAL 2000   // 0.025 seconds transmission interval
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -100,6 +100,9 @@ uint32_t uart_timeout_counter = 0;
 uint32_t message_counter = 0;
 uint32_t last_tx_time = 0;
 
+uint32_t uart_timeout_counter2 = 0;
+//uint32_t message_counter2 = 0;
+uint32_t last_tx_time2 = 0;
 // Define the queue:
 xQueueHandle UARTQueue;
 xQueueHandle UARTQueue2;
@@ -117,13 +120,14 @@ void StartSenderTask2(void *argument);
 void StartTskUART2(void *argument);
 
 /* USER CODE BEGIN PFP */
-uint8_t ValidateReceivedData(Item *data);
+uint8_t ValidateReceivedData(Item *data); 
 
+uint8_t ValidateReceivedCANData(CANFrame *data);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-//THIS IS TO VALIDATE RECEIVED DATA
+//THIS IS TO VALIDATE RECEIVED DATA frome ESP-NOW 
 uint8_t ValidateReceivedData(Item *data) {
     // Check if at least one byte of MAC address is non-zero
     for (int i = 0; i < 6; i++) {
@@ -132,6 +136,14 @@ uint8_t ValidateReceivedData(Item *data) {
         }
     }
     return 0;
+}
+
+//THIS IS TO VALIDATE RECEIVED DATA frome CAN
+uint8_t ValidateReceivedCANData(CANFrame *data) {
+    if (data->can_id == 0 || data->dlc > 8) {
+        return 0;  // Invalid
+    }
+    return 1; // Accept
 }
 /* USER CODE END 0 */
 
@@ -168,7 +180,7 @@ int main(void)
   MX_LPUART1_UART_Init();
   /* USER CODE BEGIN 2 */
 
-  printf("STM32 will start receiving Item struct data via UART...\n");
+  printf("STM32 will start receiving Item struct data via USART and LPUART...\n");
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -188,7 +200,7 @@ int main(void)
   if (UARTQueue == NULL) {
       Error_Handler(); // Handle queue creation failure
   }
-  UARTQueue2 = xQueueCreate(10, sizeof(Item));  // Increased queue size
+  UARTQueue2 = xQueueCreate(10, sizeof(CANFrame));  // Increased queue size
   if (UARTQueue2 == NULL) {
       Error_Handler(); // Handle queue creation failure
   }
@@ -214,10 +226,9 @@ int main(void)
   /* USER CODE END RTOS_EVENTS */
 
   /* Initialize leds */
-  BSP_LED_Init(LED_BLUE);
-  BSP_LED_Init(LED_GREEN);
-  BSP_LED_Init(LED_RED);
-
+  BSP_LED_Init(LED_BLUE);//Indicates received data from CAN bus via usart1rx
+  BSP_LED_Init(LED_GREEN);//Indicates received data from esp-now ESP32 via lpuart1 rx
+  BSP_LED_Init(LED_RED);//Indicates transmitted data to esp-now ESP32 via lpuart1 tx 
   /* Start scheduler */
   osKernelStart();
 
@@ -451,38 +462,10 @@ int _write(int file, char *ptr, int len)
   return len;
 }
 
-void StartSenderTask2(void *argument)
-{
-  Item itemToSend;
-  CANFrame receivedCANFrame;
+/////////////////////////////////////////////// Code to receive ESP-now data ////////////////////////////////////////////
 
-  /* Infinite loop */
-  for(;;)
-  {
-    // Check if we have received data to process
-    if (xQueueReceive(UARTQueue, &receivedCANFrame, 0) == pdTRUE) {
-      printf("Received from CAN Bus | CAN_ID: 0x%lX | DLC: %u | DATA:",receivedCANFrame.can_id,receivedCANFrame.dlc);
-      for (int i = 0; i < receivedCANFrame.dlc; i++) {
-          printf("%02X ", receivedCANFrame.data[i]);
-      }
-      printf("\n");
-      BSP_LED_Toggle(LED_BLUE);
-    }
-    osDelay(100);
-  }
-}
-/* USER CODE END 4 */
-
-/* USER CODE BEGIN Header_StartSenderTask */
-/**
-  * @brief  Function implementing the SenderTask thread.
-  * @param  argument: Not used
-  * @retval None
-  */
-/* USER CODE END Header_StartSenderTask */
 void StartSenderTask(void *argument)
 {
-  /* USER CODE BEGIN 5 */
   Item itemToSend;
   Item receivedItem;
 
@@ -495,8 +478,7 @@ void StartSenderTask(void *argument)
              receivedItem.value,
              receivedItem.MacAddress[0], receivedItem.MacAddress[1], receivedItem.MacAddress[2],
              receivedItem.MacAddress[3], receivedItem.MacAddress[4], receivedItem.MacAddress[5]);
-
-      BSP_LED_Toggle(LED_GREEN);
+      osDelay(100);
     }
 
     // Send data to ESP32 periodically
@@ -508,42 +490,31 @@ void StartSenderTask(void *argument)
       memcpy(itemToSend.MacAddress, stm32_mac, 6);
 
       // Send struct data
-      HAL_StatusTypeDef status = HAL_UART_Transmit(&huart1, (uint8_t*)&itemToSend, sizeof(Item), 1000);
+      HAL_StatusTypeDef status = HAL_UART_Transmit(&hlpuart1, (uint8_t*)&itemToSend, sizeof(Item), 1000);
 
       if (status == HAL_OK) {
+        BSP_LED_Toggle(LED_RED);
         printf("Sent to ESP32 - Value: %u, MAC: %02X:%02X:%02X:%02X:%02X:%02X\n",
                itemToSend.value,
                itemToSend.MacAddress[0], itemToSend.MacAddress[1], itemToSend.MacAddress[2],
                itemToSend.MacAddress[3], itemToSend.MacAddress[4], itemToSend.MacAddress[5]);
-        BSP_LED_Toggle(LED_BLUE);
       } else {
         printf("Failed to send data to ESP32\n");
-        BSP_LED_Toggle(LED_RED);
       }
 
       last_tx_time = current_time;
     }
 
-    osDelay(100);
+    osDelay(50);
   }
-  /* USER CODE END 5 */
 }
 
-/* USER CODE BEGIN Header_StartTskUART */
-/**
-* @brief Function implementing the TskUART thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartTskUART */
 void StartTskUART(void *argument)
 {
-  /* USER CODE BEGIN StartTskUART */
-  /* Infinite loop */
   for(;;)
   {
     // Receive Item struct data from ESP32
-    HAL_StatusTypeDef status = HAL_UART_Receive(&huart1, (uint8_t *)&receivedData, sizeof(Item), UART_TIMEOUT_MS);
+    HAL_StatusTypeDef status = HAL_UART_Receive(&hlpuart1, (uint8_t *)&receivedData, sizeof(Item), UART_TIMEOUT_MS);
 
     if (status == HAL_OK) {
       uart_timeout_counter = 0;
@@ -554,61 +525,73 @@ void StartTskUART(void *argument)
         if (xQueueSend(UARTQueue, &receivedData, 0) != pdTRUE) {
           printf("Queue full - message dropped\n");
         }
+        BSP_LED_Toggle(LED_GREEN); // Indicate successful reception
       } else {
         printf("UART Warning - Received corrupted data with invalid MAC\n");
       }
     }
     else if (status == HAL_TIMEOUT) {
       uart_timeout_counter++;
-      if (uart_timeout_counter % 100 == 0) {  // Reduced frequency of timeout messages
+      if (uart_timeout_counter % 100 == 0) {  // Reduced frequency of timeout2 messages
         printf("UART Waiting for data... (%lu)\n", uart_timeout_counter);
       }
     }
     else {
       printf("UART Error: %d, resetting...\n", status);
-      HAL_UART_DeInit(&huart1);
+      HAL_UART_DeInit(&hlpuart1);
       osDelay(10);
-      MX_USART1_UART_Init();
+      MX_LPUART1_UART_Init();
       uart_timeout_counter = 0;
     }
     osDelay(10); // Small delay
   }
-  /* USER CODE END StartTskUART */
 }
 
-/* USER CODE BEGIN Header_StartTskUART2 */
-/**
-* @brief Function implementing the TskUART2 thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartTskUART2 */
-void StartTskUART2(void *argument)
+
+/////////////////////////////////////// Tasks to receive CAN Bus data ( CAN IDs, Data length, and Data) /////////////////
+void StartSenderTask2(void *argument)
 {
-  /* USER CODE BEGIN StartTskUART2 */
+  Item itemToSend;
+  CANFrame receivedCANFrame;
+
   /* Infinite loop */
   for(;;)
   {
+    // Check if we have received data to process
+    if (xQueueReceive(UARTQueue2, &receivedCANFrame, 0) == pdTRUE) {
+      printf("Received from CAN Bus | CAN_ID: 0x%lX | DLC: %u | DATA:",receivedCANFrame.can_id,receivedCANFrame.dlc);
+      for (int i = 0; i < receivedCANFrame.dlc; i++) {
+          printf("%02X ", receivedCANFrame.data[i]);
+      }
+      printf("\n");
+      osDelay(100);
+    }
+  }
+}
+
+void StartTskUART2(void *argument)
+{
+  for(;;)
+  {
     // Receive CANFrame struct data from ESP32
-    HAL_StatusTypeDef status = HAL_UART_Receive(&huart1, (uint8_t *)&receivedData, sizeof(CANFrame), UART_TIMEOUT_MS);
+    HAL_StatusTypeDef status = HAL_UART_Receive(&huart1, (uint8_t *)&CANreceivedData, sizeof(CANFrame), UART2_TIMEOUT_MS);
     if (status == HAL_OK) {
-      uart_timeout_counter = 0;
+      uart_timeout_counter2 = 0;
       // Validate received data
-      if (ValidateReceivedData((CANFrame*)&receivedData)) {
+      if (ValidateReceivedCANData((CANFrame*)&CANreceivedData)) {
         // Send valid data to queue
-        if (xQueueSend(UARTQueue, (const void *)&receivedData, 0) != pdTRUE) {
+        if (xQueueSend(UARTQueue2, (const void *)&CANreceivedData, 0) != pdTRUE) {
           printf("Queue full - message dropped\n");
         }
-        BSP_LED_Toggle(LED_GREEN); // Indicate successful reception
+        BSP_LED_Toggle(LED_BLUE); // Indicate successful reception
       } else {
         printf("UART Warning - Received corrupted data with invalid CAN frame\n");
-        BSP_LED_Toggle(LED_RED); // Indicate error
       }
     }
     else if (status == HAL_TIMEOUT) {
-      uart_timeout_counter++;
-      if (uart_timeout_counter % 100 == 0) {  // Reduced frequency of timeout messages
-        printf("UART Waiting for data... (%lu)\n", uart_timeout_counter);
+      uart_timeout_counter2++;
+      if (uart_timeout_counter2 % 100 == 0) {  // Reduced frequency of timeout2 messages
+        printf("UART Waiting for data... (%lu)\n", uart_timeout_counter2);
       }
     }
     else {
@@ -616,13 +599,14 @@ void StartTskUART2(void *argument)
       HAL_UART_DeInit(&huart1);
       osDelay(10);
       MX_USART1_UART_Init();
-      uart_timeout_counter = 0;
+      uart_timeout_counter2 = 0;
     }
+    osDelay(10); // Small delay
   }
-  osDelay(10); // Small delay
-  
-  /* USER CODE END StartTskUART2 */
 }
+/* USER CODE END 4 */
+
+
 
 /**
   * @brief  Period elapsed callback in non blocking mode
@@ -669,49 +653,8 @@ void Error_Handler(void)
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
-  Item itemToSend;
-  Item receivedItem;
-
-  /* Infinite loop */
-  for(;;)
-  {
-    // Check if we have received data to process
-    if (xQueueReceive(UARTQueue2, &receivedItem, 0) == pdTRUE) {
-      printf("Received from ESP32 - Value: %u, MAC: %02X:%02X:%02X:%02X:%02X:%02X\n",
-             receivedItem.value,
-             receivedItem.MacAddress[0], receivedItem.MacAddress[1], receivedItem.MacAddress[2],
-             receivedItem.MacAddress[3], receivedItem.MacAddress[4], receivedItem.MacAddress[5]);
-
-      BSP_LED_Toggle(LED_GREEN);
-    }
-
-    // Send data to ESP32 periodically
-    uint32_t current_time = HAL_GetTick();
-    if (current_time - last_tx_time >= UART_TX_INTERVAL) {
-      // Prepare data to send
-      itemToSend.value = ++message_counter;
-      uint8_t stm32_mac[6] = {0xAA, 0xAA, 0xAA, 0xAA, 0xEE, 0xEE}; // Dummy STM32 MAC
-      memcpy(itemToSend.MacAddress, stm32_mac, 6);
-
-      // Send struct data
-      HAL_StatusTypeDef status = HAL_UART_Transmit(&hlpuart1, (uint8_t*)&itemToSend, sizeof(Item), 1000);
-
-      if (status == HAL_OK) {
-        printf("Sent to ESP32 - Value: %u, MAC: %02X:%02X:%02X:%02X:%02X:%02X\n",
-               itemToSend.value,
-               itemToSend.MacAddress[0], itemToSend.MacAddress[1], itemToSend.MacAddress[2],
-               itemToSend.MacAddress[3], itemToSend.MacAddress[4], itemToSend.MacAddress[5]);
-        BSP_LED_Toggle(LED_BLUE);
-      } else {
-        printf("Failed to send data to ESP32\n");
-        BSP_LED_Toggle(LED_RED);
-      }
-
-      last_tx_time = current_time;
-    }
-
-    osDelay(100);
-  }
+  /* User can add his own implementation to report the file name and line number,
+     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
