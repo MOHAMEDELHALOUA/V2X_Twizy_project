@@ -13,8 +13,8 @@
 #include "nvs_flash.h"
 
 // Pin definitions
-#define UART_1_TX 10
-#define UART_1_RX 9
+#define UART_1_TX 17
+#define UART_1_RX 16
 #define UART_NUM UART_NUM_1
 #define LED_PIN GPIO_NUM_2
 
