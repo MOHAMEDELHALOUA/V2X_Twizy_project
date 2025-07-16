@@ -192,7 +192,7 @@ static void uart_rx_task(void *pvParameter)
             
             // Blink LED to indicate successful reception
             gpio_set_level(LED_PIN, 1);
-            vTaskDelay(pdMS_TO_TICKS(100));
+            vTaskDelay(pdMS_TO_TICKS(50));
             gpio_set_level(LED_PIN, 0);
             
             // Here you could forward this data via ESP-NOW if needed
