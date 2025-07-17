@@ -35,7 +35,14 @@ typedef struct {
 //    uint8_t dlc;
 //    uint8_t data[8];
 //} CANFrame;
-
+////Real vehicle's Data to share via esp-now
+typedef struct {
+    unsigned short SOC;
+    float speedKmh;
+    float odometerKm;
+    float displaySpeed;
+    uint8_t MacAddress[6];  // Sender's MAC
+} Item;  // Ensure consistent packing
 Item incomingReadings;
 QueueHandle_t NowUARTQueue;
 
@@ -148,11 +155,10 @@ static void sendToSTM_uart(Item *data)
     int bytes_written = uart_write_bytes(UART_NUM, (const char*)data, sizeof(Item));
     if (bytes_written == sizeof(Item)) {
         ESP_LOGI(TAG,"Data sent to STM32 successfully (%d bytes)", bytes_written);
-        ESP_LOGI(TAG,"Sent value: %u, MAC: %02X:%02X:%02X:%02X:%02X:%02X", 
-              data->value, 
+        ESP_LOGI(TAG,"SOC: %u | Speed: %.1f km/h | Display: %.1f km/h, Odometer: %.1f km, MAC: %02X:%02X:%02X:%02X:%02X:%02X", 
+              data->SOC, data->speedKmh, data->displaySpeed, data->odometerKm, 
               data->MacAddress[0], data->MacAddress[1], data->MacAddress[2], 
               data->MacAddress[3], data->MacAddress[4], data->MacAddress[5]);
-        
         // Blink LED to indicate successful transmission
         gpio_set_level(LED_PIN, 1);
         vTaskDelay(pdMS_TO_TICKS(100));
@@ -185,10 +191,10 @@ static void uart_rx_task(void *pvParameter)
             // Copy received data to Item struct
             memcpy(&receivedItem, data, sizeof(Item));
             
-            ESP_LOGI(TAG,"Received from STM32 - Value: %u, MAC: %02X:%02X:%02X:%02X:%02X:%02X",
-                     receivedItem.value,
-                     receivedItem.MacAddress[0], receivedItem.MacAddress[1], receivedItem.MacAddress[2],
-                     receivedItem.MacAddress[3], receivedItem.MacAddress[4], receivedItem.MacAddress[5]);
+            ESP_LOGI(TAG,"Received from STM32 : SOC: %u | Speed: %.1f km/h | Display: %.1f km/h, Odometer: %.1f km, MAC: %02X:%02X:%02X:%02X:%02X:%02X", 
+              data->SOC, data->speedKmh, data->displaySpeed, data->odometerKm, 
+              data->MacAddress[0], data->MacAddress[1], data->MacAddress[2], 
+              data->MacAddress[3], data->MacAddress[4], data->MacAddress[5]);
             
             // Blink LED to indicate successful reception
             gpio_set_level(LED_PIN, 1);
@@ -249,11 +255,10 @@ void OnDataRecv(const esp_now_recv_info_t *recv_info, const uint8_t *incomingDat
     memcpy(item.MacAddress, recv_info->src_addr, 6);  // Set sender MAC
 
     // Log reception
-    ESP_LOGI(TAG, "Received item from MAC %02X:%02X:%02X:%02X:%02X:%02X, value %u",
+    ESP_LOGI(TAG, "Received item from MAC %02X:%02X:%02X:%02X:%02X:%02X, SOC: %u | Speed: %.1f km/h | Display: %.1f km/h, Odometer: %.1f km\r\n",
              item.MacAddress[0], item.MacAddress[1], item.MacAddress[2],
              item.MacAddress[3], item.MacAddress[4], item.MacAddress[5],
-             item.value);
-
+             item.SOC, item.speedKmh, item.displaySpeed, item.odometerKm);
     // Send response back to sender
     esp_now_peer_info_t peerInfo = {};
     memcpy(peerInfo.peer_addr, recv_info->src_addr, 6);
@@ -271,7 +276,10 @@ void OnDataRecv(const esp_now_recv_info_t *recv_info, const uint8_t *incomingDat
 
     // Create response
     Item response;
-    response.value = item.value + 100; // Just to differentiate the reply
+    response.SOC = 80; // Just to differentiate the reply
+    response.speedKm = 60;
+    response.displaySpeed = 58;
+    response.odometerKm = 3500;
     memcpy(response.MacAddress, recv_info->src_addr, 6);
 
     esp_err_t err = esp_now_send(recv_info->src_addr, (uint8_t *)&response, sizeof(response));
