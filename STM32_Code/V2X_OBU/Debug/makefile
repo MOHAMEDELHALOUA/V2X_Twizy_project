@@ -90,7 +90,7 @@ main-build: V2X_OBU.elf secondary-outputs
 
 # Tool invocations
 V2X_OBU.elf V2X_OBU.map: $(OBJS) $(USER_OBJS) /home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/STM32WB55RGVX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-g++ -o "V2X_OBU.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/STM32WB55RGVX_FLASH.ld" --specs=nosys.specs -Wl,-Map="V2X_OBU.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group
+	arm-none-eabi-g++ -o "V2X_OBU.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/home/elhaloua/ESP_projects/V2X_project/STM32_Code/V2X_OBU/STM32WB55RGVX_FLASH.ld" --specs=nosys.specs -Wl,-Map="V2X_OBU.map" -Wl,--gc-sections -static -u _printf_float --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
