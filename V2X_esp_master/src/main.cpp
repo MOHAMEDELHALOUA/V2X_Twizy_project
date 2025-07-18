@@ -24,42 +24,31 @@
 // Logging tag
 static const char* TAG = "ESP_NOW_UART";
 
-// Structure to receive ESP-NOW data
+// Structure to receive ESP-NOW data - MUST MATCH STM32 exactly
 typedef struct {
-    unsigned int value;
-    uint8_t MacAddress[6];  // Sender's MAC
-} Item;  // Ensure consistent packing
-
-//typedef struct {
-//    uint32_t can_id;
-//    uint8_t dlc;
-//    uint8_t data[8];
-//} CANFrame;
-////Real vehicle's Data to share via esp-now
-typedef struct {
-    unsigned short SOC;
+    unsigned short SOC;        // Changed to uppercase to match STM32
     float speedKmh;
     float odometerKm;
     float displaySpeed;
-    uint8_t MacAddress[6];  // Sender's MAC
+    uint8_t MacAddress[6];     // Sender's MAC
 } Item;  // Ensure consistent packing
+
 Item incomingReadings;
 QueueHandle_t NowUARTQueue;
 
 extern "C" void app_main();
-
 void init_uart();
 static void uart_rx_task(void *pvParameter);
 static void uart_tx_task(void *pvParameter);
 static void sendToSTM_uart(Item *data);
 void OnDataRecv(const esp_now_recv_info_t *recv_info, const uint8_t *incomingData, int len);
-
 esp_err_t init_esp_now(void);
 
 void app_main()
 {
     int coreID = xPortGetCoreID();
     printf("Running on core %d\n", coreID);
+    
     // Initialize NVS
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
@@ -67,7 +56,7 @@ void app_main()
         ret = nvs_flash_init();
     }
     ESP_ERROR_CHECK(ret);
-
+    
     // Initialize network interface
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
@@ -89,9 +78,11 @@ void app_main()
     
     // Initialize ESP-NOW
     ESP_ERROR_CHECK(init_esp_now());
+    
     // Create communication tasks with appropriate priorities
     xTaskCreate(uart_rx_task, "uart_rx_task", 4096, NULL, 12, NULL);  // Higher priority for RX
     xTaskCreate(uart_tx_task, "uart_tx_task", 4096, NULL, 11, NULL);  // Slightly lower priority for TX   
+    
     ESP_LOGI(TAG,"All communication tasks started successfully");
     
     // Main task can now do other work or simply monitor the system
@@ -104,8 +95,9 @@ void app_main()
 
 void init_uart()
 {
-      int coreID = xPortGetCoreID();
+    int coreID = xPortGetCoreID();
     printf("init_uart Running on core %d\n", coreID);
+    
     const uart_config_t uart_config = {
         .baud_rate = 115200,
         .data_bits = UART_DATA_8_BITS,
@@ -126,10 +118,12 @@ void init_uart()
     
     ESP_LOGI(TAG,"UART initialized successfully");
 }
-//Task to send data from the queue to the stm32 via uart
+
+// Task to send data from the queue to the STM32 via UART
 static void uart_tx_task(void *pvParameters) {
-      int coreID = xPortGetCoreID();
+    int coreID = xPortGetCoreID();
     printf("uart_tx_task Running on core %d\n", coreID);
+    
     Item item;
     ESP_LOGI(TAG,"UART TX task started");
     
@@ -142,9 +136,10 @@ static void uart_tx_task(void *pvParameters) {
 
 static void sendToSTM_uart(Item *data)
 {
-      int coreID = xPortGetCoreID();
+    int coreID = xPortGetCoreID();
     printf("sendToSTM_uart Running on core %d\n", coreID);
-    // Prepare data to send via uart - send exact struct size
+    
+    // Prepare data to send via UART - send exact struct size
     esp_err_t err = uart_wait_tx_done(UART_NUM, 1000 / portTICK_PERIOD_MS);
     if (err != ESP_OK) {
         ESP_LOGE(TAG,"UART TX timeout");
@@ -159,6 +154,7 @@ static void sendToSTM_uart(Item *data)
               data->SOC, data->speedKmh, data->displaySpeed, data->odometerKm, 
               data->MacAddress[0], data->MacAddress[1], data->MacAddress[2], 
               data->MacAddress[3], data->MacAddress[4], data->MacAddress[5]);
+        
         // Blink LED to indicate successful transmission
         gpio_set_level(LED_PIN, 1);
         vTaskDelay(pdMS_TO_TICKS(100));
@@ -170,8 +166,9 @@ static void sendToSTM_uart(Item *data)
 
 static void uart_rx_task(void *pvParameter)
 {
-      int coreID = xPortGetCoreID();
+    int coreID = xPortGetCoreID();
     printf("uart_rx_task Running on core %d\n", coreID);
+    
     uint8_t *data = (uint8_t *) malloc(BUF_SIZE);
     Item receivedItem;
     
@@ -191,10 +188,11 @@ static void uart_rx_task(void *pvParameter)
             // Copy received data to Item struct
             memcpy(&receivedItem, data, sizeof(Item));
             
-            ESP_LOGI(TAG,"Received from STM32 : SOC: %u | Speed: %.1f km/h | Display: %.1f km/h, Odometer: %.1f km, MAC: %02X:%02X:%02X:%02X:%02X:%02X", 
-              data->SOC, data->speedKmh, data->displaySpeed, data->odometerKm, 
-              data->MacAddress[0], data->MacAddress[1], data->MacAddress[2], 
-              data->MacAddress[3], data->MacAddress[4], data->MacAddress[5]);
+            // Fixed: Use receivedItem instead of data for logging
+            ESP_LOGI(TAG,"Received from STM32: SOC: %u | Speed: %.1f km/h | Display: %.1f km/h, Odometer: %.1f km, MAC: %02X:%02X:%02X:%02X:%02X:%02X", 
+              receivedItem.SOC, receivedItem.speedKmh, receivedItem.displaySpeed, receivedItem.odometerKm, 
+              receivedItem.MacAddress[0], receivedItem.MacAddress[1], receivedItem.MacAddress[2], 
+              receivedItem.MacAddress[3], receivedItem.MacAddress[4], receivedItem.MacAddress[5]);
             
             // Blink LED to indicate successful reception
             gpio_set_level(LED_PIN, 1);
@@ -218,53 +216,31 @@ static void uart_rx_task(void *pvParameter)
 }
 
 // ESP-NOW receive callback
-//void OnDataRecv(const esp_now_recv_info_t *recv_info, const uint8_t *incomingData, int len) {
-//      int coreID = xPortGetCoreID();
-//    printf("OnDataRecv Running on core %d\n", coreID);
-//    if (len != sizeof(Item)) {
-//        ESP_LOGE(TAG,"Received data size mismatch: %d bytes, expected %d", len, sizeof(Item));
-//        return;
-//    }
-//    
-//    Item item;
-//    memcpy(&item, incomingData, sizeof(Item));
-//    // Update MAC address with actual sender
-//    memcpy(item.MacAddress, recv_info->src_addr, 6);
-//
-//    if (xQueueSend(NowUARTQueue, &item, 0) != pdTRUE) {
-//        ESP_LOGE(TAG,"Queue full, dropping packet");
-//    } else {
-//        ESP_LOGI(TAG,"Queued item from MAC %02X:%02X:%02X:%02X:%02X:%02X, value %u",
-//                 item.MacAddress[0], item.MacAddress[1], item.MacAddress[2],
-//                 item.MacAddress[3], item.MacAddress[4], item.MacAddress[5],
-//                 item.value);
-//    }
-//}
-//
 void OnDataRecv(const esp_now_recv_info_t *recv_info, const uint8_t *incomingData, int len) {
     int coreID = xPortGetCoreID();
     printf("OnDataRecv Running on core %d\n", coreID);
-
+    
     if (len != sizeof(Item)) {
         ESP_LOGE(TAG, "Received data size mismatch: %d bytes, expected %d", len, sizeof(Item));
         return;
     }
-
+    
     Item item;
     memcpy(&item, incomingData, sizeof(Item));
     memcpy(item.MacAddress, recv_info->src_addr, 6);  // Set sender MAC
-
-    // Log reception
+    
+    // Log reception - Fixed: Use uppercase SOC
     ESP_LOGI(TAG, "Received item from MAC %02X:%02X:%02X:%02X:%02X:%02X, SOC: %u | Speed: %.1f km/h | Display: %.1f km/h, Odometer: %.1f km\r\n",
              item.MacAddress[0], item.MacAddress[1], item.MacAddress[2],
              item.MacAddress[3], item.MacAddress[4], item.MacAddress[5],
              item.SOC, item.speedKmh, item.displaySpeed, item.odometerKm);
+    
     // Send response back to sender
     esp_now_peer_info_t peerInfo = {};
     memcpy(peerInfo.peer_addr, recv_info->src_addr, 6);
     peerInfo.channel = 0;
     peerInfo.encrypt = false;
-
+    
     // Register peer only if it doesn't already exist
     if (!esp_now_is_peer_exist(recv_info->src_addr)) {
         if (esp_now_add_peer(&peerInfo) != ESP_OK) {
@@ -273,15 +249,15 @@ void OnDataRecv(const esp_now_recv_info_t *recv_info, const uint8_t *incomingDat
             ESP_LOGI(TAG, "Peer added for response");
         }
     }
-
-    // Create response
+    
+    // Create response - Fixed: Use uppercase SOC
     Item response;
     response.SOC = 80; // Just to differentiate the reply
-    response.speedKm = 60;
+    response.speedKmh = 60;  // Fixed: speedKmh not speedKm
     response.displaySpeed = 58;
     response.odometerKm = 3500;
     memcpy(response.MacAddress, recv_info->src_addr, 6);
-
+    
     esp_err_t err = esp_now_send(recv_info->src_addr, (uint8_t *)&response, sizeof(response));
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to send reply: %s", esp_err_to_name(err));
@@ -290,7 +266,7 @@ void OnDataRecv(const esp_now_recv_info_t *recv_info, const uint8_t *incomingDat
                  recv_info->src_addr[0], recv_info->src_addr[1], recv_info->src_addr[2],
                  recv_info->src_addr[3], recv_info->src_addr[4], recv_info->src_addr[5]);
     }
-
+    
     // Optionally forward to UART
     if (xQueueSend(NowUARTQueue, &item, 0) != pdTRUE) {
         ESP_LOGE(TAG, "Queue full, dropping packet");
@@ -299,8 +275,9 @@ void OnDataRecv(const esp_now_recv_info_t *recv_info, const uint8_t *incomingDat
 
 // Initialize ESP-NOW
 esp_err_t init_esp_now(void) {
-      int coreID = xPortGetCoreID();
+    int coreID = xPortGetCoreID();
     printf("init_esp_now Running on core %d\n", coreID);
+    
     esp_err_t ret;
     
     // Initialize WiFi in station mode
