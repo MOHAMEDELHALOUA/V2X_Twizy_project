@@ -2,7 +2,7 @@
 /**
   ******************************************************************************
   * @file           : main.c
-  * @brief          : Main program body
+  * @brief          : Main program body - Optimized with Interrupts & 64MHz
   ******************************************************************************
   * @attention
   *
@@ -47,11 +47,9 @@ volatile CANFrame CANreceivedData;
 /* USER CODE END PTD */
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define UART_TIMEOUT_MS 100          // Reduced timeout for better responsiveness
 #define UART_TX_INTERVAL 500         // 0.5 seconds transmission interval
-#define UART2_TIMEOUT_MS 100         // Reduced timeout for better responsiveness
-#define QUEUE_SIZE 10                // Increased queue size
-#define PRINT_TIMEOUT_INTERVAL 500   // Print timeout every 500 iterations instead of 100
+#define QUEUE_SIZE 20                // Increased queue size for interrupts
+#define DEBUG_PRINT_INTERVAL 100     // Print every 100th message for performance
 /* USER CODE END PD */
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
@@ -64,35 +62,32 @@ osThreadId_t SenderTaskHandle;
 const osThreadAttr_t SenderTask_attributes = {
   .name = "SenderTask",
   .priority = (osPriority_t) osPriorityNormal,
-  .stack_size = 128 * 4
+  .stack_size = 256 * 4  // Increased stack size
 };
 /* Definitions for TskUART */
 osThreadId_t TskUARTHandle;
 const osThreadAttr_t TskUART_attributes = {
   .name = "TskUART",
-  .priority = (osPriority_t) osPriorityHigh,
-  .stack_size = 128 * 4
+  .priority = (osPriority_t) osPriorityLow,  // Lower priority since interrupts handle reception
+  .stack_size = 256 * 4
 };
 /* Definitions for SenderTask2 */
 osThreadId_t SenderTask2Handle;
 const osThreadAttr_t SenderTask2_attributes = {
   .name = "SenderTask2",
   .priority = (osPriority_t) osPriorityNormal,
-  .stack_size = 128 * 4
+  .stack_size = 256 * 4
 };
 /* Definitions for TskUART2 */
 osThreadId_t TskUART2Handle;
 const osThreadAttr_t TskUART2_attributes = {
   .name = "TskUART2",
-  .priority = (osPriority_t) osPriorityHigh,
-  .stack_size = 128 * 4
+  .priority = (osPriority_t) osPriorityLow,  // Lower priority since interrupts handle reception
+  .stack_size = 256 * 4
 };
 /* USER CODE BEGIN PV */
-static uint32_t uart_timeout_counter = 0;
-static uint32_t message_counter = 0;
 static uint32_t last_tx_time = 0;
-static uint32_t uart_timeout_counter2 = 0;
-static uint32_t last_tx_time2 = 0;
+static uint32_t debug_counter = 0;
 // Define the queue:
 static QueueHandle_t UARTQueue;
 static QueueHandle_t UARTQueue2;
@@ -100,6 +95,9 @@ static QueueHandle_t UARTQueue2;
 static const uint8_t stm32_mac[6] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF};
 // Global variable to store parsed CAN data
 static Item parsedCANData;
+// Interrupt status flags
+static volatile uint32_t uart_error_count = 0;
+static volatile uint32_t can_error_count = 0;
 /* USER CODE END PV */
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
@@ -117,6 +115,7 @@ static inline uint8_t ValidateReceivedCANData(const CANFrame *data);
 static void PrintMAC(const uint8_t *mac);
 static void PrintCANData(const CANFrame *ReceivedCANFrame);
 static void parseTwizyFrame(CANFrame* ReceivedCANFrame);
+static void StartUARTInterrupts(void);
 /* USER CODE END PFP */
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
@@ -136,22 +135,19 @@ static inline uint8_t ValidateReceivedCANData(const CANFrame *data) {
 }
 // Helper function to print MAC address
 static void PrintMAC(const uint8_t *mac) {
-	//
-	
     printf("%02X:%02X:%02X:%02X:%02X:%02X",
            mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 }
 // Helper function to print CAN data
 static void PrintCANData(const CANFrame *ReceivedCANFrame) {
-
-    printf("Received from CAN Bus | CAN_ID: 0x%lX | DLC: %u | DATA:",
-           ReceivedCANFrame->can_id, ReceivedCANFrame->dlc);
-    for (int i = 0; i < ReceivedCANFrame->dlc; i++) {
-        printf("%02X ", ReceivedCANFrame->data[i]);
+    if (debug_counter % DEBUG_PRINT_INTERVAL == 0) {
+        printf("CAN ID:0x%lX DLC:%u DATA:", ReceivedCANFrame->can_id, ReceivedCANFrame->dlc);
+        for (int i = 0; i < ReceivedCANFrame->dlc; i++) {
+            printf("%02X ", ReceivedCANFrame->data[i]);
+        }
+        printf("\n");
     }
-    printf("\n");
 }
-
 //Function to parse the CAN data and update parsedCANData:
 static void parseTwizyFrame(CANFrame* ReceivedCANFrame) {
     switch (ReceivedCANFrame->can_id) {
@@ -160,7 +156,9 @@ static void parseTwizyFrame(CANFrame* ReceivedCANFrame) {
                 uint16_t raw_soc = (ReceivedCANFrame->data[4] << 8) | ReceivedCANFrame->data[5];
                 float soc = raw_soc / 400.0f;
                 parsedCANData.SOC = (unsigned short)(soc * 100);  // Convert to percentage * 100
-                printf("SoC: %.1f%%\r\n", soc);
+                if (debug_counter % (DEBUG_PRINT_INTERVAL * 2) == 0) {
+                    printf("SoC: %.1f%%\n", soc);
+                }
             }
             break;
         case 0x5D7:  // Display Speed and Odometer
@@ -170,7 +168,9 @@ static void parseTwizyFrame(CANFrame* ReceivedCANFrame) {
                 uint32_t odometerRaw = (ReceivedCANFrame->data[2] << 24) | (ReceivedCANFrame->data[3] << 16) |
                                        (ReceivedCANFrame->data[4] << 8) | ReceivedCANFrame->data[5];
                 parsedCANData.odometerKm = odometerRaw / 1600.0f;
-                printf("Display Speed: %.1f km/h | Odometer: %.1f km\r\n", parsedCANData.displaySpeed, parsedCANData.odometerKm);
+                if (debug_counter % (DEBUG_PRINT_INTERVAL * 2) == 0) {
+                    printf("Display: %.1f km/h | Odometer: %.1f km\n", parsedCANData.displaySpeed, parsedCANData.odometerKm);
+                }
             }
             break;
         case 0x19F:  // Motor Speed and RPM
@@ -181,7 +181,9 @@ static void parseTwizyFrame(CANFrame* ReceivedCANFrame) {
                 int16_t speedDeviation = speedRaw - 0x7D0;
                 float speedRPM = speedDeviation * 10.0f;
                 parsedCANData.speedKmh = (speedRPM / 7250.0f) * 80.0f;
-                printf("Motor Speed: %.1f km/h | RPM: %.0f\r\n", parsedCANData.speedKmh, speedRPM);
+                if (debug_counter % (DEBUG_PRINT_INTERVAL * 2) == 0) {
+                    printf("Motor: %.1f km/h | RPM: %.0f\n", parsedCANData.speedKmh, speedRPM);
+                }
             }
             break;
         case 0x436:  // System Uptime
@@ -191,15 +193,18 @@ static void parseTwizyFrame(CANFrame* ReceivedCANFrame) {
                 uint32_t hours = minuteCounter / 60;
                 uint32_t days = hours / 24;
                 uint32_t remainingHours = hours % 24;
-                printf("Uptime: %u min | %u h | %u d\r\n", minuteCounter, remainingHours, days);
+                if (debug_counter % (DEBUG_PRINT_INTERVAL * 5) == 0) {
+                    printf("Uptime: %u min | %u h | %u d\n", minuteCounter, remainingHours, days);
+                }
             }
             break;
         case 0x423:  // Charger Status
             if (ReceivedCANFrame->dlc >= 8) {
                 uint8_t chargerStatus = ReceivedCANFrame->data[0];
                 uint16_t counter = (ReceivedCANFrame->data[6] << 8) | ReceivedCANFrame->data[7];
-                printf("Charger: %s | Counter: %u\r\n",
-                       chargerStatus == 0x03 ? "ON" : "OFF", counter);
+                if (debug_counter % (DEBUG_PRINT_INTERVAL * 3) == 0) {
+                    printf("Charger: %s | Counter: %u\n", chargerStatus == 0x03 ? "ON" : "OFF", counter);
+                }
             }
             break;
         case 0x424:  // Power and Battery Health
@@ -207,8 +212,9 @@ static void parseTwizyFrame(CANFrame* ReceivedCANFrame) {
                 int maxRegenPower = ReceivedCANFrame->data[2] * 500;
                 int maxDrivePower = ReceivedCANFrame->data[3] * 500;
                 int batterySOH = ReceivedCANFrame->data[5];
-                printf("Max Drive: %d W | Regen: %d W | SOH: %d%%\r\n",
-                       maxDrivePower, maxRegenPower, batterySOH);
+                if (debug_counter % (DEBUG_PRINT_INTERVAL * 3) == 0) {
+                    printf("Max Drive: %d W | Regen: %d W | SOH: %d%%\n", maxDrivePower, maxRegenPower, batterySOH);
+                }
             }
             break;
         case 0x425:  // Battery Voltage and Energy
@@ -216,7 +222,9 @@ static void parseTwizyFrame(CANFrame* ReceivedCANFrame) {
                 uint16_t voltageRaw = (ReceivedCANFrame->data[4] << 8) | ReceivedCANFrame->data[5];
                 float batteryVoltage = (voltageRaw >> 1) / 10.0f;
                 float availableEnergy = ReceivedCANFrame->data[1] / 10.0f;
-                printf("Battery: %.1f V | Energy: %.1f kWh\r\n", batteryVoltage, availableEnergy);
+                if (debug_counter % (DEBUG_PRINT_INTERVAL * 3) == 0) {
+                    printf("Battery: %.1f V | Energy: %.1f kWh\n", batteryVoltage, availableEnergy);
+                }
             }
             break;
         case 0x597:  // 12V System
@@ -231,14 +239,31 @@ static void parseTwizyFrame(CANFrame* ReceivedCANFrame) {
                     case 0xB1: proto_str = "CHG"; break;
                     case 0x91: proto_str = "STB"; break;
                 }
-                printf("12V: %.1f A | Temp: %d°C | Protocol: %s\r\n",
-                       dcCurrent, chargerTemp, proto_str);
+                if (debug_counter % (DEBUG_PRINT_INTERVAL * 4) == 0) {
+                    printf("12V: %.1f A | Temp: %d°C | Protocol: %s\n", dcCurrent, chargerTemp, proto_str);
+                }
             }
             break;
         default:
             // Unknown frame - could log if needed
             break;
     }
+}
+
+// Start interrupt-based UART reception
+static void StartUARTInterrupts(void) {
+    // Enable NVIC interrupts for UART
+    HAL_NVIC_SetPriority(LPUART1_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(LPUART1_IRQn);
+
+    HAL_NVIC_SetPriority(USART1_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(USART1_IRQn);
+
+    // Start interrupt-based reception
+    HAL_UART_Receive_IT(&hlpuart1, (uint8_t*)&receivedData, sizeof(Item));
+    HAL_UART_Receive_IT(&huart1, (uint8_t*)&CANreceivedData, sizeof(CANFrame));
+
+    printf("UART Interrupts enabled - 64MHz System Ready\n");
 }
 /* USER CODE END 0 */
 /**
@@ -269,10 +294,11 @@ int main(void)
   memset(&parsedCANData, 0, sizeof(Item));
   memcpy(parsedCANData.MacAddress, stm32_mac, 6);
 
-  ////Indicates reception of data from ESP32(2) responsible for CAN sniffing
-  ////Indicates reception of data from ESP32(1) responsible for esp-now communication
-  ////Indicates transmission of data to ESP32(1) responsible for esp-now communication
-  printf("STM32 will start receiving Item struct data via USART and LPUART...\n");
+  // Start interrupt-based UART reception
+  StartUARTInterrupts();
+
+  printf("STM32 64MHz + Interrupt UART System Started\n");
+  printf("System Clock: %lu Hz\n", HAL_RCC_GetSysClockFreq());
   /* USER CODE END 2 */
   /* Init scheduler */
   osKernelInitialize();
@@ -322,43 +348,50 @@ int main(void)
   /* USER CODE END 3 */
 }
 /**
-  * @brief System Clock Configuration
+  * @brief System Clock Configuration - 64MHz
   * @retval None
   */
 void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-  /** Configure the main internal regulator output voltage
-  */
+
+  /** Configure the main internal regulator output voltage */
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
-  /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_MSI;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+
+  /** Initializes the RCC Oscillators according to the specified parameters */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE|RCC_OSCILLATORTYPE_MSI;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.MSIState = RCC_MSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.MSICalibrationValue = RCC_MSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_10;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
+  RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_6;  // 4MHz MSI
+
+  /** Configure PLL for 64MHz */
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_MSI;
+  RCC_OscInitStruct.PLL.PLLM = 1;    // Divider: 4MHz / 1 = 4MHz
+  RCC_OscInitStruct.PLL.PLLN = 32;   // Multiplier: 4MHz * 32 = 128MHz
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV7;
+  RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
+  RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;  // Output: 128MHz / 2 = 64MHz
+
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
     Error_Handler();
   }
-  /** Configure the SYSCLKSource, HCLK, PCLK1 and PCLK2 clocks dividers
-  */
+
+  /** Initializes the CPU, AHB and APB buses clocks */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK4|RCC_CLOCKTYPE_HCLK2
                               |RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_MSI;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-  RCC_ClkInitStruct.AHBCLK2Divider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.AHBCLK4Divider = RCC_SYSCLK_DIV1;
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
-  {
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;  // Use PLL for 64MHz
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;        // 64MHz
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;         // 64MHz
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;         // 64MHz
+  RCC_ClkInitStruct.AHBCLK2Divider = RCC_SYSCLK_DIV2;       // 32MHz for RF
+  RCC_ClkInitStruct.AHBCLK4Divider = RCC_SYSCLK_DIV1;       // 64MHz
+
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_3) != HAL_OK) {
     Error_Handler();
   }
 }
@@ -509,7 +542,63 @@ int _write(int file, char *ptr, int len)
   }
   return len;
 }
+
+// UART Reception Complete Callback - CRITICAL FOR INTERRUPT OPERATION
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
+    if (huart->Instance == LPUART1) {
+        // ESP-NOW data received via LPUART1
+        if (ValidateReceivedData((Item*)&receivedData)) {
+            if (xQueueSendFromISR(UARTQueue, (void*)&receivedData, &xHigherPriorityTaskWoken) != pdTRUE) {
+                // Queue full - increment error counter
+                uart_error_count++;
+            }
+        }
+        // Restart reception for next packet
+        HAL_UART_Receive_IT(&hlpuart1, (uint8_t*)&receivedData, sizeof(Item));
+    }
+    else if (huart->Instance == USART1) {
+        // CAN data received via USART1
+        if (ValidateReceivedCANData((CANFrame*)&CANreceivedData)) {
+            if (xQueueSendFromISR(UARTQueue2, (void*)&CANreceivedData, &xHigherPriorityTaskWoken) != pdTRUE) {
+                // Queue full - increment error counter
+                can_error_count++;
+            }
+        }
+        // Restart reception for next packet
+        HAL_UART_Receive_IT(&huart1, (uint8_t*)&CANreceivedData, sizeof(CANFrame));
+    }
+
+    // Trigger context switch if higher priority task was woken
+    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+}
+
+// UART Error Callback - CRITICAL FOR ROBUST OPERATION
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
+{
+    if (huart->Instance == LPUART1) {
+        // Clear error flags and restart reception
+        __HAL_UART_CLEAR_OREFLAG(&hlpuart1);
+        __HAL_UART_CLEAR_NEFLAG(&hlpuart1);
+        __HAL_UART_CLEAR_FEFLAG(&hlpuart1);
+        __HAL_UART_CLEAR_PEFLAG(&hlpuart1);
+        uart_error_count++;
+        HAL_UART_Receive_IT(&hlpuart1, (uint8_t*)&receivedData, sizeof(Item));
+    }
+    else if (huart->Instance == USART1) {
+        // Clear error flags and restart reception
+        __HAL_UART_CLEAR_OREFLAG(&huart1);
+        __HAL_UART_CLEAR_NEFLAG(&huart1);
+        __HAL_UART_CLEAR_FEFLAG(&huart1);
+        __HAL_UART_CLEAR_PEFLAG(&huart1);
+        can_error_count++;
+        HAL_UART_Receive_IT(&huart1, (uint8_t*)&CANreceivedData, sizeof(CANFrame));
+    }
+}
 /* USER CODE END 4 */
+
 /* USER CODE BEGIN Header_StartSenderTask */
 /**
   * @brief  Function implementing the SenderTask thread.
@@ -520,44 +609,45 @@ int _write(int file, char *ptr, int len)
 void StartSenderTask(void *argument)
 {
   /* USER CODE BEGIN 5 */
-  /* Infinite loop */
-
   Item itemToSend;
   Item receivedItem;
   uint32_t current_time;
-  /* Infinite loop */
+
   for(;;)
   {
-		//
-		
+    debug_counter++;
+
     // Check if we have received data to process from ESP-NOW
     if (xQueueReceive(UARTQueue, &receivedItem, 0) == pdTRUE) {
       BSP_LED_Toggle(LED_GREEN);
-      printf("Received from ESP32 - SOC: %u, Speed: %.1f, MAC: ", receivedItem.SOC, receivedItem.speedKmh);
-      PrintMAC(receivedItem.MacAddress);
-      printf("\n");
-      osDelay(50); // Reduced delay
-    }
 
+      // Reduce printf frequency for better performance
+      if (debug_counter % DEBUG_PRINT_INTERVAL == 0) {
+          printf("RX ESP32 - SOC: %u, Speed: %.1f, MAC: ", receivedItem.SOC, receivedItem.speedKmh);
+          PrintMAC(receivedItem.MacAddress);
+          printf("\n");
+      }
+    }
     // Send parsed CAN data to ESP32 periodically via LPUART1
     current_time = HAL_GetTick();
     if (current_time - last_tx_time >= UART_TX_INTERVAL) {
-      // Prepare parsed CAN data to send
       itemToSend = parsedCANData;  // Copy the parsed data
 
-      // Send struct data via LPUART1
       if (HAL_UART_Transmit(&hlpuart1, (uint8_t*)&itemToSend, sizeof(Item), 100) == HAL_OK) {
-        printf("Sent to ESP32 - SOC: %u, Speed: %.1f km/h, Display: %.1f km/h, Odometer: %.1f km, MAC: ",
-               itemToSend.SOC, itemToSend.speedKmh, itemToSend.displaySpeed, itemToSend.odometerKm);
-        PrintMAC(itemToSend.MacAddress);
-        printf("\n");
+        if (debug_counter % DEBUG_PRINT_INTERVAL == 0) {
+            printf("TX ESP32 - SOC: %u, Speed: %.1f km/h, Display: %.1f km/h, Odometer: %.1f km\n",
+                   itemToSend.SOC, itemToSend.speedKmh, itemToSend.displaySpeed, itemToSend.odometerKm);
+        }
         BSP_LED_Toggle(LED_RED);
       } else {
-        printf("Failed to send CAN data to ESP32\n");
+        if (debug_counter % (DEBUG_PRINT_INTERVAL * 5) == 0) {
+            printf("Failed to send CAN data to ESP32\n");
+        }
       }
       last_tx_time = current_time;
     }
-    osDelay(50);
+
+    osDelay(20); // Reduced delay for better performance
   }
   /* USER CODE END 5 */
 }
@@ -571,39 +661,18 @@ void StartSenderTask(void *argument)
 void StartTskUART(void *argument)
 {
   /* USER CODE BEGIN StartTskUART */
-  /* Infinite loop */
+  /* This task is now much simpler since interrupts handle reception */
   for(;;)
   {
-	//
-	
-    // Receive Item struct data from ESP32 via LPUART1
-    HAL_StatusTypeDef status = HAL_UART_Receive(&hlpuart1, (uint8_t *)&receivedData, sizeof(Item), UART_TIMEOUT_MS);
-    if (status == HAL_OK) {
-      uart_timeout_counter = 0;
-      // Validate received data
-      if (ValidateReceivedData(&receivedData)) {
-        // Send valid data to queue
-        if (xQueueSend(UARTQueue, &receivedData, 0) != pdTRUE) {
-          printf("Queue full - message dropped\n");
-        }
-      } else {
-        printf("UART Warning - Received corrupted data with invalid MAC\n");
-      }
+    // Just handle monitoring and status reporting
+    // Most work is now done in interrupt callbacks
+
+    // Print status occasionally
+    if (debug_counter % (DEBUG_PRINT_INTERVAL * 50) == 0) {
+        printf("LPUART1 Status: OK | Errors: %lu\n", uart_error_count);
     }
-    else if (status == HAL_TIMEOUT) {
-      uart_timeout_counter++;
-      if (uart_timeout_counter % PRINT_TIMEOUT_INTERVAL == 0) {
-        printf("UART Waiting for data... (%lu)\n", uart_timeout_counter);
-      }
-    }
-    else {
-      printf("UART Error: %d, resetting...\n", status);
-      HAL_UART_DeInit(&hlpuart1);
-      osDelay(10);
-      MX_LPUART1_UART_Init();
-      uart_timeout_counter = 0;
-    }
-    osDelay(5); // Reduced delay for better responsiveness
+
+    osDelay(500); // Much longer delay since interrupts handle reception
   }
   /* USER CODE END StartTskUART */
 }
@@ -617,20 +686,19 @@ void StartTskUART(void *argument)
 void StartSenderTask2(void *argument)
 {
   /* USER CODE BEGIN StartSenderTask2 */
-  /* Infinite loop */
   CANFrame receivedCANFrame;
-  /* Infinite loop */
+
   for(;;)
   {
-	//
-	
     // Check if we have received CAN data to process
     if (xQueueReceive(UARTQueue2, &receivedCANFrame, 0) == pdTRUE) {
       // Parse the CAN frame and update parsedCANData
       parseTwizyFrame(&receivedCANFrame);
+
+      // Print CAN data with reduced frequency
       PrintCANData(&receivedCANFrame);
     }
-    osDelay(10);
+    osDelay(20); // Reduced delay for better responsiveness
   }
   /* USER CODE END StartSenderTask2 */
 }
@@ -644,40 +712,18 @@ void StartSenderTask2(void *argument)
 void StartTskUART2(void *argument)
 {
   /* USER CODE BEGIN StartTskUART2 */
-  /* Infinite loop */
+  /* This task is now much simpler since interrupts handle reception */
   for(;;)
   {
-	//
-	
-    // Receive CANFrame struct data from ESP32 via USART1
-    HAL_StatusTypeDef status = HAL_UART_Receive(&huart1, (uint8_t *)&CANreceivedData, sizeof(CANFrame), UART2_TIMEOUT_MS);
-    if (status == HAL_OK) {
-      BSP_LED_Toggle(LED_BLUE); // Indicate successful reception
-      uart_timeout_counter2 = 0;
-      // Validate received data
-      if (ValidateReceivedCANData(&CANreceivedData)) {
-        // Send valid data to queue
-        if (xQueueSend(UARTQueue2, &CANreceivedData, 0) != pdTRUE) {
-          printf("Queue2 full - message dropped\n");
-        }
-      } else {
-        printf("UART Warning - Received corrupted data with invalid CAN Frame\n");
-      }
+    // Just handle monitoring and status reporting
+    // Most work is now done in interrupt callbacks
+
+    // Print status occasionally
+    if (debug_counter % (DEBUG_PRINT_INTERVAL * 50) == 0) {
+        printf("USART1 Status: OK | Errors: %lu\n", can_error_count);
     }
-    else if (status == HAL_TIMEOUT) {
-      uart_timeout_counter2++;
-      if (uart_timeout_counter2 % PRINT_TIMEOUT_INTERVAL == 0) {
-        printf("UART Waiting for data from ESP_CAN... (%lu)\n", uart_timeout_counter2);
-      }
-    }
-    else {
-      printf("UART Error from ESP_CAN: %d, resetting...\n", status);
-      HAL_UART_DeInit(&huart1);
-      osDelay(10);
-      MX_USART1_UART_Init();
-      uart_timeout_counter2 = 0;
-    }
-    osDelay(5); // Reduced delay for better responsiveness
+
+    osDelay(500); // Much longer delay since interrupts handle reception
   }
   /* USER CODE END StartTskUART2 */
 }
