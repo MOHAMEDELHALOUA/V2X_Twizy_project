@@ -42,7 +42,7 @@ void setup() {
 void loop() {
   static uint32_t lastSendTime = 0;
 
-  if (millis() - lastSendTime > 1000) {
+  if (millis() - lastSendTime > 2000) {
     lastSendTime = millis();
 
     // Simulate a CAN frame
