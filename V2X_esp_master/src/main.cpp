@@ -1,4 +1,4 @@
-/////////////////////////////////////////////code for esp32 communication esp32(2)---esp-now--->esp32(1)---usb-serial--->jetson nano
+///////////////////////////////////////////// code for esp32 communication esp32(2)---esp-now--->esp32(1)---usb-serial--->jetson nano
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_system.h"
@@ -28,6 +28,7 @@ typedef struct {
 } Item;
 
 Item incomingReadings;
+Item receivedItem; //Item received from jetson, and that will be forwarded to external esp32s
 QueueHandle_t NowUSBQueue;
 
 extern "C" void app_main();
@@ -67,7 +68,14 @@ void app_main()
     
     // Initialize ESP-NOW
     ESP_ERROR_CHECK(init_esp_now());
-    
+
+    memset(&receivedItem, 0, sizeof(receivedItem));
+    // Set some default values
+    receivedItem.SOC = 0;
+    receivedItem.speedKmh = 0.0;
+    receivedItem.displaySpeed = 0.0;
+    receivedItem.odometerKm = 0.0;
+
     // Create communication tasks with appropriate priorities
     xTaskCreate(usb_serial_rx_task, "usb_serial_rx_task", 4096, NULL, 12, NULL);  // Higher priority for RX
     xTaskCreate(usb_serial_tx_task, "usb_serial_tx_task", 4096, NULL, 11, NULL);  // Slightly lower priority for TX   
@@ -131,7 +139,6 @@ static void sendToJetson_usb(Item *data)
 static void usb_serial_rx_task(void *pvParameter)
 {
     uint8_t *data = (uint8_t *) malloc(BUF_SIZE);
-    Item receivedItem;
     
     if (data == NULL) {
         vTaskDelete(NULL);
@@ -167,6 +174,52 @@ static void usb_serial_rx_task(void *pvParameter)
 }
 
 // ESP-NOW receive callback
+//
+
+// ESP-NOW receive callback
+//void OnDataRecv(const esp_now_recv_info_t *recv_info, const uint8_t *incomingData, int len) {
+//    if (len != sizeof(Item)) {
+//        return;
+//    }
+//    
+//    Item item;
+//    memcpy(&item, incomingData, sizeof(Item));
+//    memcpy(item.MacAddress, recv_info->src_addr, 6);  // Set sender MAC
+//    
+//    // Send response back to sender
+//    esp_now_peer_info_t peerInfo = {};
+//    memcpy(peerInfo.peer_addr, recv_info->src_addr, 6);
+//    peerInfo.channel = 0;
+//    peerInfo.encrypt = false;
+//    
+//    if (!esp_now_is_peer_exist(recv_info->src_addr)) {
+//        if (esp_now_add_peer(&peerInfo) == ESP_OK) {
+//            // Peer added successfully
+//        }
+//    }
+//    
+//    // Create response
+////    Item response;
+////    response.SOC = 80;
+////    response.speedKmh = 60;
+////    response.displaySpeed = 58;
+////    response.odometerKm = 3500;
+////    memcpy(response.MacAddress, recv_info->src_addr, 6);
+//    
+////    esp_err_t err = esp_now_send(recv_info->src_addr, (uint8_t *)&response, sizeof(response));
+//
+//    /*Send data received from jetson to external esp32s*/
+//    // Better approach - use a local copy
+//    Item responseItem = receivedItem;  // Atomic copy
+//    memcpy(responseItem.MacAddress, recv_info->src_addr, 6);
+//    esp_err_t err = esp_now_send(recv_info->src_addr, (uint8_t *)&responseItem, sizeof(responseItem));
+//    // Forward to Jetson via USB Serial
+//    if (xQueueSend(NowUSBQueue, &item, 0) != pdTRUE) {
+//        // Queue full, drop packet silently
+//    }
+//}
+
+// ESP-NOW receive callback - LOOPBACK TEST VERSION
 void OnDataRecv(const esp_now_recv_info_t *recv_info, const uint8_t *incomingData, int len) {
     if (len != sizeof(Item)) {
         return;
@@ -176,32 +229,22 @@ void OnDataRecv(const esp_now_recv_info_t *recv_info, const uint8_t *incomingDat
     memcpy(&item, incomingData, sizeof(Item));
     memcpy(item.MacAddress, recv_info->src_addr, 6);  // Set sender MAC
     
-    // Send response back to sender
-    esp_now_peer_info_t peerInfo = {};
-    memcpy(peerInfo.peer_addr, recv_info->src_addr, 6);
-    peerInfo.channel = 0;
-    peerInfo.encrypt = false;
+    // LOOPBACK TEST: Send Jetson's data back to Jetson (not to external ESP32s)
+    // Instead of sending receivedItem to external ESP32s, 
+    // we send receivedItem back to Jetson
     
-    if (!esp_now_is_peer_exist(recv_info->src_addr)) {
-        if (esp_now_add_peer(&peerInfo) == ESP_OK) {
-            // Peer added successfully
-        }
+    // Forward the received Jetson data back to Jetson via USB Serial
+    if (xQueueSend(NowUSBQueue, &receivedItem, 0) != pdTRUE) {
+        // Queue full, drop packet silently
     }
     
-    // Create response
-    Item response;
-    response.SOC = 80;
-    response.speedKmh = 60;
-    response.displaySpeed = 58;
-    response.odometerKm = 3500;
-    memcpy(response.MacAddress, recv_info->src_addr, 6);
-    
-    esp_err_t err = esp_now_send(recv_info->src_addr, (uint8_t *)&response, sizeof(response));
-    
-    // Forward to Jetson via USB Serial
+    // Also forward the external ESP32 data to Jetson (original functionality)
     if (xQueueSend(NowUSBQueue, &item, 0) != pdTRUE) {
         // Queue full, drop packet silently
     }
+    
+    // Don't send anything via ESP-NOW for this test
+    // (Comment out the esp_now_send part)
 }
 
 // Initialize ESP-NOW

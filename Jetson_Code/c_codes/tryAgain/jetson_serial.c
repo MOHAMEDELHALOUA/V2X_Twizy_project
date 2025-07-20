@@ -1,4 +1,4 @@
-//check if data is being sended back to the esp32((2)now)
+//and now ?
 #include <fcntl.h>
 #include <termios.h>
 #include <unistd.h>
@@ -28,8 +28,8 @@ typedef struct {
     uint8_t MacAddress[6];
 } Item;
 // Global serial port file descriptors
-int serial_port1; // /dev/ttyUSB0 for ESP32(1)
-int serial_port2; // /dev/ttyUSB1 for ESP32(2)
+int serial_port1; // /dev/ttyUSB1 for ESP32(1)
+int serial_port2; // /dev/ttyUSB2 for ESP32(2)
 // Queue for ESP-NOW Items
 pthread_mutex_t queue_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t queue_cond = PTHREAD_COND_INITIALIZER;
@@ -237,25 +237,51 @@ void* printer_thread(void* arg) {
     fclose(fpt);
     return NULL;
 }
-void* sender_thread(void* arg) {
+//void* sender_thread(void* arg) {
+//    while (1) {
+//        Item item = {
+//            .SOC = 85,
+//            .speedKmh = 42.0,
+//            .odometerKm = 1234.5,
+//            .displaySpeed = 41.8,
+//            .MacAddress = {0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x01}
+//        };
+//        uint8_t header[2] = { HEADER_BYTE_1, HEADER_BYTE_2 };
+//        write(serial_port1, header, 2);
+//        write(serial_port1, &item, sizeof(Item));
+//        usleep(5000000); // 5 seconds
+//    }
+//    return NULL;
+//}
+
+void* response_sender_thread(void* arg) {
     while (1) {
-        Item item = {
-            .SOC = 85,
-            .speedKmh = 42.0,
-            .odometerKm = 1234.5,
-            .displaySpeed = 41.8,
-            .MacAddress = {0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x01}
+        Item received_item;
+        dequeue(&received_item);  // Get data from ESP32s
+        
+        // Process the received data and create response
+        Item response = {
+            .SOC = 95,  // Command: Set SOC to 95%
+            .speedKmh = 65.0,  // Command: Set speed limit to 65
+            .displaySpeed = 63.0,
+            .odometerKm = received_item.odometerKm + 1,  // Increment odometer
+            .MacAddress = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00}  // Will be set by ESP32(1)
         };
+        
+        // Send response back to ESP32(1)
         uint8_t header[2] = { HEADER_BYTE_1, HEADER_BYTE_2 };
         write(serial_port1, header, 2);
-        write(serial_port1, &item, sizeof(Item));
-        usleep(5000000); // 5 seconds
+        write(serial_port1, &response, sizeof(Item));
+        
+        printf("[JETSON] Sent response: SOC=%u, Speed=%.1f\n", 
+               response.SOC, response.speedKmh);
     }
     return NULL;
 }
+
 // Thread functions for CAN (text data)
 void *reader_thread(void *arg) {
-    int fd = setup_serial_text("/dev/ttyUSB1");
+    int fd = setup_serial_text("/dev/ttyUSB2");
     if (fd < 0) {
         fprintf(stderr, "Failed to open CAN serial port\n");
         return NULL;
@@ -307,14 +333,14 @@ void *writer_thread(void *arg) {
 // Add error handling in main():
 int main() {
     // Setup serial ports with error handling
-    serial_port1 = setup_serial_binary("/dev/ttyUSB0");
+    serial_port1 = setup_serial_binary("/dev/ttyUSB1");
     if (serial_port1 < 0) {
         fprintf(stderr, "Failed to setup ESP-NOW serial port\n");
         return 1;
     }
 
     // Test CAN port availability
-    int test_can_port = setup_serial_text("/dev/ttyUSB1");
+    int test_can_port = setup_serial_text("/dev/ttyUSB2");
     int can_available = (test_can_port >= 0);
     if (test_can_port >= 0) close(test_can_port);
 
@@ -324,11 +350,11 @@ int main() {
 
     init_queueCAN(&queueCAN);
 
-    pthread_t rx_tid, tx_tid, print_tid, reader_tid, writer_tid;
+    pthread_t rx_tid, respense_tid, print_tid, reader_tid, writer_tid;
 
     // Always start ESP-NOW threads
     pthread_create(&rx_tid, NULL, receiver_thread, NULL);
-    pthread_create(&tx_tid, NULL, sender_thread, NULL);
+    pthread_create(&response_tid, NULL, response_sender_thread, NULL);
     pthread_create(&print_tid, NULL, printer_thread, NULL);
 
     // Only start CAN threads if port is available
@@ -342,7 +368,7 @@ int main() {
 
     // Join threads
     pthread_join(rx_tid, NULL);
-    pthread_join(tx_tid, NULL);
+    pthread_join(response_tid, NULL);
     pthread_join(print_tid, NULL);
 
     if (can_available) {
