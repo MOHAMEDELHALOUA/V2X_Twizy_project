@@ -24,50 +24,37 @@ void setup() {
   mcp2515.setBitrate(CAN_500KBPS, MCP_8MHZ);
   mcp2515.setNormalMode();
   
-  Serial.println("CAN Bus Reader Ready");
-  Serial.println("Format: CAN_ID DLC DATA_BYTES");
-  Serial.println("------------------------");
+  // Optional: Add a startup message to help distinguish debug from data
+  // Serial.println("CAN Bus Reader Ready");
+  // Serial.println("Format: CAN_ID DLC DATA_BYTES");
+  // Serial.println("------------------------");
 }
 
 void loop() {
   if (mcp2515.readMessage(&canMsg) == MCP2515::ERROR_OK) {
-    // ----------- Debug print to Serial Monitor -----------
+    // ----------- Send CAN frame to JETSON as TEXT via USB Serial -----------
+    // Format: "SIM CAN_ID DLC DATA_BYTES\n" (same as working test code)
+    Serial.print("SIM ");
+    
+    // Send CAN ID in HEX with leading zeros
     if (canMsg.can_id < 0x100) Serial.print("0");
     if (canMsg.can_id < 0x10) Serial.print("0");
     Serial.print(canMsg.can_id, HEX);
     Serial.print(" ");
+    
+    // Send DLC
     Serial.print(canMsg.can_dlc, DEC);
     Serial.print(" ");
+    
+    // Send data bytes in HEX with leading zeros
     for (int i = 0; i < canMsg.can_dlc; i++) {
       if (canMsg.data[i] < 0x10) Serial.print("0");
       Serial.print(canMsg.data[i], HEX);
       Serial.print(" ");
     }
-    Serial.println();
-    
-    // ----------- Send CAN frame to JETSON as TEXT via Serial1 UART -----------
-    // Format: "SIM CAN_ID DLC DATA_BYTES\n" (same as working test code)
-    Serial1.print("SIM ");
-    
-    // Send CAN ID in HEX with leading zeros
-    if (canMsg.can_id < 0x100) Serial1.print("0");
-    if (canMsg.can_id < 0x10) Serial1.print("0");
-    Serial1.print(canMsg.can_id, HEX);
-    Serial1.print(" ");
-    
-    // Send DLC
-    Serial1.print(canMsg.can_dlc, DEC);
-    Serial1.print(" ");
-    
-    // Send data bytes in HEX with leading zeros
-    for (int i = 0; i < canMsg.can_dlc; i++) {
-      if (canMsg.data[i] < 0x10) Serial1.print("0");
-      Serial1.print(canMsg.data[i], HEX);
-      Serial1.print(" ");
-    }
     
     // End the line
-    Serial1.println();
+    Serial.println();
   }
   
   delay(50);  // Reduce delay if faster communication is needed
