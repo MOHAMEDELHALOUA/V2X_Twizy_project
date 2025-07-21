@@ -1,5 +1,4 @@
-//sending text data to jetson:
-
+//Fixed ESP32 code - sending text data to jetson:
 #include <Arduino.h>
 #include <SPI.h>
 #include "mcp2515.h"
@@ -16,15 +15,15 @@ void setup() {
   // Serial Monitor for debugging
   Serial.begin(115200);
   while (!Serial) delay(10);
-
+  
   // UART1 to JETSON
   Serial1.begin(115200, SERIAL_8N1, UART1_RX, UART1_TX);  // Only TX used
-
+  
   // Initialize CAN
   mcp2515.reset();
   mcp2515.setBitrate(CAN_500KBPS, MCP_8MHZ);
   mcp2515.setNormalMode();
-
+  
   Serial.println("CAN Bus Reader Ready");
   Serial.println("Format: CAN_ID DLC DATA_BYTES");
   Serial.println("------------------------");
@@ -32,30 +31,44 @@ void setup() {
 
 void loop() {
   if (mcp2515.readMessage(&canMsg) == MCP2515::ERROR_OK) {
-
     // ----------- Debug print to Serial Monitor -----------
     if (canMsg.can_id < 0x100) Serial.print("0");
     if (canMsg.can_id < 0x10) Serial.print("0");
     Serial.print(canMsg.can_id, HEX);
     Serial.print(" ");
-
     Serial.print(canMsg.can_dlc, DEC);
     Serial.print(" ");
-
     for (int i = 0; i < canMsg.can_dlc; i++) {
       if (canMsg.data[i] < 0x10) Serial.print("0");
       Serial.print(canMsg.data[i], HEX);
       Serial.print(" ");
     }
     Serial.println();
-
-    // ----------- Send CAN frame to JETSON via Serial1 UART -----------
-    // Format: [4 bytes CAN ID][1 byte DLC][8 bytes data]
-    Serial1.write((uint8_t *)&canMsg.can_id, 4);         // Send CAN ID
-    Serial1.write((uint8_t *)&canMsg.can_dlc, 1);        // Send DLC
-    Serial1.write((uint8_t *)canMsg.data, canMsg.can_dlc); // Send data bytes
+    
+    // ----------- Send CAN frame to JETSON as TEXT via Serial1 UART -----------
+    // Format: "SIM CAN_ID DLC DATA_BYTES\n" (same as working test code)
+    Serial1.print("SIM ");
+    
+    // Send CAN ID in HEX with leading zeros
+    if (canMsg.can_id < 0x100) Serial1.print("0");
+    if (canMsg.can_id < 0x10) Serial1.print("0");
+    Serial1.print(canMsg.can_id, HEX);
+    Serial1.print(" ");
+    
+    // Send DLC
+    Serial1.print(canMsg.can_dlc, DEC);
+    Serial1.print(" ");
+    
+    // Send data bytes in HEX with leading zeros
+    for (int i = 0; i < canMsg.can_dlc; i++) {
+      if (canMsg.data[i] < 0x10) Serial1.print("0");
+      Serial1.print(canMsg.data[i], HEX);
+      Serial1.print(" ");
+    }
+    
+    // End the line
+    Serial1.println();
   }
-
+  
   delay(50);  // Reduce delay if faster communication is needed
 }
-
