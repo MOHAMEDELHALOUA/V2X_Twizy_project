@@ -1,0 +1,200 @@
+[33mcommit 857ac5b180ab26cf6c13a2b1fb2610d26177bd83[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: MOHAMED <mohamedelhaloua24@gmail.com>
+Date:   Mon Jul 21 13:48:17 2025 +0100
+
+    change jetson_serial.c inside tryAgain2 to assigne port to input args
+
+[33mcommit 8fc792500eb30f0e122833f3c38220b4af58d07a[m
+Author: MOHAMED <mohamedelhaloua24@gmail.com>
+Date:   Mon Jul 21 13:18:45 2025 +0100
+
+    21-07-2025, 1h018pm: I just wanna go to previous commits to retreive the original ESP32_CANSniffer and commited to comeback to mean
+
+[33mcommit 7d520c60f42159e7a2318077823f91aafb12ad1b[m
+Author: MOHAMED <mohamedelhaloua24@gmail.com>
+Date:   Sun Jul 20 23:47:30 2025 +0100
+
+    creating library parseCANFrame.h which will be used to parse the received CAN Data to human format
+
+[33mcommit 13355716ee67a16204e85719e537d97147fe1d1b[m
+Author: MOHAMED <mohamedelhaloua24@gmail.com>
+Date:   Sun Jul 20 15:35:17 2025 +0100
+
+    Alhamdo lilaaah we could sucessfully merge the CAN_data_Receive_threads.c and ESPnowData_with_threads.c into one code that receives data from both esp32(CAN) and esp32(now), and save the data on csv files (ESP_now_data.csv and CANData.csv), now next steps :
+    make sure the raspberry send a respense to the external esp32.
+    display the data on a GUI using nodeRed.
+    Parse the data received from the CAN_esp32, and pass it as respense to the external esp32.
+
+[33mcommit 25e988e0cdb5257151b249472ea613baa09b4cf7[m
+Author: MOHAMED <mohamedelhaloua24@gmail.com>
+Date:   Sat Jul 19 13:06:20 2025 +0100
+
+    new ESP32_CANsniffer code for testing
+
+[33mcommit c36e2a84a87a6f8a2f8abee3edb3a70ada9b727d[m
+Author: MOHAMED <mohamedelhaloua24@gmail.com>
+Date:   Fri Jul 18 09:12:51 2025 +0100
+
+    I tried to optimize the stm32 code as much as possible but it didn't work, so now i'm going to forward the data comming from esp-now to the NOW_ESP32 on the OBU directly to the jetson nano via usb cable
+
+[33mcommit 1559f96023fb265daef3747bbbb8e5d75ba26f08[m
+Author: MOHAMED <mohamedelhaloua24@gmail.com>
+Date:   Fri Jul 18 02:02:17 2025 +0100
+
+    not important just commiting the ESP32 code with the new struct
+
+[33mcommit b14a97b905edbfafa8dc8e9a45748aa24339af5f[m
+Author: MOHAMED <mohamedelhaloua24@gmail.com>
+Date:   Fri Jul 18 01:58:10 2025 +0100
+
+    I made changes but still the same issue, can't communicate through both uarts at the same time
+
+[33mcommit 6e12b45ecba219459c9aafea4481df5e60275154[m
+Author: MOHAMED <mohamedelhaloua24@gmail.com>
+Date:   Fri Jul 18 01:45:11 2025 +0100
+
+    modify the code to simulate realistic CAN data for testing. Here's the adjusted version that sends simulated Twizy CAN frames
+
+[33mcommit a48a9666c65036fd411db4eee384b36a887629f2[m
+Author: MOHAMED <mohamedelhaloua24@gmail.com>
+Date:   Fri Jul 18 00:44:20 2025 +0100
+
+    Adjust the coodee to handle reeeaal vehicle's daaataaa
+
+[33mcommit cdeeb44ec24d0bae2ff3da228a5b84df3f6dc05c[m
+Author: MOHAMED <mohamedelhaloua24@gmail.com>
+Date:   Wed Jul 16 10:53:10 2025 +0100
+
+    The issue related to delay on receiving data from esp-now has been fixed, now we can send and receive immediatly without like waiting for 7 or 8 times to send data to esp32 then only receive one Item
+
+[33mcommit ca7125bd183d2cd2bebbd4fdc458fb9ab7ed8be9[m
+Author: MOHAMED <mohamedelhaloua24@gmail.com>
+Date:   Wed Jul 16 00:56:23 2025 +0100
+
+    The tasks to receive boths data from esp-now and CAN are added and compiled without errors
+
+[33mcommit 2860fabaff9a0f5dbb02eec33a923de360f60eaa[m
+Author: MOHAMED <mohamedelhaloua24@gmail.com>
+Date:   Tue Jul 15 16:11:19 2025 +0100
+
+     the stm32 can now receive CAN bus data from CAN bus via mcp2515&CAN_esp32 and added the code for this task to the code of the V2X_board
+
+[33mcommit 566916acd858ae51620d4a8c77c455a9adf2e61a[m
+Author: MOHAMED <mohamedelhaloua24@gmail.com>
+Date:   Sat Jul 12 15:04:11 2025 +0100
+
+    The serial communication between esp32 (uart1 : RX_9, TX_10) and stm32 (usart1 : RX_10, TX_9) now is woorking, next step is to add the second esp32 respensible for sniffing CAN bus data and see if the lpuart1 and usart1 works in the same time
+
+[33mcommit 7a1825d1a0b53f20b647146d88b5e02bc33636d7[m
+Author: MOHAMED <mohamedelhaloua24@gmail.com>
+Date:   Fri Jul 11 22:15:08 2025 +0100
+
+    everythin is working just fine
+
+[33mcommit 71033899778d348897ad1f827be6649e0de82211[m
+Author: MOHAMED <mohamedelhaloua24@gmail.com>
+Date:   Fri Jul 11 20:51:30 2025 +0100
+
+    the code still has some errors
+
+[33mcommit e6fee5b4af7b0361f3f1bd5b200b2d88ae1478ef[m
+Author: MOHAMED <mohamedelhaloua24@gmail.com>
+Date:   Fri Jul 11 12:56:41 2025 +0100
+
+    change the ESP_CANsniffer to forward data to the st
+
+[33mcommit 1e03bf0bf56b4e8cf7f8291b984baf145c42c975[m
+Author: MOHAMED <mohamedelhaloua24@gmail.com>
+Date:   Fri Jul 11 10:59:29 2025 +0100
+
+    the arduino code works very well, now we need to pass the data to stm32 via RX17 TX16 using serail2
+
+[33mcommit a6aa46e80d657ee93bd8a6e4d6873d86ac992c3d[m
+Author: MOHAMED <mohamedelhaloua24@gmail.com>
+Date:   Fri Jul 11 10:55:10 2025 +0100
+
+    It has compiled and uploaded successfuly but did not read or print the data correctly
+
+[33mcommit 9bc730546842811f13c534063d3d7fa230ee9394[m
+Author: MOHAMED <mohamedelhaloua24@gmail.com>
+Date:   Fri Jul 11 09:37:21 2025 +0100
+
+    i tried to make the esp32 handle also the CAN bus communication, but it looks like if i continue on this approch i will risk of overloading the esp32, so i will do like what Saad said, and connect other esp32 to the mcp2515, then this esp32 will forward the CAN bus data to the stm32
+
+[33mcommit ec1f13bae2c1ca2c3eabad443cd09ffb8d316ea3[m
+Author: MOHAMED <mohamedelhaloua24@gmail.com>
+Date:   Mon Jun 30 09:33:31 2025 +0100
+
+    Using UART instead of SPI to send data from internal OBU's esp32 tranceiver to stm32. Everything is working fine
+
+[33mcommit 538ba19d0b0dd6ab4428e614e6bde72c67438bb3[m[33m ([m[1;32mnewBranch[m[33m)[m
+Author: MOHAMED <mohamedelhaloua24@gmail.com>
+Date:   Wed Jun 25 14:47:13 2025 +0100
+
+    the data from esp32 to stm32 works fine, but the invert didn't work with polling mode of the stm32 i will try the interrupt mode
+
+[33mcommit de4526f2d172e40aaf4b1bb8650d9112f8e1e9d4[m
+Author: MOHAMED <mohamedelhaloua24@gmail.com>
+Date:   Mon Jun 23 17:06:14 2025 +0100
+
+    It woooorks, now the Items get sent from the external ESP32s via esp-now to the internal ESP32, then this one forward the data to the stm32 via spi. The main issue was because of the definition of the struct in which is part was added : __attribute__((packed))
+
+[33mcommit 0409ec0017e11f0280a2b109033d7403b39eb974[m
+Author: MOHAMED <mohamedelhaloua24@gmail.com>
+Date:   Mon Jun 23 16:30:04 2025 +0100
+
+    stm32 slave but adding freeRTOs tasks attempting to solve the problem of the second Item corruption when sended via spi but it doesn't work, in this commit i add Queue in both stm and esp and some tasks for receiving and sending items
+
+[33mcommit cdc80d8b3cd86e83100b5d77e7b710c0dbc1bb55[m
+Author: MOHAMED <mohamedelhaloua24@gmail.com>
+Date:   Sun Jun 22 20:06:40 2025 +0100
+
+    the communication is working : 2 esp32 --ESP_NOW--> esp on vihecle --spi_polling_mode--> stm32, it works with spi on polling mode and esp32 as master but this is a slitly letter issue which is that the stm32 can receive only on Item (value + mac @) the Item of the other esp32 is corrupted, that is due to timing and synchronization issue
+
+[33mcommit 2badc22072ed3c9f8427cb577f80060d769dcca0[m
+Author: MOHAMED <mohamedelhaloua24@gmail.com>
+Date:   Sun Jun 22 17:01:07 2025 +0100
+
+     the stm32 started receiving value and mac address, when i used spi polling mode but it is not synchronized with the esp32 as a result it display random values and only when clicking on reset it display correct ones. Next i will add spi interrupt mode
+
+[33mcommit de187dab34263f77005dffb38324ac3a7a326322[m
+Author: MOHAMED <mohamedelhaloua24@gmail.com>
+Date:   Sun Jun 22 14:53:16 2025 +0100
+
+    I added the DMA mode on the stm32 for spi data recieving but still not receiving anything
+
+[33mcommit 74a9e1a9dbcf278bab77043f52cc3a361c47d9ff[m
+Author: MOHAMED <mohamedelhaloua24@gmail.com>
+Date:   Sun Jun 22 12:10:01 2025 +0100
+
+    the communication between the ESPs works fine but the stm32 code need to be adjusted
+
+[33mcommit 5995e75ec4b26e28c30c72f86254fe8ad4c98367[m
+Author: MOHAMED <mohamedelhaloua24@gmail.com>
+Date:   Sat Jun 21 13:07:47 2025 +0100
+
+    I modified the esp_master code so that is can receive data from other esp32 via esp-now then forward this data to stm32 via spi, the new code is based on espidf framework now arduino framework
+
+[33mcommit 22324b52317f3ce9ed57927a3fa8bb0481696c77[m
+Author: MOHAMED <mohamedelhaloua24@gmail.com>
+Date:   Fri Jun 20 17:07:28 2025 +0100
+
+    We could transmit a simple data 'C' to stm32 via SPI, but we only receiving garbeg data and most propebly the issue is from stm32 configuration (btw: here the esp32 is the master and stm32 is the slave
+
+[33mcommit fe1185ca7bb5d0b710620385d4fbfecaa2a6b084[m
+Author: MOHAMED <mohamedelhaloua24@gmail.com>
+Date:   Fri Jun 20 09:14:15 2025 +0100
+
+    using default and simple ESP32 spi,and it works, the master can send values (like 0, 1,2,3,...) and the slave receives them
+
+[33mcommit 1ba13549f43939b2ddb7edc03897315dca09bde9[m
+Author: MOHAMED <mohamedelhaloua24@gmail.com>
+Date:   Thu Jun 19 17:02:28 2025 +0100
+
+    sending simple incrimented variable via spi using a simple code
+
+[33mcommit f426eab9bca9fc47fc8ccfc8e097182cc7149dfb[m
+Author: MOHAMED <mohamedelhaloua24@gmail.com>
+Date:   Thu Jun 19 16:59:17 2025 +0100
+
+    initial commit

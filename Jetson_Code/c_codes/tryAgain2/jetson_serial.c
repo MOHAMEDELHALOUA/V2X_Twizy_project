@@ -129,7 +129,7 @@ int parse_can_line(const char *line, CANFrame *frame) {
     
     int id, dlc;
     unsigned int d[8] = {0};
-    int parsed = sscanf(line + 4, "%x %hhu %x %x %x %x %x %x %x %x",
+    int parsed = sscanf(line + 4, "%x %u %x %x %x %x %x %x %x %x",
                         &id, &dlc, &d[0], &d[1], &d[2], &d[3],
                         &d[4], &d[5], &d[6], &d[7]);
     if (parsed < 2 + dlc)
