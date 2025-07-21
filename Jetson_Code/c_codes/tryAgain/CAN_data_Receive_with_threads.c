@@ -5,14 +5,16 @@
 #include <unistd.h>
 #include <termios.h>
 #include <pthread.h>
+#include <time.h>
 
 #define MAX_LINE_LENGTH 128
-#define QUEUE_SIZE 100
+#define QUEUE_SIZE 1000
 
 typedef struct {
     unsigned int can_id;
     unsigned char dlc;
     unsigned char data[8];
+    struct timespec timestamp;
 } CANFrame;
 
 // --- Queue implementation ---
@@ -66,34 +68,100 @@ int open_serial_port(const char *device) {
 
     struct termios options;
     tcgetattr(fd, &options);
+    
+    // Set baud rate
     cfsetispeed(&options, B115200);
     cfsetospeed(&options, B115200);
-    options.c_cflag &= ~PARENB;
-    options.c_cflag &= ~CSTOPB;
+    
+    // Configure port settings
+    options.c_cflag &= ~PARENB;        // No parity
+    options.c_cflag &= ~CSTOPB;        // 1 stop bit
     options.c_cflag &= ~CSIZE;
-    options.c_cflag |= CS8;
-    options.c_cflag |= CREAD | CLOCAL;
+    options.c_cflag |= CS8;            // 8 data bits
+    options.c_cflag |= CREAD | CLOCAL; // Enable receiver, local mode
+    
+    // Raw input mode
     options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
-    options.c_oflag &= ~OPOST;
+    options.c_iflag &= ~(IXON | IXOFF | IXANY); // No software flow control
+    options.c_oflag &= ~OPOST;         // Raw output mode
+    
+    // Set timeout (1 second)
+    options.c_cc[VMIN] = 0;
+    options.c_cc[VTIME] = 10;
+    
     tcsetattr(fd, TCSANOW, &options);
-
+    tcflush(fd, TCIFLUSH); // Flush input buffer
+    
     return fd;
 }
 
+int hex_char_to_int(char c) {
+    if (c >= '0' && c <= '9') return c - '0';
+    if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+    if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+    return -1;
+}
+
+int parse_hex_byte(const char *str) {
+    int high = hex_char_to_int(str[0]);
+    int low = hex_char_to_int(str[1]);
+    if (high == -1 || low == -1) return -1;
+    return (high << 4) | low;
+}
+
 int parse_can_line(const char *line, CANFrame *frame) {
-    if (strncmp(line, "SIM ", 4) != 0)
+    // Expected format: "SIM 19F 8 FF FF 7D 0F 38 FF 40 FE"
+    if (strncmp(line, "SIM ", 4) != 0) {
         return 0;
-    int id, dlc;
-    unsigned int d[8] = {0};
-    int parsed = sscanf(line + 4, "%x %hhu %x %x %x %x %x %x %x %x",
-                        &id, &dlc, &d[0], &d[1], &d[2], &d[3],
-                        &d[4], &d[5], &d[6], &d[7]);
-    if (parsed < 2 + dlc)
+    }
+    
+    // Get timestamp
+    clock_gettime(CLOCK_REALTIME, &frame->timestamp);
+    
+    // Parse the line manually
+    char *token;
+    char *line_copy = strdup(line + 4); // Skip "SIM "
+    char *saveptr;
+    
+    // Parse CAN ID (hex)
+    token = strtok_r(line_copy, " ", &saveptr);
+    if (!token) {
+        free(line_copy);
         return 0;
-    frame->can_id = id;
-    frame->dlc = dlc;
-    for (int i = 0; i < dlc; ++i)
-        frame->data[i] = (unsigned char)d[i];
+    }
+    frame->can_id = (unsigned int)strtol(token, NULL, 16);
+    
+    // Parse DLC (decimal)
+    token = strtok_r(NULL, " ", &saveptr);
+    if (!token) {
+        free(line_copy);
+        return 0;
+    }
+    frame->dlc = (unsigned char)atoi(token);
+    
+    // Validate DLC
+    if (frame->dlc > 8) {
+        free(line_copy);
+        return 0;
+    }
+    
+    // Parse data bytes (always expect 8 hex bytes from ESP32)
+    for (int i = 0; i < 8; i++) {
+        token = strtok_r(NULL, " ", &saveptr);
+        if (!token) {
+            free(line_copy);
+            return 0;
+        }
+        
+        int byte_val = parse_hex_byte(token);
+        if (byte_val == -1) {
+            free(line_copy);
+            return 0;
+        }
+        frame->data[i] = (unsigned char)byte_val;
+    }
+    
+    free(line_copy);
     return 1;
 }
 
@@ -101,63 +169,141 @@ int parse_can_line(const char *line, CANFrame *frame) {
 void *reader_thread(void *arg) {
     const char *port = (const char *)arg;
     int fd = open_serial_port(port);
+    
+    printf("Reading from serial port: %s\n", port);
+    printf("Waiting for CAN data...\n");
+    
     FILE *serial_stream = fdopen(fd, "r");
     if (!serial_stream) {
         perror("fdopen failed");
         close(fd);
         return NULL;
     }
-
+    
     char line[MAX_LINE_LENGTH];
+    int frame_count = 0;
+    
     while (fgets(line, sizeof(line), serial_stream)) {
+        // Remove newline
+        line[strcspn(line, "\r\n")] = 0;
+        
+        // Skip empty lines and startup messages
+        if (strlen(line) == 0 || strstr(line, "CAN Bus Reader") || 
+            strstr(line, "Ready") || strstr(line, "---")) {
+            continue;
+        }
+        
         CANFrame frame;
         if (parse_can_line(line, &frame)) {
             enqueue(&queue, frame);
+            frame_count++;
+            
+            // Print every 100th frame for monitoring
+            if (frame_count % 100 == 0) {
+                printf("Processed %d CAN frames\n", frame_count);
+            }
+        } else {
+            printf("Failed to parse line: %s\n", line);
         }
     }
-
+    
+    printf("Serial stream ended\n");
     fclose(serial_stream);
     return NULL;
 }
 
 // --- Thread 2: CSV Writer ---
 void *writer_thread(void *arg) {
-    FILE *fpt = fopen("MyFile.csv", "w+");
+    FILE *fpt = fopen("can_data.csv", "w+");
     if (!fpt) {
         perror("Failed to open CSV file");
         return NULL;
     }
-
-    fprintf(fpt, "can_id,dlc,data\n");
+    
+    // Write CSV header
+    fprintf(fpt, "timestamp,can_id,dlc,data_hex,data_bytes\n");
     fflush(fpt);
-
+    
+    printf("Writing CAN data to can_data.csv\n");
+    
     while (1) {
         CANFrame frame = dequeue(&queue);
-        fprintf(fpt, "%03X,%d,", frame.can_id, frame.dlc);
-        for (int i = 0; i < frame.dlc; ++i) {
+        
+        // Format timestamp
+        char timestamp_str[64];
+        snprintf(timestamp_str, sizeof(timestamp_str), "%ld.%09ld", 
+                frame.timestamp.tv_sec, frame.timestamp.tv_nsec);
+        
+        // Write to CSV
+        fprintf(fpt, "%s,%03X,%d,", timestamp_str, frame.can_id, frame.dlc);
+        
+        // Write data as hex string
+        for (int i = 0; i < frame.dlc; i++) {
             fprintf(fpt, "%02X", frame.data[i]);
             if (i < frame.dlc - 1) fprintf(fpt, " ");
         }
+        fprintf(fpt, ",");
+        
+        // Write data as individual bytes
+        for (int i = 0; i < frame.dlc; i++) {
+            fprintf(fpt, "%02X", frame.data[i]);
+            if (i < frame.dlc - 1) fprintf(fpt, " ");
+        }
+        
         fprintf(fpt, "\n");
         fflush(fpt);
     }
-
+    
     fclose(fpt);
+    return NULL;
+}
+
+// --- Thread 3: Live Monitor (Optional) ---
+void *monitor_thread(void *arg) {
+    printf("\n=== Live CAN Monitor (Press Ctrl+C to stop) ===\n");
+    printf("Format: [Timestamp] ID:DLC Data\n\n");
+    
+    while (1) {
+        CANFrame frame = dequeue(&queue);
+        
+        // Print live data
+        printf("[%ld.%03ld] %03X:%d ", 
+               frame.timestamp.tv_sec, frame.timestamp.tv_nsec / 1000000,
+               frame.can_id, frame.dlc);
+        
+        for (int i = 0; i < frame.dlc; i++) {
+            printf("%02X ", frame.data[i]);
+        }
+        printf("\n");
+    }
+    
     return NULL;
 }
 
 // --- Main ---
 int main(int argc, char *argv[]) {
-    const char *serial_port = (argc >= 2) ? argv[1] : "/dev/ttyUSB1";
+    const char *serial_port = (argc >= 2) ? argv[1] : "/dev/ttyUSB0";
+    
+    printf("CAN Data Capture Tool\n");
+    printf("Serial Port: %s\n", serial_port);
+    printf("CSV Output: can_data.csv\n\n");
+    
     init_queue(&queue);
-
-    pthread_t reader_tid, writer_tid;
+    
+    pthread_t reader_tid, writer_tid, monitor_tid;
+    
+    // Start threads
     pthread_create(&reader_tid, NULL, reader_thread, (void *)serial_port);
     pthread_create(&writer_tid, NULL, writer_thread, NULL);
-
+    
+    // Optionally start monitor thread (comment out if not needed)
+    // pthread_create(&monitor_tid, NULL, monitor_thread, NULL);
+    
+    // Wait for reader thread (main control)
     pthread_join(reader_tid, NULL);
-    pthread_join(writer_tid, NULL);
-
+    
+    // Note: writer and monitor threads will continue running
+    // In a real application, you'd want proper shutdown handling
+    
     return 0;
 }
-

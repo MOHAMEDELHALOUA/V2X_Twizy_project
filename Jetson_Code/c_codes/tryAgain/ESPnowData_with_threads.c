@@ -165,7 +165,7 @@ int setup_serial(const char *port_path) {
 }
 
 int main() {
-    serial_port = setup_serial("/dev/ttyUSB0");
+    serial_port = setup_serial("/dev/ttyUSB1");
     if (serial_port < 0) return 1;
     
     pthread_t rx_tid, tx_tid, print_tid;
