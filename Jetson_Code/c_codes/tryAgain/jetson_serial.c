@@ -308,28 +308,62 @@ void *reader_thread(void *arg) {
     fclose(serial_stream);
     return NULL;
 }
+//void *writer_thread(void *arg) {
+//    FILE *fpt = fopen("CANData.csv", "w+");
+//    if (!fpt) {
+//        perror("Failed to open CSV file");
+//        return NULL;
+//    }
+//    fprintf(fpt, "can_id,dlc,data\n");
+//    fflush(fpt);
+//
+//    while (1) {
+//        CANFrame frame = dequeueCAN(&queueCAN);
+//        fprintf(fpt, "%03X,%d,", frame.can_id, frame.dlc);
+//        for (int i = 0; i < frame.dlc; ++i) {
+//            fprintf(fpt, "%02X", frame.data[i]);
+//            if (i < frame.dlc - 1) fprintf(fpt, " ");
+//        }
+//        fprintf(fpt, "\n");
+//        fflush(fpt);
+//    }
+//    fclose(fpt);
+//    return NULL;
+//}
+
+// In your writer_thread:
 void *writer_thread(void *arg) {
     FILE *fpt = fopen("CANData.csv", "w+");
     if (!fpt) {
         perror("Failed to open CSV file");
         return NULL;
     }
-    fprintf(fpt, "can_id,dlc,data\n");
+    fprintf(fpt, "can_id,dlc,data,SOC,speed,odometer,battery_voltage,motor_temp\n");
     fflush(fpt);
-
+    
     while (1) {
         CANFrame frame = dequeueCAN(&queueCAN);
+        
+        // Parse the CAN frame
+        ParsedData parsed = parseCANFrame(&frame);
+        
+        // Write raw data
         fprintf(fpt, "%03X,%d,", frame.can_id, frame.dlc);
         for (int i = 0; i < frame.dlc; ++i) {
             fprintf(fpt, "%02X", frame.data[i]);
             if (i < frame.dlc - 1) fprintf(fpt, " ");
         }
-        fprintf(fpt, "\n");
+        
+        // Write parsed data
+        fprintf(fpt, ",%u,%.1f,%.1f,%.1f,%d\n", 
+                parsed.SOC, parsed.speedKmh, parsed.odometerKm, 
+                parsed.batteryVoltage, parsed.motorTemperature);
         fflush(fpt);
     }
     fclose(fpt);
     return NULL;
 }
+
 // Add error handling in main():
 int main() {
     // Setup serial ports with error handling
