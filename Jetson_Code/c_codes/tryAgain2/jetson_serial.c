@@ -1,4 +1,4 @@
-//and now ?
+//Modified to accept command line arguments for USB ports
 #include <fcntl.h>
 #include <termios.h>
 #include <unistd.h>
@@ -13,12 +13,14 @@
 #define HEADER_SIZE 2
 #define QUEUE_SIZE 10
 #define MAX_LINE_LENGTH 128
+
 // Struct for CAN data from ESP32(2)
 typedef struct {
     unsigned int can_id;
     unsigned char dlc;
     unsigned char data[8];
 } CANFrame;
+
 // Struct for ESP-NOW data from ESP32(1)
 typedef struct {
     unsigned short SOC;
@@ -27,9 +29,15 @@ typedef struct {
     float displaySpeed;
     uint8_t MacAddress[6];
 } Item;
+
 // Global serial port file descriptors
-int serial_port1; // /dev/ttyUSB0 for ESP32(1)
-int serial_port2; // /dev/ttyUSB1 for ESP32(2)
+int serial_port1; // ESP32(1) - ESP-NOW
+int serial_port2; // ESP32(2) - CAN
+
+// Global port paths (set from command line arguments)
+const char *esp_now_port = NULL;
+const char *can_port = NULL;
+
 // Queue for ESP-NOW Items
 pthread_mutex_t queue_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t queue_cond = PTHREAD_COND_INITIALIZER;
@@ -37,6 +45,7 @@ Item queue[QUEUE_SIZE];
 int queue_head = 0;
 int queue_tail = 0;
 int queue_count = 0;
+
 // Queue for CAN Frames
 typedef struct {
     CANFrame items[QUEUE_SIZE];
@@ -45,12 +54,14 @@ typedef struct {
     pthread_cond_t not_empty;
 } CANQueue;
 CANQueue queueCAN;
+
 // CAN Queue functions
 void init_queueCAN(CANQueue *q) {
     q->front = q->rear = q->count = 0;
     pthread_mutex_init(&q->lock, NULL);
     pthread_cond_init(&q->not_empty, NULL);
 }
+
 void enqueueCAN(CANQueue *q, CANFrame item) {
     pthread_mutex_lock(&q->lock);
     if (q->count == QUEUE_SIZE) {
@@ -64,6 +75,7 @@ void enqueueCAN(CANQueue *q, CANFrame item) {
     pthread_cond_signal(&q->not_empty);
     pthread_mutex_unlock(&q->lock);
 }
+
 CANFrame dequeueCAN(CANQueue *q) {
     pthread_mutex_lock(&q->lock);
     while (q->count == 0)
@@ -74,6 +86,7 @@ CANFrame dequeueCAN(CANQueue *q) {
     pthread_mutex_unlock(&q->lock);
     return item;
 }
+
 // ESP-NOW Queue functions
 int enqueue(Item *item) {
     pthread_mutex_lock(&queue_mutex);
@@ -88,6 +101,7 @@ int enqueue(Item *item) {
     pthread_mutex_unlock(&queue_mutex);
     return 0;
 }
+
 int dequeue(Item *item) {
     pthread_mutex_lock(&queue_mutex);
     while (queue_count == 0) {
@@ -99,6 +113,7 @@ int dequeue(Item *item) {
     pthread_mutex_unlock(&queue_mutex);
     return 0;
 }
+
 // Utility functions
 void print_item(const Item *item) {
     printf("[ESP-NOW] MAC: %02X:%02X:%02X:%02X:%02X:%02X | SOC: %u | Speed: %.1f km/h | Display: %.1f km/h | Odo: %.1f km\n",
@@ -153,6 +168,7 @@ int setup_serial_binary(const char *port_path) {
     tcsetattr(fd, TCSANOW, &tty);
     return fd;
 }
+
 int setup_serial_text(const char *device) {
     int fd = open(device, O_RDONLY | O_NOCTTY);
     if (fd == -1) {
@@ -173,6 +189,7 @@ int setup_serial_text(const char *device) {
     tcsetattr(fd, TCSANOW, &options);
     return fd;
 }
+
 // Thread functions for ESP-NOW (binary data)
 void* receiver_thread(void* arg) {
     uint8_t header[2];
@@ -203,14 +220,7 @@ void* receiver_thread(void* arg) {
     }
     return NULL;
 }
-//void* printer_thread(void* arg) {
-//    while (1) {
-//        Item item;
-//        dequeue(&item);
-//        print_item(&item);
-//    }
-//    return NULL;
-//}
+
 void* printer_thread(void* arg) {
     FILE *fpt = fopen("ESP_now_data.csv", "w+");
     if (!fpt) {
@@ -237,22 +247,6 @@ void* printer_thread(void* arg) {
     fclose(fpt);
     return NULL;
 }
-//void* sender_thread(void* arg) {
-//    while (1) {
-//        Item item = {
-//            .SOC = 85,
-//            .speedKmh = 42.0,
-//            .odometerKm = 1234.5,
-//            .displaySpeed = 41.8,
-//            .MacAddress = {0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x01}
-//        };
-//        uint8_t header[2] = { HEADER_BYTE_1, HEADER_BYTE_2 };
-//        write(serial_port1, header, 2);
-//        write(serial_port1, &item, sizeof(Item));
-//        usleep(5000000); // 5 seconds
-//    }
-//    return NULL;
-//}
 
 void* response_sender_thread(void* arg) {
     while (1) {
@@ -281,9 +275,9 @@ void* response_sender_thread(void* arg) {
 
 // Thread functions for CAN (text data)
 void *reader_thread(void *arg) {
-    int fd = setup_serial_text("/dev/ttyUSB1");
+    int fd = setup_serial_text(can_port);  // Use global can_port
     if (fd < 0) {
-        fprintf(stderr, "Failed to open CAN serial port\n");
+        fprintf(stderr, "Failed to open CAN serial port: %s\n", can_port);
         return NULL;
     }
 
@@ -308,6 +302,7 @@ void *reader_thread(void *arg) {
     fclose(serial_stream);
     return NULL;
 }
+
 void *writer_thread(void *arg) {
     FILE *fpt = fopen("CANData.csv", "w+");
     if (!fpt) {
@@ -330,22 +325,55 @@ void *writer_thread(void *arg) {
     fclose(fpt);
     return NULL;
 }
-// Add error handling in main():
-int main() {
-    // Setup serial ports with error handling
-    serial_port1 = setup_serial_binary("/dev/ttyUSB0");
+
+void print_usage(const char *program_name) {
+    printf("Usage: %s <ESP-NOW_port> [CAN_port]\n", program_name);
+    printf("Examples:\n");
+    printf("  %s /dev/ttyUSB0 /dev/ttyUSB1     # Both ESP-NOW and CAN\n", program_name);
+    printf("  %s /dev/ttyUSB0                  # ESP-NOW only\n", program_name);
+    printf("\nPorts:\n");
+    printf("  ESP-NOW_port: Serial port for ESP32(1) with ESP-NOW data (binary)\n");
+    printf("  CAN_port:     Serial port for ESP32(2) with CAN data (text) [optional]\n");
+}
+
+// Modified main() to accept command line arguments
+int main(int argc, char *argv[]) {
+    // Check command line arguments
+    if (argc < 2 || argc > 3) {
+        print_usage(argv[0]);
+        return 1;
+    }
+    
+    // Set port paths from command line arguments
+    esp_now_port = argv[1];                    // Required: ESP-NOW port
+    can_port = (argc >= 3) ? argv[2] : NULL;   // Optional: CAN port
+    
+    printf("=== Jetson CAN/ESP-NOW Data Collector ===\n");
+    printf("ESP-NOW port: %s\n", esp_now_port);
+    if (can_port) {
+        printf("CAN port: %s\n", can_port);
+    } else {
+        printf("CAN port: Not specified (ESP-NOW only mode)\n");
+    }
+    printf("==========================================\n\n");
+
+    // Setup ESP-NOW serial port (required)
+    serial_port1 = setup_serial_binary(esp_now_port);
     if (serial_port1 < 0) {
-        fprintf(stderr, "Failed to setup ESP-NOW serial port\n");
+        fprintf(stderr, "Failed to setup ESP-NOW serial port: %s\n", esp_now_port);
         return 1;
     }
 
-    // Test CAN port availability
-    int test_can_port = setup_serial_text("/dev/ttyUSB1");
-    int can_available = (test_can_port >= 0);
-    if (test_can_port >= 0) close(test_can_port);
+    // Test CAN port availability (optional)
+    int can_available = 0;
+    if (can_port != NULL) {
+        int test_can_port = setup_serial_text(can_port);
+        can_available = (test_can_port >= 0);
+        if (test_can_port >= 0) close(test_can_port);
 
-    if (!can_available) {
-        printf("Warning: CAN port not available, running ESP-NOW only\n");
+        if (!can_available) {
+            printf("Warning: CAN port %s not available, running ESP-NOW only\n", can_port);
+        }
     }
 
     init_queueCAN(&queueCAN);
@@ -379,5 +407,3 @@ int main() {
     close(serial_port1);
     return 0;
 }
-
-
