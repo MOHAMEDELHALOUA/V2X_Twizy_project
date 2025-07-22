@@ -1,3 +1,5 @@
+///save two csv files
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,6 +11,7 @@
 
 #define MAX_LINE_LENGTH 128
 #define QUEUE_SIZE 1000
+#define COPY_INTERVAL_SECONDS 15
 
 typedef struct {
     unsigned int can_id;
@@ -26,6 +29,12 @@ typedef struct {
 } CANQueue;
 
 CANQueue queue;
+
+// Global variables for pause/copy functionality
+volatile int pause_requested = 0;
+volatile int copy_completed = 0;
+pthread_mutex_t pause_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t resume_condition = PTHREAD_COND_INITIALIZER;
 
 void init_queue(CANQueue *q) {
     q->front = q->rear = q->count = 0;
@@ -58,6 +67,41 @@ CANFrame dequeue(CANQueue *q) {
     return item;
 }
 
+// Function to copy CSV file to snapshot
+int copy_csv_to_snapshot() {
+    FILE *source, *dest;
+    char buffer[4096];
+    size_t bytes_read;
+    
+    source = fopen("can_data.csv", "rb");
+    if (!source) {
+        perror("Failed to open source CSV file");
+        return -1;
+    }
+    
+    dest = fopen("can_data_snapshot.csv", "wb");
+    if (!dest) {
+        perror("Failed to create snapshot CSV file");
+        fclose(source);
+        return -1;
+    }
+    
+    // Copy file contents
+    while ((bytes_read = fread(buffer, 1, sizeof(buffer), source)) > 0) {
+        if (fwrite(buffer, 1, bytes_read, dest) != bytes_read) {
+            perror("Error writing to snapshot file");
+            fclose(source);
+            fclose(dest);
+            return -1;
+        }
+    }
+    
+    fclose(source);
+    fclose(dest);
+    
+    return 0;
+}
+
 // --- Serial Setup & CAN Parsing ---
 int open_serial_port(const char *device) {
     int fd = open(device, O_RDONLY | O_NOCTTY);
@@ -65,7 +109,6 @@ int open_serial_port(const char *device) {
         perror("Unable to open serial port");
         exit(EXIT_FAILURE);
     }
-
     struct termios options;
     tcgetattr(fd, &options);
     
@@ -184,6 +227,18 @@ void *reader_thread(void *arg) {
     int frame_count = 0;
     
     while (fgets(line, sizeof(line), serial_stream)) {
+        // Check for pause request
+        pthread_mutex_lock(&pause_mutex);
+        if (pause_requested) {
+            printf("Data collection paused for snapshot creation...\n");
+            // Wait until copy is completed
+            while (pause_requested) {
+                pthread_cond_wait(&resume_condition, &pause_mutex);
+            }
+            printf("Data collection resumed.\n");
+        }
+        pthread_mutex_unlock(&pause_mutex);
+        
         // Remove newline
         line[strcspn(line, "\r\n")] = 0;
         
@@ -229,6 +284,20 @@ void *writer_thread(void *arg) {
     while (1) {
         CANFrame frame = dequeue(&queue);
         
+        // Check for pause request
+        pthread_mutex_lock(&pause_mutex);
+        if (pause_requested) {
+            printf("CSV writer paused for snapshot creation...\n");
+            fflush(fpt);  // Ensure all data is written before copy
+            
+            // Wait until copy is completed
+            while (pause_requested) {
+                pthread_cond_wait(&resume_condition, &pause_mutex);
+            }
+            printf("CSV writer resumed.\n");
+        }
+        pthread_mutex_unlock(&pause_mutex);
+        
         // Format timestamp
         char timestamp_str[64];
         snprintf(timestamp_str, sizeof(timestamp_str), "%ld.%09ld", 
@@ -266,6 +335,16 @@ void *monitor_thread(void *arg) {
     while (1) {
         CANFrame frame = dequeue(&queue);
         
+        // Check for pause request
+        pthread_mutex_lock(&pause_mutex);
+        if (pause_requested) {
+            // Wait until copy is completed
+            while (pause_requested) {
+                pthread_cond_wait(&resume_condition, &pause_mutex);
+            }
+        }
+        pthread_mutex_unlock(&pause_mutex);
+        
         // Print live data
         printf("[%ld.%03ld] %03X:%d ", 
                frame.timestamp.tv_sec, frame.timestamp.tv_nsec / 1000000,
@@ -280,21 +359,61 @@ void *monitor_thread(void *arg) {
     return NULL;
 }
 
+// --- Thread 4: Automatic Copy Handler (15-second timer) ---
+void *copy_handler_thread(void *arg) {
+    printf("Automatic snapshot creation every %d seconds started\n", COPY_INTERVAL_SECONDS);
+    
+    while (1) {
+        // Wait for 15 seconds
+        sleep(COPY_INTERVAL_SECONDS);
+        
+        printf("\n--- Creating snapshot (pausing data collection) ---\n");
+        
+        // Request pause
+        pthread_mutex_lock(&pause_mutex);
+        pause_requested = 1;
+        pthread_mutex_unlock(&pause_mutex);
+        
+        // Wait 1 second to ensure all threads are paused
+        sleep(1);
+        
+        // Perform the copy
+        printf("Copying can_data.csv -> can_data_snapshot.csv...\n");
+        if (copy_csv_to_snapshot() == 0) {
+            printf("Snapshot created successfully.\n");
+        } else {
+            printf("Snapshot creation failed.\n");
+        }
+        
+        // Resume operations
+        pthread_mutex_lock(&pause_mutex);
+        pause_requested = 0;
+        pthread_cond_broadcast(&resume_condition);
+        pthread_mutex_unlock(&pause_mutex);
+        
+        printf("--- Snapshot complete, resuming data collection ---\n\n");
+    }
+    
+    return NULL;
+}
+
 // --- Main ---
 int main(int argc, char *argv[]) {
     const char *serial_port = (argc >= 2) ? argv[1] : "/dev/ttyUSB0";
     
-    printf("CAN Data Capture Tool\n");
+    printf("CAN Data Capture Tool with Automatic Snapshots\n");
     printf("Serial Port: %s\n", serial_port);
-    printf("CSV Output: can_data.csv\n\n");
+    printf("Main CSV: can_data.csv (continuous)\n");
+    printf("Snapshot CSV: can_data_snapshot.csv (updated every %d seconds)\n\n", COPY_INTERVAL_SECONDS);
     
     init_queue(&queue);
     
-    pthread_t reader_tid, writer_tid, monitor_tid;
+    pthread_t reader_tid, writer_tid, monitor_tid, copy_handler_tid;
     
     // Start threads
     pthread_create(&reader_tid, NULL, reader_thread, (void *)serial_port);
     pthread_create(&writer_tid, NULL, writer_thread, NULL);
+    pthread_create(&copy_handler_tid, NULL, copy_handler_thread, NULL);
     
     // Optionally start monitor thread (comment out if not needed)
     // pthread_create(&monitor_tid, NULL, monitor_thread, NULL);
@@ -302,7 +421,7 @@ int main(int argc, char *argv[]) {
     // Wait for reader thread (main control)
     pthread_join(reader_tid, NULL);
     
-    // Note: writer and monitor threads will continue running
+    // Note: writer and copy handler threads will continue running
     // In a real application, you'd want proper shutdown handling
     
     return 0;
