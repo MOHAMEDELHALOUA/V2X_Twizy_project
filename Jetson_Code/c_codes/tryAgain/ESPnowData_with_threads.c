@@ -379,13 +379,15 @@ int setup_serial(const char *port_path) {
     return fd;
 }
 
-int main() {
+int main(int argc, char *argv[]) {
+    const char *esp_serial_port = (argc >= 2) ? argv[1] : "/dev/ttyUSB1";
+    
     printf("ESP-NOW Communication System with CAN Data Integration\n");
-    printf("ESP-NOW Serial Port: /dev/ttyUSB1\n");
+    printf("ESP-NOW Serial Port: %s\n", esp_serial_port);
     printf("CAN Snapshot File: %s\n", CAN_SNAPSHOT_FILE);
     printf("Max Trackable CAN IDs: %d\n\n", MAX_CAN_IDS);
     
-    serial_port = setup_serial("/dev/ttyUSB1");
+    serial_port = setup_serial(esp_serial_port);
     if (serial_port < 0) return 1;
     
     pthread_t rx_tid, tx_tid, print_tid, can_reader_tid;

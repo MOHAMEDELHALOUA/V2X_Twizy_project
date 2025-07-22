@@ -1,5 +1,3 @@
-///save two csv files
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,6 +10,7 @@
 #define MAX_LINE_LENGTH 128
 #define QUEUE_SIZE 1000
 #define COPY_INTERVAL_SECONDS 15
+#define MAX_CSV_LINES 1000  // Maximum lines in CSV before overwriting
 
 typedef struct {
     unsigned int can_id;
@@ -35,6 +34,24 @@ volatile int pause_requested = 0;
 volatile int copy_completed = 0;
 pthread_mutex_t pause_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t resume_condition = PTHREAD_COND_INITIALIZER;
+
+// Circular buffer management
+typedef struct {
+    char lines[MAX_CSV_LINES][256];  // Store CSV lines
+    int current_line;
+    int total_lines;
+    int is_full;
+    pthread_mutex_t csv_mutex;
+} CSVBuffer;
+
+CSVBuffer csv_buffer = {0};
+
+void init_csv_buffer() {
+    csv_buffer.current_line = 0;
+    csv_buffer.total_lines = 0;
+    csv_buffer.is_full = 0;
+    pthread_mutex_init(&csv_buffer.csv_mutex, NULL);
+}
 
 void init_queue(CANQueue *q) {
     q->front = q->rear = q->count = 0;
@@ -67,39 +84,73 @@ CANFrame dequeue(CANQueue *q) {
     return item;
 }
 
-// Function to copy CSV file to snapshot
-int copy_csv_to_snapshot() {
-    FILE *source, *dest;
-    char buffer[4096];
-    size_t bytes_read;
+// Add a line to the circular CSV buffer
+void add_csv_line(const char *line) {
+    pthread_mutex_lock(&csv_buffer.csv_mutex);
     
-    source = fopen("can_data.csv", "rb");
-    if (!source) {
-        perror("Failed to open source CSV file");
-        return -1;
-    }
+    // Copy the line to the current position
+    strncpy(csv_buffer.lines[csv_buffer.current_line], line, 255);
+    csv_buffer.lines[csv_buffer.current_line][255] = '\0';
     
-    dest = fopen("can_data_snapshot.csv", "wb");
-    if (!dest) {
-        perror("Failed to create snapshot CSV file");
-        fclose(source);
-        return -1;
-    }
+    // Move to next position
+    csv_buffer.current_line = (csv_buffer.current_line + 1) % MAX_CSV_LINES;
     
-    // Copy file contents
-    while ((bytes_read = fread(buffer, 1, sizeof(buffer), source)) > 0) {
-        if (fwrite(buffer, 1, bytes_read, dest) != bytes_read) {
-            perror("Error writing to snapshot file");
-            fclose(source);
-            fclose(dest);
-            return -1;
+    // Update counters
+    if (!csv_buffer.is_full) {
+        csv_buffer.total_lines++;
+        if (csv_buffer.total_lines >= MAX_CSV_LINES) {
+            csv_buffer.is_full = 1;
         }
     }
     
-    fclose(source);
-    fclose(dest);
+    pthread_mutex_unlock(&csv_buffer.csv_mutex);
+}
+
+// Write the CSV buffer to file
+int write_csv_buffer_to_file(const char *filename) {
+    FILE *fpt = fopen(filename, "w");
+    if (!fpt) {
+        perror("Failed to open CSV file for writing");
+        return -1;
+    }
+    
+    // Write header
+    fprintf(fpt, "timestamp,can_id,dlc,data_hex,data_bytes\n");
+    
+    pthread_mutex_lock(&csv_buffer.csv_mutex);
+    
+    if (csv_buffer.is_full) {
+        // Buffer is full, write from current position (oldest) to end
+        for (int i = csv_buffer.current_line; i < MAX_CSV_LINES; i++) {
+            fprintf(fpt, "%s\n", csv_buffer.lines[i]);
+        }
+        // Then write from beginning to current position (newest)
+        for (int i = 0; i < csv_buffer.current_line; i++) {
+            fprintf(fpt, "%s\n", csv_buffer.lines[i]);
+        }
+    } else {
+        // Buffer not full yet, write from 0 to total_lines
+        for (int i = 0; i < csv_buffer.total_lines; i++) {
+            fprintf(fpt, "%s\n", csv_buffer.lines[i]);
+        }
+    }
+    
+    int lines_written = csv_buffer.is_full ? MAX_CSV_LINES : csv_buffer.total_lines;
+    
+    pthread_mutex_unlock(&csv_buffer.csv_mutex);
+    
+    fclose(fpt);
+    
+    printf("Written %d lines to %s (circular buffer: %s)\n", 
+           lines_written, filename, 
+           csv_buffer.is_full ? "FULL" : "FILLING");
     
     return 0;
+}
+
+// Function to copy CSV file to snapshot
+int copy_csv_to_snapshot() {
+    return write_csv_buffer_to_file("can_data_snapshot.csv");
 }
 
 // --- Serial Setup & CAN Parsing ---
@@ -255,7 +306,9 @@ void *reader_thread(void *arg) {
             
             // Print every 100th frame for monitoring
             if (frame_count % 100 == 0) {
-                printf("Processed %d CAN frames\n", frame_count);
+                printf("Processed %d CAN frames (CSV buffer: %s)\n", 
+                       frame_count,
+                       csv_buffer.is_full ? "FULL - Overwriting oldest" : "FILLING");
             }
         } else {
             printf("Failed to parse line: %s\n", line);
@@ -267,19 +320,9 @@ void *reader_thread(void *arg) {
     return NULL;
 }
 
-// --- Thread 2: CSV Writer ---
+// --- Thread 2: CSV Writer (Modified for circular buffer) ---
 void *writer_thread(void *arg) {
-    FILE *fpt = fopen("can_data.csv", "w+");
-    if (!fpt) {
-        perror("Failed to open CSV file");
-        return NULL;
-    }
-    
-    // Write CSV header
-    fprintf(fpt, "timestamp,can_id,dlc,data_hex,data_bytes\n");
-    fflush(fpt);
-    
-    printf("Writing CAN data to can_data.csv\n");
+    printf("Writing CAN data to circular buffer (max %d lines)\n", MAX_CSV_LINES);
     
     while (1) {
         CANFrame frame = dequeue(&queue);
@@ -288,7 +331,6 @@ void *writer_thread(void *arg) {
         pthread_mutex_lock(&pause_mutex);
         if (pause_requested) {
             printf("CSV writer paused for snapshot creation...\n");
-            fflush(fpt);  // Ensure all data is written before copy
             
             // Wait until copy is completed
             while (pause_requested) {
@@ -298,32 +340,45 @@ void *writer_thread(void *arg) {
         }
         pthread_mutex_unlock(&pause_mutex);
         
-        // Format timestamp
+        // Format CSV line
+        char csv_line[256];
         char timestamp_str[64];
         snprintf(timestamp_str, sizeof(timestamp_str), "%ld.%09ld", 
                 frame.timestamp.tv_sec, frame.timestamp.tv_nsec);
         
-        // Write to CSV
-        fprintf(fpt, "%s,%03X,%d,", timestamp_str, frame.can_id, frame.dlc);
+        // Build CSV line
+        int pos = snprintf(csv_line, sizeof(csv_line), "%s,%03X,%d,", 
+                          timestamp_str, frame.can_id, frame.dlc);
         
-        // Write data as hex string
+        // Add data as hex string
         for (int i = 0; i < frame.dlc; i++) {
-            fprintf(fpt, "%02X", frame.data[i]);
-            if (i < frame.dlc - 1) fprintf(fpt, " ");
+            pos += snprintf(csv_line + pos, sizeof(csv_line) - pos, "%02X", frame.data[i]);
+            if (i < frame.dlc - 1) {
+                pos += snprintf(csv_line + pos, sizeof(csv_line) - pos, " ");
+            }
         }
-        fprintf(fpt, ",");
+        pos += snprintf(csv_line + pos, sizeof(csv_line) - pos, ",");
         
-        // Write data as individual bytes
+        // Add data as individual bytes (same as hex string for now)
         for (int i = 0; i < frame.dlc; i++) {
-            fprintf(fpt, "%02X", frame.data[i]);
-            if (i < frame.dlc - 1) fprintf(fpt, " ");
+            pos += snprintf(csv_line + pos, sizeof(csv_line) - pos, "%02X", frame.data[i]);
+            if (i < frame.dlc - 1) {
+                pos += snprintf(csv_line + pos, sizeof(csv_line) - pos, " ");
+            }
         }
         
-        fprintf(fpt, "\n");
-        fflush(fpt);
+        // Add line to circular buffer
+        add_csv_line(csv_line);
+        
+        // Periodically write the main CSV file (every 50 frames)
+        static int write_counter = 0;
+        write_counter++;
+        if (write_counter >= 50) {
+            write_csv_buffer_to_file("can_data.csv");
+            write_counter = 0;
+        }
     }
     
-    fclose(fpt);
     return NULL;
 }
 
@@ -378,12 +433,15 @@ void *copy_handler_thread(void *arg) {
         sleep(1);
         
         // Perform the copy
-        printf("Copying can_data.csv -> can_data_snapshot.csv...\n");
+        printf("Creating snapshot from circular buffer...\n");
         if (copy_csv_to_snapshot() == 0) {
             printf("Snapshot created successfully.\n");
         } else {
             printf("Snapshot creation failed.\n");
         }
+        
+        // Also update the main CSV file
+        write_csv_buffer_to_file("can_data.csv");
         
         // Resume operations
         pthread_mutex_lock(&pause_mutex);
@@ -401,12 +459,14 @@ void *copy_handler_thread(void *arg) {
 int main(int argc, char *argv[]) {
     const char *serial_port = (argc >= 2) ? argv[1] : "/dev/ttyUSB0";
     
-    printf("CAN Data Capture Tool with Automatic Snapshots\n");
+    printf("CAN Data Capture Tool with Circular Buffer CSV\n");
     printf("Serial Port: %s\n", serial_port);
-    printf("Main CSV: can_data.csv (continuous)\n");
+    printf("Max CSV Lines: %d (circular buffer)\n", MAX_CSV_LINES);
+    printf("Main CSV: can_data.csv (last %d entries)\n", MAX_CSV_LINES);
     printf("Snapshot CSV: can_data_snapshot.csv (updated every %d seconds)\n\n", COPY_INTERVAL_SECONDS);
     
     init_queue(&queue);
+    init_csv_buffer();
     
     pthread_t reader_tid, writer_tid, monitor_tid, copy_handler_tid;
     

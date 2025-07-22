@@ -1,116 +1,92 @@
+
+// parseCANFrame.c
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 #include <time.h>
 #include "parseCANFrame.h"
 
-typedef struct {
-    unsigned short SOC;
-    float speedKmh;
-    float odometerKm;
-    float displaySpeed;
-    // Extended fields based on DBC
-    float batteryCurrent;
-    int motorTemperature;
-    int batterySOH;
-    float batteryVoltage;
-    int remainingRange;
-    char gearPosition[10];
-    int acceleratorPercent;
-    uint8_t MacAddress[6];
-} ParsedData;
-
-// Helper function to get current time in milliseconds
-uint32_t get_current_time_ms() {
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    return ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
-}
-
-static uint32_t lastParseTime = 0;
-
 ParsedData parseCANFrame(CANFrame *frame) {
     ParsedData result = {0}; // Initialize all fields to 0
-    
-    uint32_t current_time = get_current_time_ms();
-    if (current_time - lastParseTime < 100) {
-        return result; // Rate limiting
-    }
-    lastParseTime = current_time;
+    result.valid = 0; // Default to invalid
+    result.parsed_can_id = frame->can_id;
     
     switch (frame->can_id) {
         case 0x155: // BMS Status 1
             if (frame->dlc >= 8) {
-                // SOC calculation
-                uint16_t socRaw = (frame->data[4] << 8) | frame->data[5];
-                result.SOC = (unsigned short)(socRaw / 400.0 * 100); // Convert to percentage
+                // SOC calculation (bytes 4+5)
+                uint16_t socRaw = (frame->data[5] << 8) | frame->data[4];
+                result.SOC = (unsigned short)((socRaw & 0x1FFF) / 400.0 * 100); // Only upper 13 bits
                 
-                // Battery Current
+                // Battery Current (bytes 2+3)
                 uint16_t currentRaw = (frame->data[2] << 8) | frame->data[1];
-                int16_t currentDeviation = (int16_t)currentRaw - 2000;
+                int16_t currentDeviation = (int16_t)currentRaw - 0x7D0; // 2000d zero point
                 result.batteryCurrent = (float)currentDeviation / 4.0;
                 
-                printf("Parsed BMS Status 1 - SOC: %u%%, Current: %.1fA\n", 
-                       result.SOC, result.batteryCurrent);
+                result.valid = 1;
             }
             break;
             
         case 0x19F: // Energy Status 3 - Speed
             if (frame->dlc >= 8) {
-                uint16_t speedRaw = (frame->data[2] << 8) | frame->data[3];
-                int16_t speedDeviation = (int16_t)speedRaw - 0x7D0;
+                // Speed calculation (bytes 3+4)
+                uint16_t speedRaw = (frame->data[3] << 8) | frame->data[2];
+                int16_t speedDeviation = (int16_t)speedRaw - 0x7D0; // Rest value 2000
                 float speedRPM = (float)speedDeviation * 10.0;
-                result.speedKmh = speedRPM / 7250.0 * 80.0;
+                result.speedKmh = speedRPM / 7250.0 * 80.0; // Convert to km/h for T80
                 
-                printf("Parsed Speed - %.1f km/h\n", result.speedKmh);
+                result.valid = 1;
             }
             break;
             
         case 0x196: // Energy Status 2 - Motor Temperature
             if (frame->dlc >= 8) {
-                result.motorTemperature = frame->data[5] - 40;
-                printf("Parsed Motor Temperature - %d°C\n", result.motorTemperature);
+                result.motorTemperature = (int)frame->data[5] - 40; // Byte 6: Temperature [°C] = Value - 40
+                result.valid = 1;
             }
             break;
             
         case 0x424: // BMS Status 2
             if (frame->dlc >= 8) {
-                result.batterySOH = frame->data[5]; // Battery State of Health
-                printf("Parsed Battery SOH - %d%%\n", result.batterySOH);
+                result.batterySOH = (int)frame->data[5]; // Byte 6: Battery State of Health in percent
+                result.valid = 1;
             }
             break;
             
         case 0x425: // BMS Status 3 - Battery Voltage
             if (frame->dlc >= 8) {
-                uint16_t voltageRaw = (frame->data[4] << 8) | frame->data[5];
-                result.batteryVoltage = (float)(voltageRaw >> 1) / 10.0;
-                printf("Parsed Battery Voltage - %.1fV\n", result.batteryVoltage);
+                // Battery Voltage (bytes 5-6 and 7-8 combined)
+                uint16_t voltage1 = (frame->data[5] << 8) | frame->data[4];
+                uint16_t voltage2 = (frame->data[7] << 8) | frame->data[6];
+                // Use the first voltage reading, bits 9..1 >> 1
+                result.batteryVoltage = (float)(voltage1 >> 1) / 10.0;
+                result.valid = 1;
             }
             break;
             
         case 0x599: // Vehicle Data 1
             if (frame->dlc >= 8) {
-                // Odometer
-                uint32_t odometer = (frame->data[0] << 24) | (frame->data[1] << 16) | 
-                                   (frame->data[2] << 8) | frame->data[3];
+                // Odometer (bytes 1-4)
+                uint32_t odometer = (frame->data[3] << 24) | (frame->data[2] << 16) | 
+                                   (frame->data[1] << 8) | frame->data[0];
                 result.odometerKm = (float)odometer;
                 
-                // Remaining Range
-                result.remainingRange = frame->data[5];
+                // Remaining Range (byte 6)
+                result.remainingRange = (int)frame->data[5];
                 
-                // Display Speed
-                uint16_t speedRaw = (frame->data[6] << 8) | frame->data[7];
+                // Display Speed (bytes 7+8)
+                uint16_t speedRaw = (frame->data[7] << 8) | frame->data[6];
                 if (speedRaw != 0xFFFF) {
                     result.displaySpeed = (float)speedRaw / 100.0;
                 }
                 
-                printf("Parsed Vehicle Data - Odo: %.0fkm, Range: %dkm, Display Speed: %.1fkm/h\n", 
-                       result.odometerKm, result.remainingRange, result.displaySpeed);
+                result.valid = 1;
             }
             break;
             
         case 0x59B: // Drive Status 1
             if (frame->dlc >= 8) {
-                // Gear Selection
+                // Gear Selection (byte 1)
                 uint8_t gear = frame->data[0];
                 switch(gear) {
                     case 0x80: strcpy(result.gearPosition, "Drive"); break;
@@ -119,33 +95,32 @@ ParsedData parseCANFrame(CANFrame *frame) {
                     default: strcpy(result.gearPosition, "Unknown"); break;
                 }
                 
-                // Accelerator Position
+                // Accelerator Position (byte 4)
                 uint8_t accelerator = frame->data[3];
-                result.acceleratorPercent = (accelerator * 100) / 253;
+                result.acceleratorPercent = (int)((accelerator * 100) / 253); // 00h=0% ... FDh=100%
                 
-                printf("Parsed Drive Status - Gear: %s, Accelerator: %d%%\n", 
-                       result.gearPosition, result.acceleratorPercent);
+                result.valid = 1;
             }
             break;
             
         case 0x5D7: // Vehicle Data 2 - Alternative Speed/Odometer
             if (frame->dlc >= 7) {
-                // Speed
-                uint16_t speedRaw = (frame->data[0] << 8) | frame->data[1];
+                // Speed (bytes 1+2)
+                uint16_t speedRaw = (frame->data[1] << 8) | frame->data[0];
                 result.speedKmh = (float)speedRaw / 100.0;
                 
-                // Odometer
-                uint32_t odometer = (frame->data[2] << 24) | (frame->data[3] << 16) | 
-                                   (frame->data[4] << 8) | frame->data[5];
+                // Odometer (bytes 3-6)
+                uint32_t odometer = (frame->data[5] << 24) | (frame->data[4] << 16) | 
+                                   (frame->data[3] << 8) | frame->data[2];
                 result.odometerKm = (float)odometer / 1600.0;
                 
-                printf("Parsed Vehicle Data 2 - Speed: %.1fkm/h, Odo: %.1fkm\n", 
-                       result.speedKmh, result.odometerKm);
+                result.valid = 1;
             }
             break;
             
         default:
-            // Unknown CAN ID - return empty result
+            // Unknown CAN ID - return invalid result
+            result.valid = 0;
             break;
     }
     
