@@ -7,6 +7,7 @@
 #include <time.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include "parseCANFrame.h"  // Include the CAN parser library
 
 #define HEADER_BYTE_1 0xAA
 #define HEADER_BYTE_2 0x55
@@ -38,6 +39,7 @@ typedef struct {
 typedef struct {
     unsigned int can_id;
     CANData latest_data;
+    ParsedData parsed_data;  // Add parsed data
     int active;  // 1 if this slot is in use, 0 if empty
 } CANIDTracker;
 
@@ -79,6 +81,31 @@ int dequeue(Item *item) {
     queue_count--;
     pthread_mutex_unlock(&queue_mutex);
     return 0;
+}
+
+// Convert hex string to data array for parsing
+void hex_string_to_data(const char* hex_string, CANFrame* frame) {
+    char temp[3] = {0};
+    int data_index = 0;
+    int i = 0;
+    
+    // Initialize data array
+    memset(frame->data, 0, 8);
+    
+    while (hex_string[i] != '\0' && data_index < 8) {
+        if (hex_string[i] == ' ') {
+            i++;
+            continue;
+        }
+        
+        temp[0] = hex_string[i];
+        temp[1] = hex_string[i + 1];
+        temp[2] = '\0';
+        
+        frame->data[data_index] = (uint8_t)strtol(temp, NULL, 16);
+        data_index++;
+        i += 2;
+    }
 }
 
 // Parse a single CSV line into CANData structure
@@ -158,23 +185,83 @@ int add_new_can_id(unsigned int can_id, const CANData *data) {
     return -1; // Array is full
 }
 
-// Update or add CAN data for a specific ID
+// Enhanced display function for parsed CAN data
+void print_parsed_can_data(const CANData *can_data, const ParsedData *parsed) {
+    printf("[CAN] ID: %03X | Time: %s | DLC: %d | Data: %s", 
+           can_data->can_id, can_data->timestamp, can_data->dlc, can_data->data_hex);
+    
+    if (parsed->valid) {
+        printf(" -> ");
+        
+        switch (parsed->parsed_can_id) {
+            case 0x155:
+                printf("SOC: %u%% | Current: %.1fA", parsed->SOC, parsed->batteryCurrent);
+                break;
+            case 0x19F:
+                printf("Motor Speed: %.1fkm/h", parsed->speedKmh);
+                break;
+            case 0x196:
+                printf("Motor Temp: %d°C", parsed->motorTemperature);
+                break;
+            case 0x424:
+                printf("Battery SOH: %d%%", parsed->batterySOH);
+                break;
+            case 0x425:
+                printf("Battery Voltage: %.1fV", parsed->batteryVoltage);
+                break;
+            case 0x599:
+                printf("Display Speed: %.1fkm/h | Odometer: %.1fkm | Range: %dkm", 
+                       parsed->displaySpeed, parsed->odometerKm, parsed->remainingRange);
+                break;
+            case 0x59B:
+                printf("Gear: %s | Accelerator: %d%% | Brake: %s | Motor: %s | Power: %d | CapV: %.1fV", 
+                       parsed->gearPosition, parsed->acceleratorPercent,
+                       parsed->brakePressed ? "ON" : "OFF",
+                       parsed->motorOn ? "ON" : "OFF",
+                       parsed->powerTorque, parsed->capacitorVoltage);
+                break;
+            case 0x5D7:
+                printf("Speed: %.1fkm/h | Odometer: %.1fkm", parsed->speedKmh, parsed->odometerKm);
+                break;
+            default:
+                printf("Parsed (ID: %03X)", parsed->parsed_can_id);
+                break;
+        }
+    } else {
+        printf(" -> [Not parsed]");
+    }
+    printf("\n");
+}
+
+// Update or add CAN data for a specific ID with parsing
 void update_can_data(const CANData *new_data) {
     pthread_mutex_lock(&can_tracker_mutex);
     
     int index = find_can_id_index(new_data->can_id);
     
+    // Parse the CAN data using the library
+    CANFrame frame;
+    frame.can_id = new_data->can_id;
+    frame.dlc = new_data->dlc;
+    hex_string_to_data(new_data->data_hex, &frame);
+    
+    ParsedData parsed = parseCANFrame(&frame);
+    
     if (index >= 0) {
         // Update existing CAN ID with new data
         can_id_tracker[index].latest_data = *new_data;
-        printf("[CAN UPDATE] ID: %03X | Time: %s | Data: %s\n", 
-               new_data->can_id, new_data->timestamp, new_data->data_hex);
+        can_id_tracker[index].parsed_data = parsed;
+        
+        printf("[CAN UPDATE] ");
+        print_parsed_can_data(new_data, &parsed);
     } else {
         // New CAN ID found
         index = add_new_can_id(new_data->can_id, new_data);
         if (index >= 0) {
-            printf("[NEW CAN ID] ID: %03X | Time: %s | Data: %s | Total IDs: %d\n", 
-                   new_data->can_id, new_data->timestamp, new_data->data_hex, tracked_can_ids_count);
+            can_id_tracker[index].parsed_data = parsed;
+            printf("[NEW CAN ID] ");
+            print_parsed_can_data(new_data, &parsed);
+            printf("             Total IDs: %d\n", tracked_can_ids_count);
         } else {
             printf("[ERROR] Cannot track more CAN IDs (limit: %d)\n", MAX_CAN_IDS);
         }
@@ -219,16 +306,16 @@ int read_new_can_lines() {
     return new_lines_read;
 }
 
-// Print all tracked CAN IDs and their latest data
+// Print all tracked CAN IDs and their latest parsed data
 void print_all_can_data() {
     pthread_mutex_lock(&can_tracker_mutex);
     
-    printf("\n=== ALL TRACKED CAN IDs ===\n");
+    printf("\n=== ALL TRACKED CAN IDs WITH PARSED DATA ===\n");
     for (int i = 0; i < MAX_CAN_IDS; i++) {
         if (can_id_tracker[i].active) {
             const CANData *data = &can_id_tracker[i].latest_data;
-            printf("ID: %03X | Time: %s | DLC: %d | Data: %s\n",
-                   data->can_id, data->timestamp, data->dlc, data->data_hex);
+            const ParsedData *parsed = &can_id_tracker[i].parsed_data;
+            print_parsed_can_data(data, parsed);
         }
     }
     printf("=== Total: %d unique CAN IDs ===\n\n", tracked_can_ids_count);
@@ -316,10 +403,10 @@ void* sender_thread(void* arg) {
     return NULL;
 }
 
-// MODIFIED THREAD: CAN Data Reader with ID tracking
+// ENHANCED THREAD: CAN Data Reader with parsing
 void* can_reader_thread(void* arg) {
-    printf("CAN Data Reader thread started - monitoring %s\n", CAN_SNAPSHOT_FILE);
-    printf("Tracking unique CAN IDs and their latest data...\n");
+    printf("CAN Data Reader with Parser thread started - monitoring %s\n", CAN_SNAPSHOT_FILE);
+    printf("Tracking unique CAN IDs and parsing their data...\n");
     printf("Will check for new CAN data every 2 seconds...\n\n");
     
     // Initialize the tracker array
@@ -338,7 +425,7 @@ void* can_reader_thread(void* arg) {
             printf("Failed to read from %s (file may not exist yet)\n", CAN_SNAPSHOT_FILE);
         }
         
-        // Every 10 cycles (20 seconds), print all tracked CAN IDs
+        // Every 10 cycles (20 seconds), print all tracked CAN IDs with parsed data
         cycle_count++;
         if (cycle_count >= 10) {
             print_all_can_data();
@@ -382,7 +469,7 @@ int setup_serial(const char *port_path) {
 int main(int argc, char *argv[]) {
     const char *esp_serial_port = (argc >= 2) ? argv[1] : "/dev/ttyUSB1";
     
-    printf("ESP-NOW Communication System with CAN Data Integration\n");
+    printf("ESP-NOW Communication System with CAN Data Parser\n");
     printf("ESP-NOW Serial Port: %s\n", esp_serial_port);
     printf("CAN Snapshot File: %s\n", CAN_SNAPSHOT_FILE);
     printf("Max Trackable CAN IDs: %d\n\n", MAX_CAN_IDS);
@@ -401,7 +488,7 @@ int main(int argc, char *argv[]) {
     printf("All threads started successfully!\n");
     printf("- ESP-NOW receiver/sender threads active\n");
     printf("- CSV printer thread active\n");
-    printf("- CAN data reader thread active (tracking unique CAN IDs)\n\n");
+    printf("- CAN data reader thread active (with parsing)\n\n");
     
     // Wait for threads to complete (they run indefinitely)
     pthread_join(rx_tid, NULL);
