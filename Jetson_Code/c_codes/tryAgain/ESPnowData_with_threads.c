@@ -14,6 +14,7 @@
 #define QUEUE_SIZE 10
 #define MAX_LINE_LENGTH 512
 #define CAN_SNAPSHOT_FILE "can_data_snapshot.csv"
+#define MAX_CAN_IDS 100  // Maximum number of unique CAN IDs to track
 
 typedef struct {
     unsigned short SOC;
@@ -33,6 +34,13 @@ typedef struct {
     int valid;  // Flag to indicate if data is valid
 } CANData;
 
+// Structure to track unique CAN IDs and their latest data
+typedef struct {
+    unsigned int can_id;
+    CANData latest_data;
+    int active;  // 1 if this slot is in use, 0 if empty
+} CANIDTracker;
+
 int serial_port;
 pthread_mutex_t queue_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t queue_cond = PTHREAD_COND_INITIALIZER;
@@ -41,9 +49,11 @@ int queue_head = 0;
 int queue_tail = 0;
 int queue_count = 0;
 
-// Global variable to hold the latest CAN data
-CANData latest_can_data = {0};
-pthread_mutex_t can_data_mutex = PTHREAD_MUTEX_INITIALIZER;
+// Global array to track unique CAN IDs and their latest data
+CANIDTracker can_id_tracker[MAX_CAN_IDS];
+int tracked_can_ids_count = 0;
+pthread_mutex_t can_tracker_mutex = PTHREAD_MUTEX_INITIALIZER;
+long last_read_position = 0;  // Track file position to read only new lines
 
 int enqueue(Item *item) {
     pthread_mutex_lock(&queue_mutex);
@@ -71,39 +81,15 @@ int dequeue(Item *item) {
     return 0;
 }
 
-// Function to read the last line from CAN snapshot CSV
-int read_last_can_line(CANData *can_data) {
-    FILE *file = fopen(CAN_SNAPSHOT_FILE, "r");
-    if (!file) {
-        // File might not exist yet, return invalid data
-        can_data->valid = 0;
-        return -1;
-    }
-    
-    char line[MAX_LINE_LENGTH];
-    char last_line[MAX_LINE_LENGTH] = "";
-    int line_count = 0;
-    
-    // Read through the file to find the last line
-    while (fgets(line, sizeof(line), file)) {
-        line_count++;
-        // Skip the header line
-        if (line_count > 1) {
-            strcpy(last_line, line);
-        }
-    }
-    
-    fclose(file);
-    
-    // If we didn't find any data lines (only header or empty file)
-    if (strlen(last_line) == 0) {
-        can_data->valid = 0;
+// Parse a single CSV line into CANData structure
+int parse_csv_line(const char *line, CANData *can_data) {
+    if (strlen(line) == 0) {
         return -1;
     }
     
     // Parse the CSV line: timestamp,can_id,dlc,data_hex,data_bytes
     char *token;
-    char *line_copy = strdup(last_line);
+    char *line_copy = strdup(line);
     char *saveptr;
     int field = 0;
     
@@ -148,14 +134,106 @@ int read_last_can_line(CANData *can_data) {
     }
 }
 
-// Function to print CAN data
-void print_can_data(const CANData *can_data) {
-    if (can_data->valid) {
-        printf("[CAN DATA] Time: %s | ID: %03X | DLC: %d | Data: %s\n",
-               can_data->timestamp, can_data->can_id, can_data->dlc, can_data->data_hex);
-    } else {
-        printf("[CAN DATA] No valid data available\n");
+// Find CAN ID in tracker array, return index or -1 if not found
+int find_can_id_index(unsigned int can_id) {
+    for (int i = 0; i < MAX_CAN_IDS; i++) {
+        if (can_id_tracker[i].active && can_id_tracker[i].can_id == can_id) {
+            return i;
+        }
     }
+    return -1;
+}
+
+// Add new CAN ID to tracker array, return index or -1 if array is full
+int add_new_can_id(unsigned int can_id, const CANData *data) {
+    for (int i = 0; i < MAX_CAN_IDS; i++) {
+        if (!can_id_tracker[i].active) {
+            can_id_tracker[i].can_id = can_id;
+            can_id_tracker[i].latest_data = *data;
+            can_id_tracker[i].active = 1;
+            tracked_can_ids_count++;
+            return i;
+        }
+    }
+    return -1; // Array is full
+}
+
+// Update or add CAN data for a specific ID
+void update_can_data(const CANData *new_data) {
+    pthread_mutex_lock(&can_tracker_mutex);
+    
+    int index = find_can_id_index(new_data->can_id);
+    
+    if (index >= 0) {
+        // Update existing CAN ID with new data
+        can_id_tracker[index].latest_data = *new_data;
+        printf("[CAN UPDATE] ID: %03X | Time: %s | Data: %s\n", 
+               new_data->can_id, new_data->timestamp, new_data->data_hex);
+    } else {
+        // New CAN ID found
+        index = add_new_can_id(new_data->can_id, new_data);
+        if (index >= 0) {
+            printf("[NEW CAN ID] ID: %03X | Time: %s | Data: %s | Total IDs: %d\n", 
+                   new_data->can_id, new_data->timestamp, new_data->data_hex, tracked_can_ids_count);
+        } else {
+            printf("[ERROR] Cannot track more CAN IDs (limit: %d)\n", MAX_CAN_IDS);
+        }
+    }
+    
+    pthread_mutex_unlock(&can_tracker_mutex);
+}
+
+// Read new lines from the snapshot file starting from last read position
+int read_new_can_lines() {
+    FILE *file = fopen(CAN_SNAPSHOT_FILE, "r");
+    if (!file) {
+        return -1;
+    }
+    
+    // Seek to the last read position
+    fseek(file, last_read_position, SEEK_SET);
+    
+    char line[MAX_LINE_LENGTH];
+    int new_lines_read = 0;
+    long current_position;
+    
+    while (fgets(line, sizeof(line), file)) {
+        current_position = ftell(file);
+        
+        // Skip empty lines and header
+        if (strlen(line) <= 1 || strstr(line, "timestamp,can_id") != NULL) {
+            last_read_position = current_position;
+            continue;
+        }
+        
+        CANData can_data;
+        if (parse_csv_line(line, &can_data) == 0) {
+            update_can_data(&can_data);
+            new_lines_read++;
+        }
+        
+        last_read_position = current_position;
+    }
+    
+    fclose(file);
+    return new_lines_read;
+}
+
+// Print all tracked CAN IDs and their latest data
+void print_all_can_data() {
+    pthread_mutex_lock(&can_tracker_mutex);
+    
+    printf("\n=== ALL TRACKED CAN IDs ===\n");
+    for (int i = 0; i < MAX_CAN_IDS; i++) {
+        if (can_id_tracker[i].active) {
+            const CANData *data = &can_id_tracker[i].latest_data;
+            printf("ID: %03X | Time: %s | DLC: %d | Data: %s\n",
+                   data->can_id, data->timestamp, data->dlc, data->data_hex);
+        }
+    }
+    printf("=== Total: %d unique CAN IDs ===\n\n", tracked_can_ids_count);
+    
+    pthread_mutex_unlock(&can_tracker_mutex);
 }
 
 void print_item(const Item *item) {
@@ -238,26 +316,33 @@ void* sender_thread(void* arg) {
     return NULL;
 }
 
-// NEW THREAD: CAN Data Reader
+// MODIFIED THREAD: CAN Data Reader with ID tracking
 void* can_reader_thread(void* arg) {
     printf("CAN Data Reader thread started - monitoring %s\n", CAN_SNAPSHOT_FILE);
+    printf("Tracking unique CAN IDs and their latest data...\n");
     printf("Will check for new CAN data every 2 seconds...\n\n");
     
+    // Initialize the tracker array
+    memset(can_id_tracker, 0, sizeof(can_id_tracker));
+    
+    int cycle_count = 0;
+    
     while (1) {
-        CANData temp_can_data;
+        int new_lines = read_new_can_lines();
         
-        // Try to read the last line from the CAN snapshot file
-        if (read_last_can_line(&temp_can_data) == 0) {
-            // Successfully read data, update the global variable
-            pthread_mutex_lock(&can_data_mutex);
-            latest_can_data = temp_can_data;
-            pthread_mutex_unlock(&can_data_mutex);
-            
-            // Print the CAN data to terminal
-            print_can_data(&temp_can_data);
+        if (new_lines > 0) {
+            printf("Read %d new CAN data lines\n", new_lines);
+        } else if (new_lines == 0) {
+            printf("No new CAN data since last check\n");
         } else {
-            // Failed to read data
-            printf("[CAN DATA] Failed to read from %s (file may not exist yet)\n", CAN_SNAPSHOT_FILE);
+            printf("Failed to read from %s (file may not exist yet)\n", CAN_SNAPSHOT_FILE);
+        }
+        
+        // Every 10 cycles (20 seconds), print all tracked CAN IDs
+        cycle_count++;
+        if (cycle_count >= 10) {
+            print_all_can_data();
+            cycle_count = 0;
         }
         
         // Wait 2 seconds before checking again
@@ -297,7 +382,8 @@ int setup_serial(const char *port_path) {
 int main() {
     printf("ESP-NOW Communication System with CAN Data Integration\n");
     printf("ESP-NOW Serial Port: /dev/ttyUSB1\n");
-    printf("CAN Snapshot File: %s\n\n", CAN_SNAPSHOT_FILE);
+    printf("CAN Snapshot File: %s\n", CAN_SNAPSHOT_FILE);
+    printf("Max Trackable CAN IDs: %d\n\n", MAX_CAN_IDS);
     
     serial_port = setup_serial("/dev/ttyUSB1");
     if (serial_port < 0) return 1;
@@ -308,18 +394,18 @@ int main() {
     pthread_create(&rx_tid, NULL, receiver_thread, NULL);
     pthread_create(&tx_tid, NULL, sender_thread, NULL);
     pthread_create(&print_tid, NULL, printer_thread, NULL);
-    pthread_create(&can_reader_tid, NULL, can_reader_thread, NULL);  // NEW THREAD
+    pthread_create(&can_reader_tid, NULL, can_reader_thread, NULL);
     
     printf("All threads started successfully!\n");
     printf("- ESP-NOW receiver/sender threads active\n");
     printf("- CSV printer thread active\n");
-    printf("- CAN data reader thread active\n\n");
+    printf("- CAN data reader thread active (tracking unique CAN IDs)\n\n");
     
     // Wait for threads to complete (they run indefinitely)
     pthread_join(rx_tid, NULL);
     pthread_join(tx_tid, NULL);
     pthread_join(print_tid, NULL);
-    pthread_join(can_reader_tid, NULL);  // NEW THREAD JOIN
+    pthread_join(can_reader_tid, NULL);
     
     close(serial_port);
     return 0;
