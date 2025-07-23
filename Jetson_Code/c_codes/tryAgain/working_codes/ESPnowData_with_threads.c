@@ -7,6 +7,7 @@
 #include <time.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <stdbool.h>  // ADDED THIS LINE
 #include "parseCANFrame.h"  // Include the CAN parser library
 
 #define HEADER_BYTE_1 0xAA
@@ -438,6 +439,69 @@ void* can_reader_thread(void* arg) {
     return NULL;
 }
 
+// NEW THREAD: Send CAN data to ESP32
+void* can_to_esp32_sender_thread(void* arg) {
+    printf("CAN to ESP32 sender thread started\n");
+    
+    while (1) {
+        pthread_mutex_lock(&can_tracker_mutex);
+        
+        // Find the latest data for the IDs we care about
+        unsigned short latest_soc = 0;
+        float latest_speed = 0.0;
+        float latest_display_speed = 0.0;
+        float latest_odometer = 0.0;
+        bool found_any_data = false;
+        
+        for (int i = 0; i < MAX_CAN_IDS; i++) {
+            if (can_id_tracker[i].active && can_id_tracker[i].parsed_data.valid) {
+                const ParsedData *parsed = &can_id_tracker[i].parsed_data;
+                
+                switch (can_id_tracker[i].can_id) {
+                    case 0x155: // SOC data
+                        latest_soc = parsed->SOC;
+                        found_any_data = true;
+                        break;
+                    case 0x5D7: // Speed and odometer
+                        latest_speed = parsed->speedKmh;
+                        latest_odometer = parsed->odometerKm;
+                        found_any_data = true;
+                        break;
+                    case 0x599: // Display speed
+                        latest_display_speed = parsed->displaySpeed;
+                        found_any_data = true;
+                        break;
+                }
+            }
+        }
+        
+        pthread_mutex_unlock(&can_tracker_mutex);
+        
+        // Send data to ESP32 if we have any valid data
+        if (found_any_data) {
+            Item can_item = {
+                .SOC = latest_soc,
+                .speedKmh = latest_speed,
+                .odometerKm = latest_odometer,
+                .displaySpeed = latest_display_speed,
+                .MacAddress = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00} // Will be set by ESP32
+            };
+            
+            // Send header + data to ESP32
+            uint8_t header[2] = { HEADER_BYTE_1, HEADER_BYTE_2 };
+            write(serial_port, header, 2);
+            write(serial_port, &can_item, sizeof(Item));
+            
+            printf("[CAN->ESP32] Sent: SOC=%u%%, Speed=%.1fkm/h, Display=%.1fkm/h, Odo=%.1fkm\n",
+                   can_item.SOC, can_item.speedKmh, can_item.displaySpeed, can_item.odometerKm);
+        }
+        
+        // Send every 3 seconds
+        sleep(3);
+    }
+    return NULL;
+}
+
 int setup_serial(const char *port_path) {
     int fd = open(port_path, O_RDWR | O_NOCTTY);
     if (fd < 0) {
@@ -477,24 +541,27 @@ int main(int argc, char *argv[]) {
     serial_port = setup_serial(esp_serial_port);
     if (serial_port < 0) return 1;
     
-    pthread_t rx_tid, tx_tid, print_tid, can_reader_tid;
+    pthread_t rx_tid, tx_tid, print_tid, can_reader_tid, can_sender_tid;
     
     // Start all threads
     pthread_create(&rx_tid, NULL, receiver_thread, NULL);
-    pthread_create(&tx_tid, NULL, sender_thread, NULL);
+    pthread_create(&tx_tid, NULL, sender_thread, NULL);  // Keep this for testing if needed
     pthread_create(&print_tid, NULL, printer_thread, NULL);
     pthread_create(&can_reader_tid, NULL, can_reader_thread, NULL);
+    pthread_create(&can_sender_tid, NULL, can_to_esp32_sender_thread, NULL);  // NEW THREAD
     
     printf("All threads started successfully!\n");
     printf("- ESP-NOW receiver/sender threads active\n");
     printf("- CSV printer thread active\n");
-    printf("- CAN data reader thread active (with parsing)\n\n");
+    printf("- CAN data reader thread active (with parsing)\n");
+    printf("- CAN to ESP32 sender thread active\n\n");  // Updated message
     
     // Wait for threads to complete (they run indefinitely)
     pthread_join(rx_tid, NULL);
     pthread_join(tx_tid, NULL);
     pthread_join(print_tid, NULL);
     pthread_join(can_reader_tid, NULL);
+    pthread_join(can_sender_tid, NULL);  // Wait for new thread too
     
     close(serial_port);
     return 0;

@@ -1,4 +1,4 @@
-///////////////////////////////////////////// code for esp32 communication esp32(2)---esp-now--->esp32(1)---usb-serial--->jetson nano
+///////////////////////////////////////////// FIXED ESP32(1) code to send real CAN data
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_system.h"
@@ -11,8 +11,8 @@
 #include "esp_netif.h"
 #include "nvs_flash.h"
 
-// Pin definitions - No longer need custom UART pins since using USB
-#define UART_NUM UART_NUM_0  // Changed from UART_NUM_1 to UART_NUM_0 (USB Serial)
+// Pin definitions
+#define UART_NUM UART_NUM_0  
 #define LED_PIN GPIO_NUM_2
 
 // Buffer size
@@ -28,8 +28,12 @@ typedef struct {
 } Item;
 
 Item incomingReadings;
-Item receivedItem; //Item received from jetson, and that will be forwarded to external esp32s
+Item receivedItem; // Item received from jetson with real CAN data
+Item lastValidCanData; // Store last valid CAN data to send
 QueueHandle_t NowUSBQueue;
+
+// Flag to indicate if we have valid CAN data
+bool hasValidCanData = false;
 
 extern "C" void app_main();
 void init_usb_serial();
@@ -38,6 +42,7 @@ static void usb_serial_tx_task(void *pvParameter);
 static void sendToJetson_usb(Item *data);
 void OnDataRecv(const esp_now_recv_info_t *recv_info, const uint8_t *incomingData, int len);
 esp_err_t init_esp_now(void);
+void updateCanDataFromReceived(const Item *received);
 
 void app_main()
 {
@@ -53,7 +58,7 @@ void app_main()
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
     
-    NowUSBQueue = xQueueCreate(10, sizeof(Item)); // Store up to 10 items
+    NowUSBQueue = xQueueCreate(10, sizeof(Item));
     if (NowUSBQueue == NULL) {
         return;
     }
@@ -68,20 +73,25 @@ void app_main()
     
     // Initialize ESP-NOW
     ESP_ERROR_CHECK(init_esp_now());
-
-    memset(&receivedItem, 0, sizeof(receivedItem));
-    // Set some default values
-    receivedItem.SOC = 0;
-    receivedItem.speedKmh = 0.0;
-    receivedItem.displaySpeed = 0.0;
-    receivedItem.odometerKm = 0.0;
-
-    // Create communication tasks with appropriate priorities
-    xTaskCreate(usb_serial_rx_task, "usb_serial_rx_task", 4096, NULL, 12, NULL);  // Higher priority for RX
-    xTaskCreate(usb_serial_tx_task, "usb_serial_tx_task", 4096, NULL, 11, NULL);  // Slightly lower priority for TX   
     
-    // Main task can now do other work or simply monitor the system
+    // Initialize with default values
+    memset(&receivedItem, 0, sizeof(receivedItem));
+    memset(&lastValidCanData, 0, sizeof(lastValidCanData));
+    
+    // Set default fallback values (start with zeros)
+    lastValidCanData.SOC = 0;
+    lastValidCanData.speedKmh = 0.0;
+    lastValidCanData.displaySpeed = 0.0;
+    lastValidCanData.odometerKm = 0.0;
+    
+    // Create communication tasks
+    xTaskCreate(usb_serial_rx_task, "usb_serial_rx_task", 4096, NULL, 12, NULL);
+    xTaskCreate(usb_serial_tx_task, "usb_serial_tx_task", 4096, NULL, 11, NULL);
+    
+    printf("ESP32(1) started - will broadcast real CAN data from Jetson\n");
+    
     while(1) {
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
 
@@ -97,12 +107,8 @@ void init_usb_serial()
         .source_clk = UART_SCLK_DEFAULT,
     };
     
-    // Install UART driver with appropriate buffer sizes
     ESP_ERROR_CHECK(uart_driver_install(UART_NUM, BUF_SIZE * 2, BUF_SIZE * 2, 0, NULL, 0));
     ESP_ERROR_CHECK(uart_param_config(UART_NUM, &uart_config));
-    // No need to set pins for UART0 as they are fixed (GPIO1=TX, GPIO3=RX)
-    
-    // Flush any existing data
     uart_flush(UART_NUM);
 }
 
@@ -119,62 +125,92 @@ static void usb_serial_tx_task(void *pvParameters) {
 
 static void sendToJetson_usb(Item *data)
 {
-    // Send as binary data
     esp_err_t err = uart_wait_tx_done(UART_NUM, 1000 / portTICK_PERIOD_MS);
     if (err != ESP_OK) {
         return;
     }
-    const uint8_t HEADER[] = {0xAA, 0x55};  // 2-byte start marker 
+    
+    const uint8_t HEADER[] = {0xAA, 0x55};
     uart_write_bytes(UART_NUM, (const char*)HEADER, sizeof(HEADER));
-    // Send exact struct size
-    int bytes_written = uart_write_bytes(UART_NUM, (const char*)data, sizeof(Item));
-//    if (bytes_written == sizeof(Item)) {
-//        // Blink LED to indicate successful transmission
-//        gpio_set_level(LED_PIN, 1);
-//        vTaskDelay(pdMS_TO_TICKS(50));
-//        gpio_set_level(LED_PIN, 0);
-//    }
+    uart_write_bytes(UART_NUM, (const char*)data, sizeof(Item));
 }
 
 static void usb_serial_rx_task(void *pvParameter)
 {
-    uint8_t *data = (uint8_t *) malloc(BUF_SIZE);
+    uint8_t header[2] = {0};
+    uint8_t *data = (uint8_t *) malloc(sizeof(Item));
     
     if (data == NULL) {
         vTaskDelete(NULL);
         return;
     }
-     
+    
+    printf("USB Serial RX task started - waiting for CAN data from Jetson\n");
+    
     while (1) {
-        // Receive binary data
-        int len = uart_read_bytes(UART_NUM, data, sizeof(Item), 1000 / portTICK_PERIOD_MS);
+        // Look for header bytes first
+        int headerPos = 0;
         
-        if (len == sizeof(Item)) {
+        while (headerPos < 2) {
+            int len = uart_read_bytes(UART_NUM, &header[headerPos], 1, 100 / portTICK_PERIOD_MS);
+            if (len == 1) {
+                if (headerPos == 0 && header[0] == 0xAA) {
+                    headerPos = 1;
+                } else if (headerPos == 1 && header[1] == 0x55) {
+                    headerPos = 2; // Header complete
+                } else {
+                    headerPos = 0; // Reset if wrong sequence
+                }
+            }
+        }
+        
+        // Now read the data payload
+        int totalReceived = 0;
+        while (totalReceived < sizeof(Item)) {
+            int len = uart_read_bytes(UART_NUM, data + totalReceived, 
+                                    sizeof(Item) - totalReceived, 
+                                    1000 / portTICK_PERIOD_MS);
+            if (len > 0) {
+                totalReceived += len;
+            } else {
+                break; // Timeout
+            }
+        }
+        
+        if (totalReceived == sizeof(Item)) {
             // Copy received data to Item struct
             memcpy(&receivedItem, data, sizeof(Item));
             
-            // Blink LED to indicate successful reception
+            // Update our CAN data store (NO VALIDATION)
+            updateCanDataFromReceived(&receivedItem);
+            
+            // Blink LED to indicate successful reception of CAN data
             gpio_set_level(LED_PIN, 1);
-            vTaskDelay(pdMS_TO_TICKS(100));
+            vTaskDelay(pdMS_TO_TICKS(50));
             gpio_set_level(LED_PIN, 0);
             
-            // Forward this data via ESP-NOW if needed
-            // You can add ESP-NOW transmission code here
-            
-        } else if (len > 0) {
-            // Clear the buffer of any partial data
-            uart_flush_input(UART_NUM);
+            printf("Received CAN data from Jetson: SOC=%u%%, Speed=%.1fkm/h, Display=%.1fkm/h, Odo=%.1fkm\n",
+                   receivedItem.SOC, receivedItem.speedKmh, receivedItem.displaySpeed, receivedItem.odometerKm);
         }
         
-        // Small delay to prevent overwhelming the task
         vTaskDelay(pdMS_TO_TICKS(10));
     }
     
     free(data);
 }
 
-// ESP-NOW receive callback
+// NO VALIDATION - just use the data as-is
+void updateCanDataFromReceived(const Item *received) {
+    // Copy all data directly without any validation
+    lastValidCanData = *received;
+    hasValidCanData = true;
+    
+    printf("Updated CAN data from Jetson: SOC=%u%%, Speed=%.1fkm/h, Display=%.1fkm/h, Odo=%.1fkm\n",
+           lastValidCanData.SOC, lastValidCanData.speedKmh, 
+           lastValidCanData.displaySpeed, lastValidCanData.odometerKm);
+}
 
+// ESP-NOW callback - send REAL CAN data from Jetson
 void OnDataRecv(const esp_now_recv_info_t *recv_info, const uint8_t *incomingData, int len) {
     if (len != sizeof(Item)) {
         return;
@@ -196,54 +232,40 @@ void OnDataRecv(const esp_now_recv_info_t *recv_info, const uint8_t *incomingDat
         }
     }
     
-    // Create response
+    // Create response with REAL CAN data from Jetson
     Item response;
-    response.SOC = 80;
-    response.speedKmh = 60;
-    response.displaySpeed = 58;
-    response.odometerKm = 3500;
-    memcpy(response.MacAddress, recv_info->src_addr, 6);
+    
+    if (hasValidCanData) {
+        // Send real CAN data from Jetson
+        response = lastValidCanData;
+        printf("Broadcasting REAL CAN data from Jetson: SOC=%u%%, Speed=%.1fkm/h, Display=%.1fkm/h, Odo=%.1fkm\n",
+               response.SOC, response.speedKmh, response.displaySpeed, response.odometerKm);
+    } else {
+        // Send zeros if no CAN data available yet
+        response.SOC = 0;
+        response.speedKmh = 0.0;
+        response.displaySpeed = 0.0;
+        response.odometerKm = 0.0;
+        printf("No CAN data from Jetson yet, sending zeros\n");
+    }
+    
+    // Set this ESP32's MAC in response
+    uint8_t mac[6];
+    esp_wifi_get_mac(WIFI_IF_STA, mac);
+    memcpy(response.MacAddress, mac, 6);
     
     esp_err_t err = esp_now_send(recv_info->src_addr, (uint8_t *)&response, sizeof(response));
-
-//    /*Send data received from jetson to external esp32s*/
-//    // Better approach - use a local copy
-//    Item responseItem = receivedItem;  // Atomic copy
-//    memcpy(response.MacAddress, recv_info->src_addr, 6);
-//    esp_err_t err = esp_now_send(recv_info->src_addr, (uint8_t *)&response, sizeof(response);
-    // Forward to Jetson via USB Serial
+    if (err == ESP_OK) {
+        printf("CAN data sent successfully via ESP-NOW to external ESP32\n");
+    } else {
+        printf("Failed to send CAN data via ESP-NOW: %s\n", esp_err_to_name(err));
+    }
+    
+    // Forward received data from external ESP32 to Jetson via USB Serial
     if (xQueueSend(NowUSBQueue, &item, 0) != pdTRUE) {
         // Queue full, drop packet silently
     }
 }
-
-//// ESP-NOW receive callback - LOOPBACK TEST VERSION
-//void OnDataRecv(const esp_now_recv_info_t *recv_info, const uint8_t *incomingData, int len) {
-//    if (len != sizeof(Item)) {
-//        return;
-//    }
-//    
-//    Item item;
-//    memcpy(&item, incomingData, sizeof(Item));
-//    memcpy(item.MacAddress, recv_info->src_addr, 6);  // Set sender MAC
-//    
-//    // LOOPBACK TEST: Send Jetson's data back to Jetson (not to external ESP32s)
-//    // Instead of sending receivedItem to external ESP32s, 
-//    // we send receivedItem back to Jetson
-//    
-//    // Forward the received Jetson data back to Jetson via USB Serial
-//    if (xQueueSend(NowUSBQueue, &receivedItem, 0) != pdTRUE) {
-//        // Queue full, drop packet silently
-//    }
-//    
-//    // Also forward the external ESP32 data to Jetson (original functionality)
-//    if (xQueueSend(NowUSBQueue, &item, 0) != pdTRUE) {
-//        // Queue full, drop packet silently
-//    }
-//    
-//    // Don't send anything via ESP-NOW for this test
-//    // (Comment out the esp_now_send part)
-//}
 
 // Initialize ESP-NOW
 esp_err_t init_esp_now(void) {

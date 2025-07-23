@@ -203,6 +203,63 @@ int parse_hex_byte(const char *str) {
     return (high << 4) | low;
 }
 
+//int parse_can_line(const char *line, CANFrame *frame) {
+//    // Expected format: "SIM 19F 8 FF FF 7D 0F 38 FF 40 FE"
+//    if (strncmp(line, "SIM ", 4) != 0) {
+//        return 0;
+//    }
+//    
+//    // Get timestamp
+//    clock_gettime(CLOCK_REALTIME, &frame->timestamp);
+//    
+//    // Parse the line manually
+//    char *token;
+//    char *line_copy = strdup(line + 4); // Skip "SIM "
+//    char *saveptr;
+//    
+//    // Parse CAN ID (hex)
+//    token = strtok_r(line_copy, " ", &saveptr);
+//    if (!token) {
+//        free(line_copy);
+//        return 0;
+//    }
+//    frame->can_id = (unsigned int)strtol(token, NULL, 16);
+//    
+//    // Parse DLC (decimal)
+//    token = strtok_r(NULL, " ", &saveptr);
+//    if (!token) {
+//        free(line_copy);
+//        return 0;
+//    }
+//    frame->dlc = (unsigned char)atoi(token);
+//    
+//    // Validate DLC
+//    if (frame->dlc > 8) {
+//        free(line_copy);
+//        return 0;
+//    }
+//    
+//    // Parse data bytes (always expect 8 hex bytes from ESP32)
+//    for (int i = 0; i < 8; i++) {
+//        token = strtok_r(NULL, " ", &saveptr);
+//        if (!token) {
+//            free(line_copy);
+//            return 0;
+//        }
+//        
+//        int byte_val = parse_hex_byte(token);
+//        if (byte_val == -1) {
+//            free(line_copy);
+//            return 0;
+//        }
+//        frame->data[i] = (unsigned char)byte_val;
+//    }
+//    
+//    free(line_copy);
+//    return 1;
+//}
+
+// FIXED: Parse CAN line function - handles variable DLC correctly
 int parse_can_line(const char *line, CANFrame *frame) {
     // Expected format: "SIM 19F 8 FF FF 7D 0F 38 FF 40 FE"
     if (strncmp(line, "SIM ", 4) != 0) {
@@ -239,10 +296,14 @@ int parse_can_line(const char *line, CANFrame *frame) {
         return 0;
     }
     
-    // Parse data bytes (always expect 8 hex bytes from ESP32)
-    for (int i = 0; i < 8; i++) {
+    // Initialize all data bytes to 0
+    memset(frame->data, 0, 8);
+    
+    // Parse ONLY the actual number of data bytes (based on DLC)
+    for (int i = 0; i < frame->dlc; i++) {
         token = strtok_r(NULL, " ", &saveptr);
         if (!token) {
+            // Not enough data bytes - this is an error
             free(line_copy);
             return 0;
         }
@@ -254,6 +315,9 @@ int parse_can_line(const char *line, CANFrame *frame) {
         }
         frame->data[i] = (unsigned char)byte_val;
     }
+    
+    // Check if there are extra bytes beyond DLC (which is okay, just ignore them)
+    // This handles cases where the ESP32 simulator sends padded bytes
     
     free(line_copy);
     return 1;
