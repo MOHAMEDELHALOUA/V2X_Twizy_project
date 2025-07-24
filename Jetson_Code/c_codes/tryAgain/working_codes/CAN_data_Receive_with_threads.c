@@ -9,7 +9,7 @@
 
 #define MAX_LINE_LENGTH 128
 #define QUEUE_SIZE 1000
-#define COPY_INTERVAL_SECONDS 15
+#define COPY_INTERVAL_SECONDS 5
 #define MAX_CSV_LINES 1000  // Maximum lines in CSV before overwriting
 
 typedef struct {
