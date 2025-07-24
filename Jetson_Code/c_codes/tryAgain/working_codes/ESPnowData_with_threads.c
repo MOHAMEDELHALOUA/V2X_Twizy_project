@@ -20,8 +20,8 @@
 #define MAX_CAN_IDS 100  // Maximum number of unique CAN IDs to track
 
 // Priority CAN IDs for V2V/V2G (based on your requirements)
-#define PRIORITY_CAN_IDS 5
-static const unsigned int priority_ids[PRIORITY_CAN_IDS] = {0x155, 0x59B, 0x599, 0x5D7, 0x425};
+#define PRIORITY_CAN_IDS 6
+static const unsigned int priority_ids[PRIORITY_CAN_IDS] = {0x155, 0x59B, 0x19F, 0x599, 0x5D7, 0x425};
 
 char parsed_filename[256];
 char esp_now_filename[256];
@@ -53,7 +53,7 @@ typedef struct {
     time_t last_updated;  // Track when this data was last updated
 } CANIDTracker;
 
-// NEW: Merged CAN data structure for single CSV row
+// NEW: Merged CAN data structure for single CSV row - WITH TRIPLE SPEEDS
 typedef struct {
     char timestamp[32];
     int soc;
@@ -63,7 +63,9 @@ typedef struct {
     int accelerator;
     int brake;
     float cap_voltage;
-    float speed;
+    float motor_speed;       // From 0x19F - Motor speed (our fixed calculation)
+    float actual_speed;      // From 0x5D7 - Actual speed
+    float absolute_speed;    // From 0x599 - Absolute/Display speed
     float odometer;
     int range;
     float battery_voltage;
@@ -245,13 +247,18 @@ void display_individual_frame_result(unsigned int can_id, const ParsedData *pars
                    parsed->capacitorVoltage);
             break;
             
-        case 0x599:
-            printf("Frame 0x599: Range=%dkm, DisplaySpeed=%.1fkm/h\n",
+        case 0x19F:
+            printf("Frame 0x19F: MotorSpeed=%.1fkm/h\n",
+                   parsed->speedKmh);
+            break;
+            
+        case 0x599: // Range and absolute/display speed
+            printf("Frame 0x599: Range=%dkm, AbsoluteSpeed=%.1fkm/h\n",
                    parsed->remainingRange, parsed->speedKmh);
             break;
             
         case 0x5D7:
-            printf("Frame 0x5D7: Speed=%.1fkm/h, Odometer=%.1fkm\n",
+            printf("Frame 0x5D7: ActualSpeed=%.1fkm/h, Odometer=%.1fkm\n",
                    parsed->speedKmh, parsed->odometerKm);
             break;
             
@@ -339,17 +346,19 @@ MergedCANData create_merged_can_data() {
                 merged.has_data = true;
                 break;
                 
-            case 0x599: // Range and backup speed
-                merged.range = parsed->remainingRange;
-                // Only use speed from 0x599 if we don't have 0x5D7 data
-                if (merged.speed == 0.0) {
-                    merged.speed = parsed->speedKmh;
-                }
+            case 0x19F: // MOTOR speed (our verified calculation)
+                merged.motor_speed = parsed->speedKmh;    // Store motor speed from 0x19F
                 merged.has_data = true;
                 break;
                 
-            case 0x5D7: // Primary speed and odometer
-                merged.speed = parsed->speedKmh;  // Override 0x599 speed
+            case 0x599: // Range and ABSOLUTE/DISPLAY speed
+                merged.range = parsed->remainingRange;
+                merged.absolute_speed = parsed->speedKmh;  // Store as absolute speed
+                merged.has_data = true;
+                break;
+                
+            case 0x5D7: // ACTUAL speed and odometer
+                merged.actual_speed = parsed->speedKmh;    // Store as actual speed
                 merged.odometer = parsed->odometerKm;
                 merged.has_data = true;
                 break;
@@ -383,20 +392,21 @@ void save_merged_can_data_to_csv(const MergedCANData *merged) {
     if (!csv_initialized) {
         can_csv = fopen(parsed_filename, "w");
         if (can_csv) {
-            fprintf(can_csv, "timestamp,soc,current,gear,motor_active,accelerator,brake,cap_voltage,speed,odometer,range,battery_voltage,available_energy,charging_status,motor_temp,power_request\n");
+            fprintf(can_csv, "timestamp,soc,current,gear,motor_active,accelerator,brake,cap_voltage,motor_speed,actual_speed,absolute_speed,odometer,range,battery_voltage,available_energy,charging_status,motor_temp,power_request\n");
             fflush(can_csv);
         }
         csv_initialized = true;
     }
     
     if (can_csv && merged->has_data) {
-        // Save merged data as ONE row with ALL fields
-        fprintf(can_csv, "%s,%d,%.1f,%s,%d,%d,%d,%.1f,%.1f,%.1f,%d,%.1f,%.1f,0x%02X,%d,%.1f\n",
+        // Save merged data as ONE row with ALL fields - INCLUDING TRIPLE SPEEDS
+        fprintf(can_csv, "%s,%d,%.1f,%s,%d,%d,%d,%.1f,%.1f,%.1f,%.1f,%.1f,%d,%.1f,%.1f,0x%02X,%d,%.1f\n",
                 merged->timestamp,
                 merged->soc, merged->current,
                 merged->gear[0] != '\0' ? merged->gear : "Unknown",
                 merged->motor_active, merged->accelerator, merged->brake, 
-                merged->cap_voltage, merged->speed, merged->odometer, merged->range,
+                merged->cap_voltage, merged->motor_speed, merged->actual_speed, merged->absolute_speed, 
+                merged->odometer, merged->range,
                 merged->battery_voltage, merged->available_energy, merged->charging_status,
                 merged->motor_temp, merged->power_request);
         fflush(can_csv);
@@ -598,9 +608,9 @@ void* can_to_esp32_sender_thread(void* arg) {
         if (merged.has_data) {
             Item can_item = {
                 .SOC = (unsigned short)merged.soc,
-                .speedKmh = merged.speed,
+                .speedKmh = merged.motor_speed,       // Use motor speed (0x19F) for ESP32 - most verified
                 .odometerKm = merged.odometer,
-                .displaySpeed = merged.speed, // Use same speed for now
+                .displaySpeed = merged.absolute_speed, // Use absolute speed (0x599) as display
                 .MacAddress = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
             };
             
@@ -658,7 +668,7 @@ int main(int argc, char *argv[]) {
     printf("CAN Data Input: %s\n", CAN_SNAPSHOT_FILE);
     printf("ESP-NOW CSV: %s\n", esp_now_filename);
     printf("CAN Merged CSV: %s\n", parsed_filename);
-    printf("Priority Frames: 0x155, 0x59B, 0x599, 0x5D7, 0x425\n");
+    printf("Priority Frames: 0x155, 0x59B, 0x19F, 0x599, 0x5D7, 0x425\n");
     printf("File Check Interval: 4 seconds\n");
     printf("===============================================\n\n");
     
@@ -687,5 +697,3 @@ int main(int argc, char *argv[]) {
     close(serial_port);
     return 0;
 }
-
-
