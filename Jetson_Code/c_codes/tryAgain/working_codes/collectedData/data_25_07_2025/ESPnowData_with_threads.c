@@ -397,15 +397,28 @@ void save_merged_can_data_to_csv(const MergedCANData *merged) {
     
     if (can_csv && merged->has_data) {
         // Save merged data as ONE row with ALL fields - INCLUDING TRIPLE SPEEDS
-        fprintf(can_csv, "%s,%d,%.1f,%s,%d,%d,%d,%.1f,%.1f,%.1f,%.1f,%.1f,%d,%.1f,%.1f,0x%02X,%d,%.1f\n",
-                merged->timestamp,
-                merged->soc, merged->current,
-                merged->gear[0] != '\0' ? merged->gear : "Unknown",
-                merged->motor_active, merged->accelerator, merged->brake, 
-                merged->cap_voltage, merged->motor_speed, 
-                merged->odometer, merged->range,
-                merged->battery_voltage, merged->available_energy, merged->charging_status,
-                merged->motor_temp, merged->power_request);
+//        fprintf(can_csv, "%s,%d,%.1f,%s,%d,%d,%d,%.1f,%.1f,%.1f,%.1f,%.1f,%d,%.1f,%.1f,0x%02X,%d,%.1f\n",
+//                merged->timestamp,
+//                merged->soc, merged->current,
+//                merged->gear[0] != '\0' ? merged->gear : "Unknown",
+//                merged->motor_active, merged->accelerator, merged->brake, 
+//                merged->cap_voltage, merged->motor_speed, 
+//                merged->odometer, merged->range,
+//                merged->battery_voltage, merged->available_energy, merged->charging_status,
+//                merged->motor_temp, merged->power_request);
+          fprintf(can_csv, "%s,%d,%.1f,%s,%d,%d,%d,%.1f,%.1f,%.1f,%d,%.1f,%.1f,0x%02X,%d,%.1f\n",
+                          merged->timestamp,
+                          merged->soc, merged->current,
+                          merged->gear[0] != '\0' ? merged->gear : "Unknown",
+                          merged->motor_active, merged->accelerator, merged->brake, 
+                          merged->cap_voltage, merged->motor_speed, 
+                          merged->odometer, 
+                          merged->range,               // %d (int)
+                          merged->battery_voltage,     // %.1f (float) 
+                          merged->available_energy,    // %.1f (float)
+                          merged->charging_status,     // 0x%02X (uint8_t)
+                          merged->motor_temp,          // %d (int)
+                          merged->power_request);      // %.1f (float)
         fflush(can_csv);
     }
 }
@@ -692,3 +705,4 @@ int main(int argc, char *argv[]) {
     close(serial_port);
     return 0;
 }
+

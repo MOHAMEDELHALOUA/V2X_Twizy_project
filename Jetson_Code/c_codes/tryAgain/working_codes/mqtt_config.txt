@@ -1,0 +1,14 @@
+# SendToCloud Configuration
+# ThingsBoard MQTT Settings
+broker_ip=192.168.1.4
+broker_port=1883
+device_token=test_token_001
+
+# File Settings
+csv_pattern=merged_can_data_*.csv
+check_interval=4
+
+# Location Settings (optional)
+use_location=true
+latitude=33.8547
+longitude=-7.0062
