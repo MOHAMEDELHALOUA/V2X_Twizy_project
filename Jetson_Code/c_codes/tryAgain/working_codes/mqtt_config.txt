@@ -1,8 +1,8 @@
-# SendToCloud Configuration
+# SendToCloud Configuration for ThingsBoard
 # ThingsBoard MQTT Settings
-broker_ip=192.168.1.4
+broker_ip=192.168.9.100
 broker_port=1883
-device_token=test_token_001
+device_token=HELECAR_TwizyData
 
 # File Settings
 csv_pattern=merged_can_data_*.csv

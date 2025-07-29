@@ -15,24 +15,24 @@ typedef struct {
     int qos;                    // Quality of Service (0, 1, or 2)
 } ThingsBoardConfig;
 
-// Vehicle data structure for ThingsBoard (matches your MergedCANData)
+// Vehicle data structure for ThingsBoard (matches your exact CSV format)
 typedef struct {
-    char timestamp[32];
-    int soc;
-    float current;
-    char gear[16];
-    int motor_active;
-    int accelerator;
-    int brake;
-    float cap_voltage;
-    float motor_speed;
-    float odometer;
-    int range;
-    float battery_voltage;
-    float available_energy;
-    uint8_t charging_status;
-    int motor_temp;
-    float power_request;
+    char timestamp[32];         // timestamp (e.g., "1753442419.000006725")
+    int soc;                    // soc (e.g., 72)
+    float current;              // current (e.g., -1.0)
+    char gear[16];              // gear (e.g., "Neutral")
+    int motor_active;           // motor_active (e.g., 1)
+    int accelerator;            // accelerator (e.g., 0)
+    int brake;                  // brake (e.g., 0)
+    float cap_voltage;          // cap_voltage (e.g., 56.0)
+    float motor_speed;          // motor_speed (e.g., -0.0)
+    float odometer;             // odometer (e.g., 3508.8)
+    int range;                  // range (e.g., 24)
+    float battery_voltage;      // battery_voltage (e.g., 57.5)
+    float available_energy;     // available_energy (e.g., 4.4)
+    uint8_t charging_status;    // charging_status (e.g., 0x2A)
+    int motor_temp;             // motor_temp (e.g., 0)
+    float power_request;        // power_request (e.g., 0.0)
     
     // Optional location data
     float latitude;

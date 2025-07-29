@@ -21,6 +21,7 @@ static void connection_lost_callback(void *context, char *cause);
 static int message_arrived_callback(void *context, char *topicName, int topicLen, MQTTClient_message *message);
 static void delivery_complete_callback(void *context, MQTTClient_deliveryToken dt);
 static char* create_vehicle_json(const VehicleData *data);
+static long long get_current_timestamp_ms(void);
 
 // Initialize ThingsBoard connection
 int tb_init(const ThingsBoardConfig *config) {
@@ -70,10 +71,11 @@ int tb_connect(void) {
     MQTTClient_connectOptions conn_opts = MQTTClient_connectOptions_initializer;
     conn_opts.keepAliveInterval = tb_config.keepalive;
     conn_opts.cleansession = 1;
-//    conn_opts.username = tb_config.device_token;  // ThingsBoard uses token as username
-//    conn_opts.password = NULL;  // No password for ThingsBoard device tokens
+    // FIX: Uncomment these lines for ThingsBoard authentication
+    conn_opts.username = tb_config.device_token;  // ThingsBoard uses token as username
+    conn_opts.password = NULL;  // No password for ThingsBoard device tokens
     
-    printf("[Send2Server] Connecting to ThingsBoard...\n");
+    printf("[Send2Server] Connecting to ThingsBoard with token: %s\n", tb_config.device_token);
     
     int result = MQTTClient_connect(mqtt_client, &conn_opts);
     
@@ -229,65 +231,20 @@ static void delivery_complete_callback(void *context, MQTTClient_deliveryToken d
     // printf("[Send2Server] Message delivery confirmed (token: %d)\n", dt);
 }
 
-// Create JSON payload for vehicle data
-//static char* create_vehicle_json(const VehicleData *data) {
-//    char *json = malloc(2048);  // Allocate enough space for JSON
-//    if (!json) return NULL;
-//    
-//    // Create ThingsBoard-compatible JSON payload
-//    snprintf(json, 2048,
-//        "{"
-//        "\"timestamp\":\"%s\","
-//        "\"soc\":%d,"
-//        "\"current\":%.1f,"
-//        "\"gear\":\"%s\","
-//        "\"motor_active\":%s,"
-//        "\"accelerator\":%d,"
-//        "\"brake\":%s,"
-//        "\"cap_voltage\":%.1f,"
-//        "\"motor_speed\":%.1f,"
-//        "\"odometer\":%.1f,"
-//        "\"range\":%d,"
-//        "\"battery_voltage\":%.1f,"
-//        "\"available_energy\":%.1f,"
-//        "\"charging_status\":\"%02X\","
-//        "\"motor_temp\":%d,"
-//        "\"power_request\":%.1f"
-//        "%s%s%s"  // Optional location data
-//        "}",
-//        data->timestamp,
-//        data->soc,
-//        data->current,
-//        data->gear,
-//        data->motor_active ? "true" : "false",
-//        data->accelerator,
-//        data->brake ? "true" : "false",
-//        data->cap_voltage,
-//        data->motor_speed,
-//        data->odometer,
-//        data->range,
-//        data->battery_voltage,
-//        data->available_energy,
-//        data->charging_status,
-//        data->motor_temp,
-//        data->power_request,
-//        // Add location if available
-//        (data->has_location || has_location_data) ? ",\"latitude\":" : "",
-//        (data->has_location || has_location_data) ? 
-//            (data->has_location ? 
-//                (snprintf(json + strlen(json), 100, "%.6f,\"longitude\":%.6f", 
-//                         data->latitude, data->longitude), "") :
-//                (snprintf(json + strlen(json), 100, "%.6f,\"longitude\":%.6f", 
-//                         device_latitude, device_longitude), "")) : "",
-//        ""
-//    );
-//    
-//    return json;
-//}
-//
+// Get current timestamp in milliseconds
+static long long get_current_timestamp_ms(void) {
+    struct timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+    return (long long)(ts.tv_sec) * 1000 + (long long)(ts.tv_nsec) / 1000000;
+}
+
+// Create JSON payload for vehicle data - FIXED VERSION
 static char* create_vehicle_json(const VehicleData *data) {
     char *json = malloc(4096);  // Increase buffer size
     if (!json) return NULL;
+    
+    // Get current timestamp in milliseconds for ThingsBoard
+    long long timestamp_ms = get_current_timestamp_ms();
     
     // Create location string separately if needed
     char location_str[200] = "";
@@ -303,10 +260,11 @@ static char* create_vehicle_json(const VehicleData *data) {
         }
     }
     
-    // Create main JSON payload
+    // Create ThingsBoard-compatible JSON payload with proper timestamp
     snprintf(json, 4096,
         "{"
-        "\"timestamp\":\"%s\","
+        "\"ts\":%lld,"  // ThingsBoard timestamp in milliseconds
+        "\"values\":{"
         "\"soc\":%d,"
         "\"current\":%.1f,"
         "\"gear\":\"%s\","
@@ -321,10 +279,12 @@ static char* create_vehicle_json(const VehicleData *data) {
         "\"available_energy\":%.1f,"
         "\"charging_status\":\"%02X\","
         "\"motor_temp\":%d,"
-        "\"power_request\":%.1f"
+        "\"power_request\":%.1f,"
+        "\"timestamp_str\":\"%s\""  // Keep original timestamp as string for reference
         "%s"  // Location data
+        "}"
         "}",
-        data->timestamp,
+        timestamp_ms,  // Current timestamp in milliseconds
         data->soc,
         data->current,
         data->gear,
@@ -340,6 +300,7 @@ static char* create_vehicle_json(const VehicleData *data) {
         data->charging_status,
         data->motor_temp,
         data->power_request,
+        data->timestamp,  // Original timestamp as string
         location_str
     );
     

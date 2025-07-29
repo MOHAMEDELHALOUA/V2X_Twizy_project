@@ -8,7 +8,7 @@
 #include <signal.h>
 #include <stdbool.h>
 #include "Send2Server.h"
-#include <dirent.h>  // Add this line for opendir/readdir functions
+#include <dirent.h>
 
 #define MAX_LINE_LENGTH 1024
 #define CONFIG_FILE "mqtt_config.txt"
@@ -40,10 +40,10 @@ int load_config(CloudConfig *config) {
     FILE *file = fopen(CONFIG_FILE, "r");
     if (!file) {
         printf("[SendToCloud] Config file not found, using defaults\n");
-        // Set default values
-        strcpy(config->broker_ip, "127.0.0.1");
+        // Set default values with your ThingsBoard info
+        strcpy(config->broker_ip, "192.168.9.100");  // Your ThingsBoard server
         config->broker_port = 1883;
-        strcpy(config->device_token, "YOUR_DEVICE_TOKEN");
+        strcpy(config->device_token, "HELECAR_TwizyData");  // Your access token
         strcpy(config->csv_file_pattern, "merged_can_data_*.csv");
         config->check_interval = 4;
         config->latitude = 33.8547;   // Casablanca
@@ -89,16 +89,16 @@ int load_config(CloudConfig *config) {
     return 0;
 }
 
-// Create default config file
+// Create default config file with your ThingsBoard settings
 void create_default_config() {
     FILE *file = fopen(CONFIG_FILE, "w");
     if (!file) return;
     
     fprintf(file, "# SendToCloud Configuration\n");
     fprintf(file, "# ThingsBoard MQTT Settings\n");
-    fprintf(file, "broker_ip=192.168.1.100\n");
+    fprintf(file, "broker_ip=192.168.9.100\n");  // Your ThingsBoard server
     fprintf(file, "broker_port=1883\n");
-    fprintf(file, "device_token=YOUR_DEVICE_TOKEN_HERE\n");
+    fprintf(file, "device_token=HELECAR_TwizyData\n");  // Your access token
     fprintf(file, "\n");
     fprintf(file, "# File Settings\n");
     fprintf(file, "csv_pattern=merged_can_data_*.csv\n");
@@ -114,38 +114,6 @@ void create_default_config() {
 }
 
 // Find the most recent CSV file
-//int find_latest_csv_file(const char *pattern, char *result) {
-//    // Simple implementation - looks for merged_can_data_YYYYMMDD_HHMM.csv
-//    // In a real implementation, you might use glob() or readdir()
-//    
-//    time_t now = time(NULL);
-//    struct tm *t = localtime(&now);
-//    
-//    // Try current time first
-//    snprintf(result, 256, "merged_can_data_%04d%02d%02d_%02d%02d.csv",
-//             t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min);
-//    
-//    if (access(result, F_OK) == 0) {
-//        return 0;  // File exists
-//    }
-//    
-//    // Try previous minutes
-//    for (int i = 1; i <= 60; i++) {
-//        time_t prev_time = now - (i * 60);
-//        struct tm *prev_t = localtime(&prev_time);
-//        
-//        snprintf(result, 256, "merged_can_data_%04d%02d%02d_%02d%02d.csv",
-//                 prev_t->tm_year + 1900, prev_t->tm_mon + 1, prev_t->tm_mday, 
-//                 prev_t->tm_hour, prev_t->tm_min);
-//        
-//        if (access(result, F_OK) == 0) {
-//            return 0;  // Found file
-//        }
-//    }
-//    
-//    return -1;  // No file found
-//}
-//
 int find_latest_csv_file(const char *pattern, char *result) {
     DIR *dir;
     struct dirent *entry;
@@ -185,34 +153,128 @@ int find_latest_csv_file(const char *pattern, char *result) {
     return -1;  // No matching file found
 }
 
-// Parse CSV line and create VehicleData
+//// FIXED: Parse CSV line and create VehicleData
+//int parse_csv_to_vehicle_data(const char *line, VehicleData *data) {
+//    printf("[DEBUG] Parsing line: %s", line);
+//    
+//    char temp_gear[16];
+//    char temp_charging_status[8];
+//    
+//    // Initialize all fields to zero/default values
+//    memset(data, 0, sizeof(VehicleData));
+//    
+//    // Count commas to determine number of fields
+//    int comma_count = 0;
+//    for (const char *p = line; *p; p++) {
+//        if (*p == ',') comma_count++;
+//    }
+//    
+//    printf("[DEBUG] Found %d commas (expecting %d fields)\n", comma_count, comma_count + 1);
+//    
+//    // Use a more flexible parsing approach
+//    char *line_copy = strdup(line);
+//    if (!line_copy) return -1;
+//    
+//    char *token;
+//    char *saveptr;
+//    int field_num = 0;
+//    
+//    token = strtok_r(line_copy, ",", &saveptr);
+//    
+//    while (token != NULL && field_num < 18) {
+//        // Trim whitespace
+//        while (*token == ' ' || *token == '\t') token++;
+//        char *end = token + strlen(token) - 1;
+//        while (end > token && (*end == ' ' || *end == '\t' || *end == '\n' || *end == '\r')) {
+//            *end = '\0';
+//            end--;
+//        }
+//        
+//        switch (field_num) {
+//            case 0: strncpy(data->timestamp, token, sizeof(data->timestamp) - 1); break;
+//            case 1: data->soc = atoi(token); break;
+//            case 2: data->current = atof(token); break;
+//            case 3: strncpy(temp_gear, token, sizeof(temp_gear) - 1); break;
+//            case 4: data->motor_active = atoi(token); break;
+//            case 5: data->accelerator = atoi(token); break;
+//            case 6: data->brake = atoi(token); break;
+//            case 7: data->cap_voltage = atof(token); break;
+//            case 8: data->motor_speed = atof(token); break;
+//            case 9: data->odometer = atof(token); break;
+//            case 10: data->range = (int)atof(token); break;  // Convert float to int
+//            case 11: data->battery_voltage = atof(token); break;
+//            case 12: data->available_energy = atof(token); break;
+//            case 13: /* Skip this field - seems to be motor_temp duplicate */ break;
+//            case 14: data->power_request = atof(token); break;
+//            case 15: strncpy(temp_charging_status, token, sizeof(temp_charging_status) - 1); break;
+//            case 16: data->motor_temp = atoi(token); break;
+//            case 17: /* Extra field, ignore */ break;
+//        }
+//        
+//        token = strtok_r(NULL, ",", &saveptr);
+//        field_num++;
+//    }
+//    
+//    free(line_copy);
+//    
+//    if (field_num >= 16) {  // We need at least 16 fields
+//        // Copy gear
+//        strncpy(data->gear, temp_gear, sizeof(data->gear) - 1);
+//        data->gear[sizeof(data->gear) - 1] = '\0';
+//        
+//        // Parse charging status (remove 0x prefix if present)
+//        if (strncmp(temp_charging_status, "0x", 2) == 0) {
+//            data->charging_status = (uint8_t)strtol(temp_charging_status + 2, NULL, 16);
+//        } else {
+//            data->charging_status = (uint8_t)strtol(temp_charging_status, NULL, 16);
+//        }
+//        
+//        printf("[DEBUG] Successfully parsed: SOC=%d, Speed=%.1f, Gear=%s, Fields=%d\n", 
+//               data->soc, data->motor_speed, data->gear, field_num);
+//        return 0;  // Success
+//    }
+//    
+//    printf("[DEBUG] Parse failed - only %d fields parsed (need at least 16)\n", field_num);
+//    return -1;  // Parse error
+//}
+
+// CORRECTED: Parse CSV line and create VehicleData - REPLACE your existing function with this
 int parse_csv_to_vehicle_data(const char *line, VehicleData *data) {
-    // CSV format: timestamp,soc,current,gear,motor_active,accelerator,brake,cap_voltage,motor_speed,odometer,range,battery_voltage,available_energy,charging_status,motor_temp,power_request
+    printf("[DEBUG] Parsing line: %s", line);
     
     char temp_gear[16];
     char temp_charging_status[8];
     
+    // Initialize all fields to zero/default values
+    memset(data, 0, sizeof(VehicleData));
+    
+    // Your exact CSV format (16 fields):
+    // timestamp,soc,current,gear,motor_active,accelerator,brake,cap_voltage,motor_speed,odometer,range,battery_voltage,available_energy,charging_status,motor_temp,power_request
+    
     int parsed = sscanf(line, 
         "%31[^,],%d,%f,%15[^,],%d,%d,%d,%f,%f,%f,%d,%f,%f,%7[^,],%d,%f",
-        data->timestamp,
-        &data->soc,
-        &data->current,
-        temp_gear,
-        &data->motor_active,
-        &data->accelerator,
-        &data->brake,
-        &data->cap_voltage,
-        &data->motor_speed,
-        &data->odometer,
-        &data->range,
-        &data->battery_voltage,
-        &data->available_energy,
-        temp_charging_status,
-        &data->motor_temp,
-        &data->power_request
+        data->timestamp,        // 0: timestamp
+        &data->soc,            // 1: soc
+        &data->current,        // 2: current
+        temp_gear,             // 3: gear
+        &data->motor_active,   // 4: motor_active
+        &data->accelerator,    // 5: accelerator
+        &data->brake,          // 6: brake
+        &data->cap_voltage,    // 7: cap_voltage
+        &data->motor_speed,    // 8: motor_speed
+        &data->odometer,       // 9: odometer
+        &data->range,          // 10: range
+        &data->battery_voltage,// 11: battery_voltage
+        &data->available_energy,// 12: available_energy
+        temp_charging_status,  // 13: charging_status
+        &data->motor_temp,     // 14: motor_temp
+        &data->power_request   // 15: power_request
     );
     
-    if (parsed >= 15) {  // At least 15 fields successfully parsed
+    printf("[DEBUG] Successfully parsed %d fields from CSV\n", parsed);
+    
+    if (parsed == 16) {  // We need exactly 16 fields
+        // Copy gear
         strncpy(data->gear, temp_gear, sizeof(data->gear) - 1);
         data->gear[sizeof(data->gear) - 1] = '\0';
         
@@ -223,12 +285,30 @@ int parse_csv_to_vehicle_data(const char *line, VehicleData *data) {
             data->charging_status = (uint8_t)strtol(temp_charging_status, NULL, 16);
         }
         
+        printf("[DEBUG] COMPLETE DATA PARSED:\n");
+        printf("  Timestamp: %s\n", data->timestamp);
+        printf("  SOC: %d%%\n", data->soc);
+        printf("  Current: %.1fA\n", data->current);
+        printf("  Gear: %s\n", data->gear);
+        printf("  Motor Active: %d\n", data->motor_active);
+        printf("  Accelerator: %d\n", data->accelerator);
+        printf("  Brake: %d\n", data->brake);
+        printf("  Cap Voltage: %.1fV\n", data->cap_voltage);
+        printf("  Motor Speed: %.1f km/h\n", data->motor_speed);
+        printf("  Odometer: %.1f km\n", data->odometer);
+        printf("  Range: %d km\n", data->range);
+        printf("  Battery Voltage: %.1fV\n", data->battery_voltage);
+        printf("  Available Energy: %.1f kWh\n", data->available_energy);
+        printf("  Charging Status: 0x%02X\n", data->charging_status);
+        printf("  Motor Temp: %d°C\n", data->motor_temp);
+        printf("  Power Request: %.1f kW\n", data->power_request);
+        
         return 0;  // Success
     }
     
+    printf("[DEBUG] Parse failed - only %d fields parsed (need exactly 16)\n", parsed);
     return -1;  // Parse error
 }
-
 // Read latest data from CSV file
 int read_latest_csv_data(const char *filename, VehicleData *data) {
     FILE *file = fopen(filename, "r");
@@ -278,12 +358,14 @@ int main(int argc, char *argv[]) {
     // Create default config if it doesn't exist
     if (access(CONFIG_FILE, F_OK) != 0) {
         create_default_config();
-        printf("Please edit %s with your ThingsBoard settings and restart\n", CONFIG_FILE);
-        return 1;
+        printf("Configuration file created with your ThingsBoard settings\n");
+        printf("You can edit %s if needed and restart\n", CONFIG_FILE);
+        // Don't exit, continue with default values
     }
     
     printf("Configuration:\n");
     printf("  ThingsBoard: %s:%d\n", config.broker_ip, config.broker_port);
+    printf("  Device Token: %s\n", config.device_token);
     printf("  CSV Pattern: %s\n", config.csv_file_pattern);
     printf("  Check Interval: %d seconds\n", config.check_interval);
     if (config.use_location) {
@@ -299,7 +381,7 @@ int main(int argc, char *argv[]) {
     };
     strcpy(tb_config.broker_ip, config.broker_ip);
     strcpy(tb_config.device_token, config.device_token);
-    strcpy(tb_config.client_id, "SendToCloud_001");
+    snprintf(tb_config.client_id, sizeof(tb_config.client_id), "HELECAR_TwizyData_%ld", time(NULL));
     
     if (tb_init(&tb_config) != 0) {
         printf("Failed to initialize ThingsBoard: %s\n", tb_get_last_error());
@@ -307,8 +389,13 @@ int main(int argc, char *argv[]) {
     }
     
     // Connect to ThingsBoard
+    printf("Attempting to connect to ThingsBoard...\n");
     if (tb_connect() != 0) {
         printf("Failed to connect to ThingsBoard: %s\n", tb_get_last_error());
+        printf("Please check:\n");
+        printf("1. ThingsBoard server is running at %s:%d\n", config.broker_ip, config.broker_port);
+        printf("2. Device token '%s' is correct\n", config.device_token);
+        printf("3. Network connectivity\n");
         tb_cleanup();
         return 1;
     }
@@ -352,9 +439,9 @@ int main(int argc, char *argv[]) {
                     
                     // Send to ThingsBoard
                     if (tb_send_vehicle_data(&vehicle_data) == 0) {
-                        printf("[%s] Sent: SOC=%d%%, Speed=%.1fkm/h, Gear=%s\n",
+                        printf("[%s] Sent: SOC=%d%%, Speed=%.1fkm/h, Gear=%s, Range=%d\n",
                                vehicle_data.timestamp, vehicle_data.soc, 
-                               vehicle_data.motor_speed, vehicle_data.gear);
+                               vehicle_data.motor_speed, vehicle_data.gear, vehicle_data.range);
                     } else {
                         printf("[SendToCloud] Failed to send data: %s\n", tb_get_last_error());
                         
@@ -366,6 +453,9 @@ int main(int argc, char *argv[]) {
                             printf("[SendToCloud] Reconnection failed: %s\n", tb_get_last_error());
                         } else {
                             printf("[SendToCloud] Reconnected successfully\n");
+                            if (config.use_location) {
+                                tb_set_location(config.latitude, config.longitude);
+                            }
                         }
                     }
                 } else {
@@ -383,6 +473,11 @@ int main(int argc, char *argv[]) {
             sleep(5);
             if (tb_connect() != 0) {
                 printf("[SendToCloud] Reconnection failed: %s\n", tb_get_last_error());
+            } else {
+                // Reset location after reconnection
+                if (config.use_location) {
+                    tb_set_location(config.latitude, config.longitude);
+                }
             }
         }
         
