@@ -1,3 +1,4 @@
+// Complete CAN_data_Receive_with_threads.c - Enhanced with GPS support
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,9 +8,9 @@
 #include <pthread.h>
 #include <time.h>
 
-#define MAX_LINE_LENGTH 128
+#define MAX_LINE_LENGTH 512
 #define QUEUE_SIZE 1000
-#define COPY_INTERVAL_SECONDS 5
+#define COPY_INTERVAL_SECONDS 4
 #define MAX_CSV_LINES 1000  // Maximum lines in CSV before overwriting
 
 typedef struct {
@@ -19,141 +20,225 @@ typedef struct {
     struct timespec timestamp;
 } CANFrame;
 
+// GPS data structure
+typedef struct {
+    char timestamp[64];
+    float latitude;
+    float longitude;
+    float altitude;
+    float speed_kmh;
+    int satellites;
+    float hdop;
+    char datetime[64];
+    int valid;
+    struct timespec system_timestamp;
+} GPSFrame;
+
 // --- Queue implementation ---
 typedef struct {
-    CANFrame items[QUEUE_SIZE];
-    int front, rear, count;
+    CANFrame can_items[QUEUE_SIZE];
+    GPSFrame gps_items[QUEUE_SIZE];
+    int can_front, can_rear, can_count;
+    int gps_front, gps_rear, gps_count;
     pthread_mutex_t lock;
     pthread_cond_t not_empty;
-} CANQueue;
+} DataQueue;
 
-CANQueue queue;
+DataQueue queue;
 
 // Global variables for pause/copy functionality
 volatile int pause_requested = 0;
-volatile int copy_completed = 0;
 pthread_mutex_t pause_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t resume_condition = PTHREAD_COND_INITIALIZER;
 
-// Circular buffer management
+// Circular buffer management for each data type
 typedef struct {
-    char lines[MAX_CSV_LINES][256];  // Store CSV lines
-    int current_line;
-    int total_lines;
-    int is_full;
+    char can_lines[MAX_CSV_LINES][256];
+    char gps_lines[MAX_CSV_LINES][256];
+    int can_current_line, can_total_lines, can_is_full;
+    int gps_current_line, gps_total_lines, gps_is_full;
     pthread_mutex_t csv_mutex;
 } CSVBuffer;
 
 CSVBuffer csv_buffer = {0};
 
+// Latest GPS data for sharing with other modules
+GPSFrame latest_gps = {0};
+pthread_mutex_t gps_data_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 void init_csv_buffer() {
-    csv_buffer.current_line = 0;
-    csv_buffer.total_lines = 0;
-    csv_buffer.is_full = 0;
+    memset(&csv_buffer, 0, sizeof(csv_buffer));
     pthread_mutex_init(&csv_buffer.csv_mutex, NULL);
 }
 
-void init_queue(CANQueue *q) {
-    q->front = q->rear = q->count = 0;
+void init_queue(DataQueue *q) {
+    memset(q, 0, sizeof(DataQueue));
     pthread_mutex_init(&q->lock, NULL);
     pthread_cond_init(&q->not_empty, NULL);
 }
 
-void enqueue(CANQueue *q, CANFrame item) {
+void enqueue_can(DataQueue *q, CANFrame item) {
     pthread_mutex_lock(&q->lock);
-    if (q->count == QUEUE_SIZE) {
-        // Simple overflow handling (overwrite oldest)
-        q->front = (q->front + 1) % QUEUE_SIZE;
-        q->count--;
+    if (q->can_count == QUEUE_SIZE) {
+        q->can_front = (q->can_front + 1) % QUEUE_SIZE;
+        q->can_count--;
     }
-    q->items[q->rear] = item;
-    q->rear = (q->rear + 1) % QUEUE_SIZE;
-    q->count++;
+    q->can_items[q->can_rear] = item;
+    q->can_rear = (q->can_rear + 1) % QUEUE_SIZE;
+    q->can_count++;
     pthread_cond_signal(&q->not_empty);
     pthread_mutex_unlock(&q->lock);
 }
 
-CANFrame dequeue(CANQueue *q) {
+void enqueue_gps(DataQueue *q, GPSFrame item) {
     pthread_mutex_lock(&q->lock);
-    while (q->count == 0)
-        pthread_cond_wait(&q->not_empty, &q->lock);
-    CANFrame item = q->items[q->front];
-    q->front = (q->front + 1) % QUEUE_SIZE;
-    q->count--;
+    if (q->gps_count == QUEUE_SIZE) {
+        q->gps_front = (q->gps_front + 1) % QUEUE_SIZE;
+        q->gps_count--;
+    }
+    q->gps_items[q->gps_rear] = item;
+    q->gps_rear = (q->gps_rear + 1) % QUEUE_SIZE;
+    q->gps_count++;
+    
+    // Update latest GPS data for other modules
+    pthread_mutex_lock(&gps_data_mutex);
+    latest_gps = item;
+    pthread_mutex_unlock(&gps_data_mutex);
+    
+    pthread_cond_signal(&q->not_empty);
     pthread_mutex_unlock(&q->lock);
-    return item;
 }
 
-// Add a line to the circular CSV buffer
-void add_csv_line(const char *line) {
+// Add GPS line to circular buffer
+void add_gps_csv_line(const char *line) {
     pthread_mutex_lock(&csv_buffer.csv_mutex);
     
-    // Copy the line to the current position
-    strncpy(csv_buffer.lines[csv_buffer.current_line], line, 255);
-    csv_buffer.lines[csv_buffer.current_line][255] = '\0';
+    strncpy(csv_buffer.gps_lines[csv_buffer.gps_current_line], line, 255);
+    csv_buffer.gps_lines[csv_buffer.gps_current_line][255] = '\0';
     
-    // Move to next position
-    csv_buffer.current_line = (csv_buffer.current_line + 1) % MAX_CSV_LINES;
+    csv_buffer.gps_current_line = (csv_buffer.gps_current_line + 1) % MAX_CSV_LINES;
     
-    // Update counters
-    if (!csv_buffer.is_full) {
-        csv_buffer.total_lines++;
-        if (csv_buffer.total_lines >= MAX_CSV_LINES) {
-            csv_buffer.is_full = 1;
+    if (!csv_buffer.gps_is_full) {
+        csv_buffer.gps_total_lines++;
+        if (csv_buffer.gps_total_lines >= MAX_CSV_LINES) {
+            csv_buffer.gps_is_full = 1;
         }
     }
     
     pthread_mutex_unlock(&csv_buffer.csv_mutex);
 }
 
-// Write the CSV buffer to file
-int write_csv_buffer_to_file(const char *filename) {
+// Add CAN line to circular buffer
+void add_can_csv_line(const char *line) {
+    pthread_mutex_lock(&csv_buffer.csv_mutex);
+    
+    strncpy(csv_buffer.can_lines[csv_buffer.can_current_line], line, 255);
+    csv_buffer.can_lines[csv_buffer.can_current_line][255] = '\0';
+    
+    csv_buffer.can_current_line = (csv_buffer.can_current_line + 1) % MAX_CSV_LINES;
+    
+    if (!csv_buffer.can_is_full) {
+        csv_buffer.can_total_lines++;
+        if (csv_buffer.can_total_lines >= MAX_CSV_LINES) {
+            csv_buffer.can_is_full = 1;
+        }
+    }
+    
+    pthread_mutex_unlock(&csv_buffer.csv_mutex);
+}
+
+// Write GPS buffer to file
+int write_gps_buffer_to_file(const char *filename) {
     FILE *fpt = fopen(filename, "w");
     if (!fpt) {
-        perror("Failed to open CSV file for writing");
+        perror("Failed to open GPS file for writing");
         return -1;
     }
     
-    // Write header
-    fprintf(fpt, "timestamp,can_id,dlc,data_hex,data_bytes\n");
+    fprintf(fpt, "timestamp,latitude,longitude,altitude,speed_kmh,satellites,hdop,datetime,valid\n");
     
     pthread_mutex_lock(&csv_buffer.csv_mutex);
     
-    if (csv_buffer.is_full) {
-        // Buffer is full, write from current position (oldest) to end
-        for (int i = csv_buffer.current_line; i < MAX_CSV_LINES; i++) {
-            fprintf(fpt, "%s\n", csv_buffer.lines[i]);
+    if (csv_buffer.gps_is_full) {
+        for (int i = csv_buffer.gps_current_line; i < MAX_CSV_LINES; i++) {
+            fprintf(fpt, "%s\n", csv_buffer.gps_lines[i]);
         }
-        // Then write from beginning to current position (newest)
-        for (int i = 0; i < csv_buffer.current_line; i++) {
-            fprintf(fpt, "%s\n", csv_buffer.lines[i]);
+        for (int i = 0; i < csv_buffer.gps_current_line; i++) {
+            fprintf(fpt, "%s\n", csv_buffer.gps_lines[i]);
         }
     } else {
-        // Buffer not full yet, write from 0 to total_lines
-        for (int i = 0; i < csv_buffer.total_lines; i++) {
-            fprintf(fpt, "%s\n", csv_buffer.lines[i]);
+        for (int i = 0; i < csv_buffer.gps_total_lines; i++) {
+            fprintf(fpt, "%s\n", csv_buffer.gps_lines[i]);
         }
     }
     
-    int lines_written = csv_buffer.is_full ? MAX_CSV_LINES : csv_buffer.total_lines;
+    int lines_written = csv_buffer.gps_is_full ? MAX_CSV_LINES : csv_buffer.gps_total_lines;
+    pthread_mutex_unlock(&csv_buffer.csv_mutex);
+    
+    fclose(fpt);
+    printf("Written %d GPS lines to %s\n", lines_written, filename);
+    return 0;
+}
+
+// Write CAN buffer to file with GPS data included
+int write_can_buffer_to_file(const char *filename) {
+    FILE *fpt = fopen(filename, "w");
+    if (!fpt) {
+        perror("Failed to open CAN file for writing");
+        return -1;
+    }
+    
+    // Enhanced header with GPS data
+    fprintf(fpt, "timestamp,can_id,dlc,data_hex,data_bytes,gps_lat,gps_lon,gps_alt,gps_speed,gps_valid\n");
+    
+    pthread_mutex_lock(&csv_buffer.csv_mutex);
+    
+    // Get current GPS data
+    pthread_mutex_lock(&gps_data_mutex);
+    GPSFrame current_gps = latest_gps;
+    pthread_mutex_unlock(&gps_data_mutex);
+    
+    if (csv_buffer.can_is_full) {
+        for (int i = csv_buffer.can_current_line; i < MAX_CSV_LINES; i++) {
+            fprintf(fpt, "%s,%.6f,%.6f,%.1f,%.1f,%d\n", 
+                   csv_buffer.can_lines[i],
+                   current_gps.latitude, current_gps.longitude, 
+                   current_gps.altitude, current_gps.speed_kmh, current_gps.valid);
+        }
+        for (int i = 0; i < csv_buffer.can_current_line; i++) {
+            fprintf(fpt, "%s,%.6f,%.6f,%.1f,%.1f,%d\n", 
+                   csv_buffer.can_lines[i],
+                   current_gps.latitude, current_gps.longitude, 
+                   current_gps.altitude, current_gps.speed_kmh, current_gps.valid);
+        }
+    } else {
+        for (int i = 0; i < csv_buffer.can_total_lines; i++) {
+            fprintf(fpt, "%s,%.6f,%.6f,%.1f,%.1f,%d\n", 
+                   csv_buffer.can_lines[i],
+                   current_gps.latitude, current_gps.longitude, 
+                   current_gps.altitude, current_gps.speed_kmh, current_gps.valid);
+        }
+    }
+    
+    int lines_written = csv_buffer.can_is_full ? MAX_CSV_LINES : csv_buffer.can_total_lines;
     
     pthread_mutex_unlock(&csv_buffer.csv_mutex);
     
     fclose(fpt);
     
-    printf("Written %d lines to %s (circular buffer: %s)\n", 
-           lines_written, filename, 
-           csv_buffer.is_full ? "FULL" : "FILLING");
+    printf("Written %d CAN lines with GPS data to %s\n", lines_written, filename);
     
     return 0;
 }
 
 // Function to copy CSV file to snapshot
 int copy_csv_to_snapshot() {
-    return write_csv_buffer_to_file("can_data_snapshot.csv");
+    int result1 = write_can_buffer_to_file("can_data_snapshot.csv");
+    int result2 = write_gps_buffer_to_file("gps_data_snapshot.csv");
+    return (result1 == 0 && result2 == 0) ? 0 : -1;
 }
 
-// --- Serial Setup & CAN Parsing ---
+// --- Serial Setup & Data Parsing ---
 int open_serial_port(const char *device) {
     int fd = open(device, O_RDONLY | O_NOCTTY);
     if (fd == -1) {
@@ -203,73 +288,15 @@ int parse_hex_byte(const char *str) {
     return (high << 4) | low;
 }
 
-//int parse_can_line(const char *line, CANFrame *frame) {
-//    // Expected format: "SIM 19F 8 FF FF 7D 0F 38 FF 40 FE"
-//    if (strncmp(line, "SIM ", 4) != 0) {
-//        return 0;
-//    }
-//    
-//    // Get timestamp
-//    clock_gettime(CLOCK_REALTIME, &frame->timestamp);
-//    
-//    // Parse the line manually
-//    char *token;
-//    char *line_copy = strdup(line + 4); // Skip "SIM "
-//    char *saveptr;
-//    
-//    // Parse CAN ID (hex)
-//    token = strtok_r(line_copy, " ", &saveptr);
-//    if (!token) {
-//        free(line_copy);
-//        return 0;
-//    }
-//    frame->can_id = (unsigned int)strtol(token, NULL, 16);
-//    
-//    // Parse DLC (decimal)
-//    token = strtok_r(NULL, " ", &saveptr);
-//    if (!token) {
-//        free(line_copy);
-//        return 0;
-//    }
-//    frame->dlc = (unsigned char)atoi(token);
-//    
-//    // Validate DLC
-//    if (frame->dlc > 8) {
-//        free(line_copy);
-//        return 0;
-//    }
-//    
-//    // Parse data bytes (always expect 8 hex bytes from ESP32)
-//    for (int i = 0; i < 8; i++) {
-//        token = strtok_r(NULL, " ", &saveptr);
-//        if (!token) {
-//            free(line_copy);
-//            return 0;
-//        }
-//        
-//        int byte_val = parse_hex_byte(token);
-//        if (byte_val == -1) {
-//            free(line_copy);
-//            return 0;
-//        }
-//        frame->data[i] = (unsigned char)byte_val;
-//    }
-//    
-//    free(line_copy);
-//    return 1;
-//}
-
-// FIXED: Parse CAN line function - handles variable DLC correctly
+// Parse CAN line
 int parse_can_line(const char *line, CANFrame *frame) {
     // Expected format: "SIM 19F 8 FF FF 7D 0F 38 FF 40 FE"
     if (strncmp(line, "SIM ", 4) != 0) {
         return 0;
     }
     
-    // Get timestamp
     clock_gettime(CLOCK_REALTIME, &frame->timestamp);
     
-    // Parse the line manually
     char *token;
     char *line_copy = strdup(line + 4); // Skip "SIM "
     char *saveptr;
@@ -299,11 +326,10 @@ int parse_can_line(const char *line, CANFrame *frame) {
     // Initialize all data bytes to 0
     memset(frame->data, 0, 8);
     
-    // Parse ONLY the actual number of data bytes (based on DLC)
+    // Parse actual data bytes (based on DLC)
     for (int i = 0; i < frame->dlc; i++) {
         token = strtok_r(NULL, " ", &saveptr);
         if (!token) {
-            // Not enough data bytes - this is an error
             free(line_copy);
             return 0;
         }
@@ -316,11 +342,64 @@ int parse_can_line(const char *line, CANFrame *frame) {
         frame->data[i] = (unsigned char)byte_val;
     }
     
-    // Check if there are extra bytes beyond DLC (which is okay, just ignore them)
-    // This handles cases where the ESP32 simulator sends padded bytes
-    
     free(line_copy);
     return 1;
+}
+
+// Parse GPS line
+int parse_gps_line(const char *line, GPSFrame *frame) {
+    // Expected format: "GPS <LAT> <LON> <ALT> <SPEED> <SATS> <HDOP> <DATETIME> <VALID>"
+    if (strncmp(line, "GPS ", 4) != 0) {
+        return 0;
+    }
+    
+    clock_gettime(CLOCK_REALTIME, &frame->system_timestamp);
+    
+    char *token;
+    char *line_copy = strdup(line + 4); // Skip "GPS "
+    char *saveptr;
+    int field = 0;
+    
+    token = strtok_r(line_copy, " ", &saveptr);
+    while (token != NULL && field < 8) {
+        switch (field) {
+            case 0: // latitude
+                frame->latitude = atof(token);
+                break;
+            case 1: // longitude
+                frame->longitude = atof(token);
+                break;
+            case 2: // altitude
+                frame->altitude = atof(token);
+                break;
+            case 3: // speed
+                frame->speed_kmh = atof(token);
+                break;
+            case 4: // satellites
+                frame->satellites = atoi(token);
+                break;
+            case 5: // hdop
+                frame->hdop = atof(token);
+                break;
+            case 6: // datetime
+                strncpy(frame->datetime, token, sizeof(frame->datetime) - 1);
+                frame->datetime[sizeof(frame->datetime) - 1] = '\0';
+                break;
+            case 7: // valid
+                frame->valid = atoi(token);
+                break;
+        }
+        field++;
+        token = strtok_r(NULL, " ", &saveptr);
+    }
+    
+    free(line_copy);
+    
+    // Create timestamp string
+    snprintf(frame->timestamp, sizeof(frame->timestamp), "%ld.%09ld", 
+             frame->system_timestamp.tv_sec, frame->system_timestamp.tv_nsec);
+    
+    return (field >= 7) ? 1 : 0; // Need at least 7 fields
 }
 
 // --- Thread 1: Serial Reader ---
@@ -328,8 +407,8 @@ void *reader_thread(void *arg) {
     const char *port = (const char *)arg;
     int fd = open_serial_port(port);
     
-    printf("Reading from serial port: %s\n", port);
-    printf("Waiting for CAN data...\n");
+    printf("Reading CAN + GPS data from serial port: %s\n", port);
+    printf("Waiting for data...\n");
     
     FILE *serial_stream = fdopen(fd, "r");
     if (!serial_stream) {
@@ -339,14 +418,14 @@ void *reader_thread(void *arg) {
     }
     
     char line[MAX_LINE_LENGTH];
-    int frame_count = 0;
+    int can_frame_count = 0;
+    int gps_frame_count = 0;
     
     while (fgets(line, sizeof(line), serial_stream)) {
         // Check for pause request
         pthread_mutex_lock(&pause_mutex);
         if (pause_requested) {
             printf("Data collection paused for snapshot creation...\n");
-            // Wait until copy is completed
             while (pause_requested) {
                 pthread_cond_wait(&resume_condition, &pause_mutex);
             }
@@ -357,25 +436,50 @@ void *reader_thread(void *arg) {
         // Remove newline
         line[strcspn(line, "\r\n")] = 0;
         
-        // Skip empty lines and startup messages
-        if (strlen(line) == 0 || strstr(line, "CAN Bus Reader") || 
-            strstr(line, "Ready") || strstr(line, "---")) {
+        // Skip empty lines and status messages
+        if (strlen(line) == 0 || 
+            strstr(line, "CAN + GPS Data Sniffer") || 
+            strstr(line, "Ready") || 
+            strstr(line, "===") ||
+            strstr(line, "Format:") ||
+            strstr(line, "Sending")) {
             continue;
         }
         
-        CANFrame frame;
-        if (parse_can_line(line, &frame)) {
-            enqueue(&queue, frame);
-            frame_count++;
+        // Try to parse as CAN data
+        CANFrame can_frame;
+        if (parse_can_line(line, &can_frame)) {
+            enqueue_can(&queue, can_frame);
+            can_frame_count++;
             
-            // Print every 100th frame for monitoring
-            if (frame_count % 100 == 0) {
-                printf("Processed %d CAN frames (CSV buffer: %s)\n", 
-                       frame_count,
-                       csv_buffer.is_full ? "FULL - Overwriting oldest" : "FILLING");
+            if (can_frame_count % 100 == 0) {
+                printf("Processed %d CAN frames\n", can_frame_count);
             }
-        } else {
-            printf("Failed to parse line: %s\n", line);
+            continue;
+        }
+        
+        // Try to parse as GPS data
+        GPSFrame gps_frame;
+        if (parse_gps_line(line, &gps_frame)) {
+            enqueue_gps(&queue, gps_frame);
+            gps_frame_count++;
+            
+            if (gps_frame_count % 10 == 0) {
+                printf("Processed %d GPS updates (Lat:%.4f, Lon:%.4f, Sats:%d)\n", 
+                       gps_frame_count, gps_frame.latitude, gps_frame.longitude, gps_frame.satellites);
+            }
+            continue;
+        }
+        
+        // Handle STATUS messages
+        if (strncmp(line, "STATUS ", 7) == 0) {
+            printf("ESP32 Status: %s\n", line + 7);
+            continue;
+        }
+        
+        // Unknown line format
+        if (strlen(line) > 5) {  // Only log non-trivial unknown lines
+            printf("Unknown line format: %s\n", line);
         }
     }
     
@@ -384,23 +488,27 @@ void *reader_thread(void *arg) {
     return NULL;
 }
 
-// --- Thread 2: CSV Writer (Modified for circular buffer) ---
-void *writer_thread(void *arg) {
-    printf("Writing CAN data to circular buffer (max %d lines)\n", MAX_CSV_LINES);
+// --- Thread 2: CAN CSV Writer ---
+void *can_writer_thread(void *arg) {
+    printf("Writing CAN data to circular buffer\n");
     
     while (1) {
-        CANFrame frame = dequeue(&queue);
+        pthread_mutex_lock(&queue.lock);
+        while (queue.can_count == 0) {
+            pthread_cond_wait(&queue.not_empty, &queue.lock);
+        }
+        
+        CANFrame frame = queue.can_items[queue.can_front];
+        queue.can_front = (queue.can_front + 1) % QUEUE_SIZE;
+        queue.can_count--;
+        pthread_mutex_unlock(&queue.lock);
         
         // Check for pause request
         pthread_mutex_lock(&pause_mutex);
         if (pause_requested) {
-            printf("CSV writer paused for snapshot creation...\n");
-            
-            // Wait until copy is completed
             while (pause_requested) {
                 pthread_cond_wait(&resume_condition, &pause_mutex);
             }
-            printf("CSV writer resumed.\n");
         }
         pthread_mutex_unlock(&pause_mutex);
         
@@ -432,58 +540,57 @@ void *writer_thread(void *arg) {
         }
         
         // Add line to circular buffer
-        add_csv_line(csv_line);
-        
-        // Periodically write the main CSV file (every 50 frames)
-        static int write_counter = 0;
-        write_counter++;
-        if (write_counter >= 50) {
-            write_csv_buffer_to_file("can_data.csv");
-            write_counter = 0;
-        }
+        add_can_csv_line(csv_line);
     }
     
     return NULL;
 }
 
-// --- Thread 3: Live Monitor (Optional) ---
-void *monitor_thread(void *arg) {
-    printf("\n=== Live CAN Monitor (Press Ctrl+C to stop) ===\n");
-    printf("Format: [Timestamp] ID:DLC Data\n\n");
+// --- Thread 3: GPS CSV Writer ---
+void *gps_writer_thread(void *arg) {
+    printf("Writing GPS data to circular buffer\n");
     
     while (1) {
-        CANFrame frame = dequeue(&queue);
+        pthread_mutex_lock(&queue.lock);
+        while (queue.gps_count == 0) {
+            pthread_cond_wait(&queue.not_empty, &queue.lock);
+        }
+        
+        GPSFrame frame = queue.gps_items[queue.gps_front];
+        queue.gps_front = (queue.gps_front + 1) % QUEUE_SIZE;
+        queue.gps_count--;
+        pthread_mutex_unlock(&queue.lock);
         
         // Check for pause request
         pthread_mutex_lock(&pause_mutex);
         if (pause_requested) {
-            // Wait until copy is completed
             while (pause_requested) {
                 pthread_cond_wait(&resume_condition, &pause_mutex);
             }
         }
         pthread_mutex_unlock(&pause_mutex);
         
-        // Print live data
-        printf("[%ld.%03ld] %03X:%d ", 
-               frame.timestamp.tv_sec, frame.timestamp.tv_nsec / 1000000,
-               frame.can_id, frame.dlc);
+        // Format GPS CSV line
+        char csv_line[256];
+        snprintf(csv_line, sizeof(csv_line), 
+                "%s,%.6f,%.6f,%.1f,%.1f,%d,%.2f,%s,%d",
+                frame.timestamp, frame.latitude, frame.longitude, 
+                frame.altitude, frame.speed_kmh, frame.satellites, 
+                frame.hdop, frame.datetime, frame.valid);
         
-        for (int i = 0; i < frame.dlc; i++) {
-            printf("%02X ", frame.data[i]);
-        }
-        printf("\n");
+        // Add line to circular buffer
+        add_gps_csv_line(csv_line);
     }
     
     return NULL;
 }
 
-// --- Thread 4: Automatic Copy Handler (15-second timer) ---
+// --- Thread 4: Automatic Copy Handler ---
 void *copy_handler_thread(void *arg) {
     printf("Automatic snapshot creation every %d seconds started\n", COPY_INTERVAL_SECONDS);
     
     while (1) {
-        // Wait for 15 seconds
+        // Wait for the specified interval
         sleep(COPY_INTERVAL_SECONDS);
         
         printf("\n--- Creating snapshot (pausing data collection) ---\n");
@@ -497,15 +604,27 @@ void *copy_handler_thread(void *arg) {
         sleep(1);
         
         // Perform the copy
-        printf("Creating snapshot from circular buffer...\n");
+        printf("Creating snapshots from circular buffers...\n");
         if (copy_csv_to_snapshot() == 0) {
-            printf("Snapshot created successfully.\n");
+            printf("Snapshots created successfully.\n");
         } else {
             printf("Snapshot creation failed.\n");
         }
         
-        // Also update the main CSV file
-        write_csv_buffer_to_file("can_data.csv");
+        // Also update the main CSV files
+        write_can_buffer_to_file("can_data.csv");
+        write_gps_buffer_to_file("gps_data.csv");
+        
+        // Print current GPS status
+        pthread_mutex_lock(&gps_data_mutex);
+        if (latest_gps.valid) {
+            printf("Current GPS: Lat=%.6f, Lon=%.6f, Alt=%.1fm, Speed=%.1fkm/h, Sats=%d\n",
+                   latest_gps.latitude, latest_gps.longitude, latest_gps.altitude,
+                   latest_gps.speed_kmh, latest_gps.satellites);
+        } else {
+            printf("Current GPS: No valid GPS data\n");
+        }
+        pthread_mutex_unlock(&gps_data_mutex);
         
         // Resume operations
         pthread_mutex_lock(&pause_mutex);
@@ -519,34 +638,50 @@ void *copy_handler_thread(void *arg) {
     return NULL;
 }
 
+// Get latest GPS data (for use by other modules)
+GPSFrame get_latest_gps_data() {
+    pthread_mutex_lock(&gps_data_mutex);
+    GPSFrame gps_copy = latest_gps;
+    pthread_mutex_unlock(&gps_data_mutex);
+    return gps_copy;
+}
+
 // --- Main ---
 int main(int argc, char *argv[]) {
     const char *serial_port = (argc >= 2) ? argv[1] : "/dev/ttyUSB0";
     
-    printf("CAN Data Capture Tool with Circular Buffer CSV\n");
+    printf("Enhanced CAN + GPS Data Capture Tool\n");
+    printf("====================================\n");
     printf("Serial Port: %s\n", serial_port);
     printf("Max CSV Lines: %d (circular buffer)\n", MAX_CSV_LINES);
-    printf("Main CSV: can_data.csv (last %d entries)\n", MAX_CSV_LINES);
-    printf("Snapshot CSV: can_data_snapshot.csv (updated every %d seconds)\n\n", COPY_INTERVAL_SECONDS);
+    printf("Output Files:\n");
+    printf("  - can_data.csv (CAN data with GPS coordinates)\n");
+    printf("  - gps_data.csv (GPS data only)\n");
+    printf("  - can_data_snapshot.csv (updated every %d seconds)\n", COPY_INTERVAL_SECONDS);
+    printf("  - gps_data_snapshot.csv (updated every %d seconds)\n", COPY_INTERVAL_SECONDS);
+    printf("Expected Input Formats:\n");
+    printf("  - CAN: SIM <ID> <DLC> <DATA_BYTES>\n");
+    printf("  - GPS: GPS <LAT> <LON> <ALT> <SPEED> <SATS> <HDOP> <DATETIME> <VALID>\n");
+    printf("====================================\n\n");
     
     init_queue(&queue);
     init_csv_buffer();
     
-    pthread_t reader_tid, writer_tid, monitor_tid, copy_handler_tid;
+    pthread_t reader_tid, can_writer_tid, gps_writer_tid, copy_handler_tid;
     
     // Start threads
     pthread_create(&reader_tid, NULL, reader_thread, (void *)serial_port);
-    pthread_create(&writer_tid, NULL, writer_thread, NULL);
+    pthread_create(&can_writer_tid, NULL, can_writer_thread, NULL);
+    pthread_create(&gps_writer_tid, NULL, gps_writer_thread, NULL);
     pthread_create(&copy_handler_tid, NULL, copy_handler_thread, NULL);
     
-    // Optionally start monitor thread (comment out if not needed)
-    // pthread_create(&monitor_tid, NULL, monitor_thread, NULL);
+    printf("System started - monitoring CAN and GPS data\n");
+    printf("GPS data will be included in CAN CSV files\n");
+    printf("Separate GPS CSV file also created\n");
+    printf("Circular buffer behavior: overwrites after %d lines\n\n", MAX_CSV_LINES);
     
     // Wait for reader thread (main control)
     pthread_join(reader_tid, NULL);
-    
-    // Note: writer and copy handler threads will continue running
-    // In a real application, you'd want proper shutdown handling
     
     return 0;
 }
