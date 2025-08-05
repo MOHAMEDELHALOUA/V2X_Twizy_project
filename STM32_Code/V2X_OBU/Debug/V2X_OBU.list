@@ -3204,7 +3204,6 @@ void StartSenderTask(void *argument)
  8001c52:	f008 fc23 	bl	800a49c <putchar>
       }
     }
-
     // Send parsed CAN data to ESP32 periodically via LPUART1
     current_time = HAL_GetTick();
  8001c56:	f000 fc75 	bl	8002544 <HAL_GetTick>

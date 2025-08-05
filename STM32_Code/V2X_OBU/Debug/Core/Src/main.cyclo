@@ -16,8 +16,8 @@
 ../Core/Src/main.c:547:6:HAL_UART_RxCpltCallback	8
 ../Core/Src/main.c:579:6:HAL_UART_ErrorCallback	3
 ../Core/Src/main.c:609:6:StartSenderTask	7
-../Core/Src/main.c:662:6:StartTskUART	2
-../Core/Src/main.c:687:6:StartSenderTask2	2
-../Core/Src/main.c:713:6:StartTskUART2	2
-../Core/Src/main.c:739:6:HAL_TIM_PeriodElapsedCallback	2
-../Core/Src/main.c:754:6:Error_Handler	1
+../Core/Src/main.c:661:6:StartTskUART	2
+../Core/Src/main.c:686:6:StartSenderTask2	2
+../Core/Src/main.c:712:6:StartTskUART2	2
+../Core/Src/main.c:738:6:HAL_TIM_PeriodElapsedCallback	2
+../Core/Src/main.c:753:6:Error_Handler	1

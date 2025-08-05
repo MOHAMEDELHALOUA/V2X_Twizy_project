@@ -45,7 +45,7 @@ int load_config(CloudConfig *config) {
         config->broker_port = 1883;
         strcpy(config->device_token, "HELECAR_TwizyData");  // Your access token
         strcpy(config->csv_file_pattern, "merged_can_data_*.csv");
-        config->check_interval = 4;
+        config->check_interval = 1;
         config->latitude = 33.8547;   // Casablanca
         config->longitude = -7.0062;
         config->use_location = true;
