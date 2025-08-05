@@ -35,23 +35,40 @@ typedef struct {
 } Item;
 
 // Structure to hold CAN data from CSV
+// Updated CANData structure to include GPS data from CSV
 typedef struct {
     char timestamp[32];
     unsigned int can_id;
     int dlc;
     char data_hex[32];
     char data_bytes[32];
+    // GPS data from CSV
+    float gps_lat;
+    float gps_lon;
+    float gps_alt;
+    float gps_speed;
+    int gps_valid;
     int valid;  // Flag to indicate if data is valid
 } CANData;
 
-// Structure to track unique CAN IDs and their latest data
+//// Structure to track unique CAN IDs and their latest data
+//typedef struct {
+//    unsigned int can_id;
+//    CANData latest_data;
+//    ParsedData parsed_data;  // V3 parsed data
+//    int active;  // 1 if this slot is in use, 0 if empty
+//    time_t last_updated;  // Track when this data was last updated
+//} CANIDTracker;
+
+// Updated CANIDTracker to store GPS data
 typedef struct {
     unsigned int can_id;
-    CANData latest_data;
-    ParsedData parsed_data;  // V3 parsed data
-    int active;  // 1 if this slot is in use, 0 if empty
-    time_t last_updated;  // Track when this data was last updated
+    CANData latest_data;  // This now includes GPS data!
+    ParsedData parsed_data;
+    int active;
+    time_t last_updated;
 } CANIDTracker;
+
 
 // NEW: Merged CAN data structure for single CSV row - WITH TRIPLE SPEEDS
 typedef struct {
@@ -71,6 +88,15 @@ typedef struct {
     uint8_t charging_status;
     int motor_temp;
     float power_request;
+
+    // NEW: GPS Data
+    float gps_latitude;
+    float gps_longitude;
+    float gps_altitude;
+    float gps_speed;
+    int gps_satellites;
+    int gps_valid;
+
     bool has_data;
 } MergedCANData;
 
@@ -86,6 +112,7 @@ int queue_count = 0;
 CANIDTracker can_id_tracker[MAX_CAN_IDS];
 int tracked_can_ids_count = 0;
 pthread_mutex_t can_tracker_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 
 int enqueue(Item *item) {
     pthread_mutex_lock(&queue_mutex);
@@ -138,20 +165,73 @@ void hex_string_to_data(const char* hex_string, CANFrame* frame) {
     }
 }
 
-// Parse a single CSV line into CANData structure
+//// Parse a single CSV line into CANData structure
+//int parse_csv_line(const char *line, CANData *can_data) {
+//    if (strlen(line) == 0) {
+//        return -1;
+//    }
+//    
+//    // Parse the CSV line: timestamp,can_id,dlc,data_hex,data_bytes
+//    char *token;
+//    char *line_copy = strdup(line);
+//    char *saveptr;
+//    int field = 0;
+//    
+//    token = strtok_r(line_copy, ",", &saveptr);
+//    while (token != NULL && field < 5) {
+//        // Remove newline characters
+//        token[strcspn(token, "\r\n")] = 0;
+//        
+//        switch (field) {
+//            case 0: // timestamp
+//                strncpy(can_data->timestamp, token, sizeof(can_data->timestamp) - 1);
+//                can_data->timestamp[sizeof(can_data->timestamp) - 1] = '\0';
+//                break;
+//            case 1: // can_id
+//                can_data->can_id = (unsigned int)strtol(token, NULL, 16);
+//                break;
+//            case 2: // dlc
+//                can_data->dlc = atoi(token);
+//                break;
+//            case 3: // data_hex
+//                strncpy(can_data->data_hex, token, sizeof(can_data->data_hex) - 1);
+//                can_data->data_hex[sizeof(can_data->data_hex) - 1] = '\0';
+//                break;
+//            case 4: // data_bytes
+//                strncpy(can_data->data_bytes, token, sizeof(can_data->data_bytes) - 1);
+//                can_data->data_bytes[sizeof(can_data->data_bytes) - 1] = '\0';
+//                break;
+//        }
+//        field++;
+//        token = strtok_r(NULL, ",", &saveptr);
+//    }
+//    
+//    free(line_copy);
+//    
+//    // Check if we parsed all required fields
+//    if (field >= 5) {
+//        can_data->valid = 1;
+//        return 0;
+//    } else {
+//        can_data->valid = 0;
+//        return -1;
+//    }
+//}
+
+// Updated CSV parser to handle GPS columns
 int parse_csv_line(const char *line, CANData *can_data) {
     if (strlen(line) == 0) {
         return -1;
     }
     
-    // Parse the CSV line: timestamp,can_id,dlc,data_hex,data_bytes
+    // Parse the CSV line: timestamp,can_id,dlc,data_hex,data_bytes,gps_lat,gps_lon,gps_alt,gps_speed,gps_valid
     char *token;
     char *line_copy = strdup(line);
     char *saveptr;
     int field = 0;
     
     token = strtok_r(line_copy, ",", &saveptr);
-    while (token != NULL && field < 5) {
+    while (token != NULL && field < 10) {  // Now we have 10 fields including GPS
         // Remove newline characters
         token[strcspn(token, "\r\n")] = 0;
         
@@ -174,6 +254,21 @@ int parse_csv_line(const char *line, CANData *can_data) {
                 strncpy(can_data->data_bytes, token, sizeof(can_data->data_bytes) - 1);
                 can_data->data_bytes[sizeof(can_data->data_bytes) - 1] = '\0';
                 break;
+            case 5: // gps_lat
+                can_data->gps_lat = atof(token);
+                break;
+            case 6: // gps_lon
+                can_data->gps_lon = atof(token);
+                break;
+            case 7: // gps_alt
+                can_data->gps_alt = atof(token);
+                break;
+            case 8: // gps_speed
+                can_data->gps_speed = atof(token);
+                break;
+            case 9: // gps_valid
+                can_data->gps_valid = atoi(token);
+                break;
         }
         field++;
         token = strtok_r(NULL, ",", &saveptr);
@@ -181,8 +276,8 @@ int parse_csv_line(const char *line, CANData *can_data) {
     
     free(line_copy);
     
-    // Check if we parsed all required fields
-    if (field >= 5) {
+    // Check if we parsed all required fields (at least CAN data, GPS optional)
+    if (field >= 5) {  // At minimum we need CAN data
         can_data->valid = 1;
         return 0;
     } else {
@@ -304,14 +399,100 @@ void display_priority_frames_summary() {
 }
 
 // NEW: Create merged CAN data from all priority frames
+//MergedCANData create_merged_can_data() {
+//    MergedCANData merged = {0};
+//    merged.has_data = false;
+//    
+//    pthread_mutex_lock(&can_tracker_mutex);
+//    
+//    // Get latest timestamp from any frame
+//    time_t latest_time = 0;
+//    
+//    // Collect data from all priority CAN IDs
+//    for (int i = 0; i < MAX_CAN_IDS; i++) {
+//        if (!can_id_tracker[i].active || !can_id_tracker[i].parsed_data.valid) {
+//            continue;
+//        }
+//        
+//        const ParsedData *parsed = &can_id_tracker[i].parsed_data;
+//        const CANData *data = &can_id_tracker[i].latest_data;
+//        
+//        // Update timestamp to latest
+//        if (can_id_tracker[i].last_updated > latest_time) {
+//            latest_time = can_id_tracker[i].last_updated;
+//            strncpy(merged.timestamp, data->timestamp, sizeof(merged.timestamp) - 1);
+//        }
+//        
+//        switch (can_id_tracker[i].can_id) {
+//            case 0x155: // Battery data
+//                merged.soc = parsed->SOC;
+//                merged.current = parsed->batteryCurrent;
+//                merged.has_data = true;
+//                break;
+//                
+//            case 0x59B: // Vehicle control data
+//                strncpy(merged.gear, parsed->gearPosition, sizeof(merged.gear) - 1);
+//                merged.motor_active = parsed->motorControllerActive;
+//                merged.accelerator = parsed->acceleratorPercent;
+//                merged.brake = parsed->brakePressed ? 1 : 0;
+//                merged.cap_voltage = parsed->capacitorVoltage;
+//                merged.has_data = true;
+//                break;
+//                
+//            case 0x19F: // MOTOR speed (our verified calculation)
+//                merged.motor_speed = parsed->speedKmh - 1.7;    // Store motor speed from 0x19F and bias it by 1.7 to match the speed
+//                                                                //displayed on the screen
+//                merged.has_data = true;
+//                break;
+//                
+//            case 0x599: // Range        
+//                merged.range = parsed->remainingRange;
+//                merged.has_data = true;
+//                break;
+//                
+//            case 0x5D7: // odometerkm
+//                merged.odometer = parsed->odometerKm;
+//                merged.has_data = true;
+//                break;
+//                
+//            case 0x425: // Battery voltage and energy
+//                merged.battery_voltage = parsed->batteryVoltage;
+//                merged.available_energy = parsed->availableEnergy;
+//                merged.charging_status = parsed->chargingProtocolStatus;
+//                merged.has_data = true;
+//                break;
+//                
+//            case 0x196: // Motor temperature and power
+//                merged.motor_temp = parsed->motorTemperature;
+//                merged.power_request = parsed->powerRequest;
+//                merged.has_data = true;
+//                break;
+//        }
+//    }
+//    
+//    pthread_mutex_unlock(&can_tracker_mutex);
+//   
+//    // NEW: Add GPS data to merged structure
+//    GPSFrame gps_data = get_latest_gps_data();  // Get from GPS reader module
+//    merged.gps_latitude = gps_data.latitude;
+//    merged.gps_longitude = gps_data.longitude;
+//    merged.gps_altitude = gps_data.altitude;
+//    merged.gps_speed = gps_data.speed_kmh;
+//    merged.gps_satellites = gps_data.satellites;
+//    merged.gps_valid = gps_data.valid;
+//    
+//    return merged;
+//}
+
 MergedCANData create_merged_can_data() {
     MergedCANData merged = {0};
     merged.has_data = false;
     
     pthread_mutex_lock(&can_tracker_mutex);
     
-    // Get latest timestamp from any frame
+    // Get latest timestamp and GPS data from any frame
     time_t latest_time = 0;
+    CANData *latest_gps_source = NULL;
     
     // Collect data from all priority CAN IDs
     for (int i = 0; i < MAX_CAN_IDS; i++) {
@@ -326,8 +507,10 @@ MergedCANData create_merged_can_data() {
         if (can_id_tracker[i].last_updated > latest_time) {
             latest_time = can_id_tracker[i].last_updated;
             strncpy(merged.timestamp, data->timestamp, sizeof(merged.timestamp) - 1);
+            latest_gps_source = &can_id_tracker[i].latest_data;  // Get GPS from most recent frame
         }
         
+        // Process CAN data same as before...
         switch (can_id_tracker[i].can_id) {
             case 0x155: // Battery data
                 merged.soc = parsed->SOC;
@@ -344,9 +527,8 @@ MergedCANData create_merged_can_data() {
                 merged.has_data = true;
                 break;
                 
-            case 0x19F: // MOTOR speed (our verified calculation)
-                merged.motor_speed = parsed->speedKmh - 1.7;    // Store motor speed from 0x19F and bias it by 1.7 to match the speed
-                                                                //displayed on the screen
+            case 0x19F: // MOTOR speed
+                merged.motor_speed = parsed->speedKmh - 1.7;
                 merged.has_data = true;
                 break;
                 
@@ -355,7 +537,7 @@ MergedCANData create_merged_can_data() {
                 merged.has_data = true;
                 break;
                 
-            case 0x5D7: // odometerkm
+            case 0x5D7: // odometer
                 merged.odometer = parsed->odometerKm;
                 merged.has_data = true;
                 break;
@@ -375,29 +557,76 @@ MergedCANData create_merged_can_data() {
         }
     }
     
+    // Add GPS data from the most recent frame (any CAN frame will have same GPS data)
+    if (latest_gps_source) {
+        merged.gps_latitude = latest_gps_source->gps_lat;
+        merged.gps_longitude = latest_gps_source->gps_lon;
+        merged.gps_altitude = latest_gps_source->gps_alt;
+        merged.gps_speed = latest_gps_source->gps_speed;
+        merged.gps_satellites = 0;  // Not in CSV, set to 0
+        merged.gps_valid = latest_gps_source->gps_valid;
+    } else {
+        // No GPS data available
+        merged.gps_latitude = 0.0;
+        merged.gps_longitude = 0.0;
+        merged.gps_altitude = 0.0;
+        merged.gps_speed = 0.0;
+        merged.gps_satellites = 0;
+        merged.gps_valid = 0;
+    }
+    
     pthread_mutex_unlock(&can_tracker_mutex);
     
     return merged;
 }
 
-// NEW: Save merged CAN data to CSV (ONE ROW with ALL data)
+//// NEW: Save merged CAN data to CSV (ONE ROW with ALL data)
+//void save_merged_can_data_to_csv(const MergedCANData *merged) {
+//    static FILE *can_csv = NULL;
+//    static bool csv_initialized = false;
+//    
+//    // Initialize CSV file once
+//    if (!csv_initialized) {
+//        can_csv = fopen(parsed_filename, "w");
+//        if (can_csv) {
+//            fprintf(can_csv, "timestamp,soc,current,gear,motor_active,accelerator,brake,cap_voltage,motor_speed,odometer,range,battery_voltage,available_energy,charging_status,motor_temp,power_request\n");
+//            fflush(can_csv);
+//        }
+//        csv_initialized = true;
+//    }
+//    
+//    if (can_csv && merged->has_data) {
+//        // Save merged data as ONE row with ALL fields - INCLUDING TRIPLE SPEEDS
+//        fprintf(can_csv, "%s,%d,%.1f,%s,%d,%d,%d,%.1f,%.1f,%.1f,%.1f,%.1f,%d,%.1f,%.1f,0x%02X,%d,%.1f\n",
+//                merged->timestamp,
+//                merged->soc, merged->current,
+//                merged->gear[0] != '\0' ? merged->gear : "Unknown",
+//                merged->motor_active, merged->accelerator, merged->brake, 
+//                merged->cap_voltage, merged->motor_speed, 
+//                merged->odometer, merged->range,
+//                merged->battery_voltage, merged->available_energy, merged->charging_status,
+//                merged->motor_temp, merged->power_request);
+//        fflush(can_csv);
+//    }
+//}
+
 void save_merged_can_data_to_csv(const MergedCANData *merged) {
     static FILE *can_csv = NULL;
     static bool csv_initialized = false;
     
-    // Initialize CSV file once
+    // Initialize CSV file once with GPS columns
     if (!csv_initialized) {
         can_csv = fopen(parsed_filename, "w");
         if (can_csv) {
-            fprintf(can_csv, "timestamp,soc,current,gear,motor_active,accelerator,brake,cap_voltage,motor_speed,odometer,range,battery_voltage,available_energy,charging_status,motor_temp,power_request\n");
+            fprintf(can_csv, "timestamp,soc,current,gear,motor_active,accelerator,brake,cap_voltage,motor_speed,odometer,range,battery_voltage,available_energy,charging_status,motor_temp,power_request,gps_lat,gps_lon,gps_alt,gps_speed,gps_sats,gps_valid\n");
             fflush(can_csv);
         }
         csv_initialized = true;
     }
     
     if (can_csv && merged->has_data) {
-        // Save merged data as ONE row with ALL fields - INCLUDING TRIPLE SPEEDS
-        fprintf(can_csv, "%s,%d,%.1f,%s,%d,%d,%d,%.1f,%.1f,%.1f,%.1f,%.1f,%d,%.1f,%.1f,0x%02X,%d,%.1f\n",
+        // Save merged data as ONE row with ALL fields INCLUDING GPS
+        fprintf(can_csv, "%s,%d,%.1f,%s,%d,%d,%d,%.1f,%.1f,%.1f,%d,%.1f,%.1f,0x%02X,%d,%.1f,%.6f,%.6f,%.1f,%.1f,%d,%d\n",
                 merged->timestamp,
                 merged->soc, merged->current,
                 merged->gear[0] != '\0' ? merged->gear : "Unknown",
@@ -405,7 +634,10 @@ void save_merged_can_data_to_csv(const MergedCANData *merged) {
                 merged->cap_voltage, merged->motor_speed, 
                 merged->odometer, merged->range,
                 merged->battery_voltage, merged->available_energy, merged->charging_status,
-                merged->motor_temp, merged->power_request);
+                merged->motor_temp, merged->power_request,
+                // GPS data
+                merged->gps_latitude, merged->gps_longitude, merged->gps_altitude,
+                merged->gps_speed, merged->gps_satellites, merged->gps_valid);
         fflush(can_csv);
     }
 }
@@ -606,6 +838,7 @@ void* can_to_esp32_sender_thread(void* arg) {
                 .SOC = (unsigned short)merged.soc,
                 .speedKmh = merged.motor_speed,       // Use motor speed (0x19F) for ESP32 - most verified
                 .odometerKm = merged.odometer,
+//                .displaySpeed = merged.gps_speed,     // NEW: Use GPS speed as display speed
                 .MacAddress = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
             };
             
@@ -657,16 +890,15 @@ int main(int argc, char *argv[]) {
     strftime(parsed_filename, sizeof(parsed_filename), "merged_can_data_%Y%m%d_%H%M.csv", t);
     strftime(esp_now_filename, sizeof(esp_now_filename), "ESP_now_data_%Y%m%d_%H%M.csv", t);
     
-    printf("ESP-NOW + V2V/V2G CAN System - MERGED DATA MODE\n");
-    printf("===============================================\n");
+    printf("ESP-NOW + V2V/V2G CAN + GPS System\n");
+    printf("==================================\n");
     printf("ESP-NOW Serial: %s\n", esp_serial_port);
     printf("CAN Data Input: %s\n", CAN_SNAPSHOT_FILE);
     printf("ESP-NOW CSV: %s\n", esp_now_filename);
-    printf("CAN Merged CSV: %s\n", parsed_filename);
-    printf("Priority Frames: 0x155, 0x59B, 0x19F, 0x599, 0x5D7, 0x425\n");
-    printf("File Check Interval: 4 seconds\n");
-    printf("===============================================\n\n");
-    
+    printf("CAN+GPS Merged CSV: %s\n", parsed_filename);
+    printf("Features: CAN data + GPS location + ESP-NOW communication\n");
+    printf("==================================\n\n");
+
     serial_port = setup_serial(esp_serial_port);
     if (serial_port < 0) return 1;
     

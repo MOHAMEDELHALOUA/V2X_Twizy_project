@@ -16,30 +16,34 @@ typedef struct {
 } ThingsBoardConfig;
 
 // Vehicle data structure for ThingsBoard (matches your exact CSV format)
+// Send2Server.h - UPDATED VehicleData structure
 typedef struct {
-    char timestamp[32];         // timestamp (e.g., "1753442419.000006725")
-    int soc;                    // soc (e.g., 72)
-    float current;              // current (e.g., -1.0)
-    char gear[16];              // gear (e.g., "Neutral")
-    int motor_active;           // motor_active (e.g., 1)
-    int accelerator;            // accelerator (e.g., 0)
-    int brake;                  // brake (e.g., 0)
-    float cap_voltage;          // cap_voltage (e.g., 56.0)
-    float motor_speed;          // motor_speed (e.g., -0.0)
-    float odometer;             // odometer (e.g., 3508.8)
-    int range;                  // range (e.g., 24)
-    float battery_voltage;      // battery_voltage (e.g., 57.5)
-    float available_energy;     // available_energy (e.g., 4.4)
-    uint8_t charging_status;    // charging_status (e.g., 0x2A)
-    int motor_temp;             // motor_temp (e.g., 0)
-    float power_request;        // power_request (e.g., 0.0)
+    char timestamp[32];         // timestamp
+    int soc;                    // soc
+    float current;              // current
+    char gear[16];              // gear
+    int motor_active;           // motor_active
+    int accelerator;            // accelerator
+    int brake;                  // brake
+    float cap_voltage;          // cap_voltage
+    float motor_speed;          // motor_speed
+    float odometer;             // odometer
+    int range;                  // range
+    float battery_voltage;      // battery_voltage
+    float available_energy;     // available_energy
+    uint8_t charging_status;    // charging_status
+    int motor_temp;             // motor_temp
+    float power_request;        // power_request
     
-    // Optional location data
-    float latitude;
-    float longitude;
-    bool has_location;
+    // GPS data from CSV - ADD THESE FIELDS:
+    float latitude;             // GPS latitude (real GPS!)
+    float longitude;            // GPS longitude (real GPS!)
+    float gps_altitude;         // GPS altitude
+    float gps_speed;            // GPS speed
+    int gps_satellites;         // Number of GPS satellites
+    int gps_valid;              // GPS validity flag (1=valid, 0=invalid)
+    bool has_location;          // Flag indicating if location data is available
 } VehicleData;
-
 // Connection status
 typedef enum {
     TB_DISCONNECTED = 0,

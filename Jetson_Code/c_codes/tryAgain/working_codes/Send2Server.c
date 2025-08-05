@@ -71,7 +71,6 @@ int tb_connect(void) {
     MQTTClient_connectOptions conn_opts = MQTTClient_connectOptions_initializer;
     conn_opts.keepAliveInterval = tb_config.keepalive;
     conn_opts.cleansession = 1;
-    // FIX: Uncomment these lines for ThingsBoard authentication
     conn_opts.username = tb_config.device_token;  // ThingsBoard uses token as username
     conn_opts.password = NULL;  // No password for ThingsBoard device tokens
     

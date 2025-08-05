@@ -252,7 +252,7 @@ int parse_csv_to_vehicle_data(const char *line, VehicleData *data) {
     // timestamp,soc,current,gear,motor_active,accelerator,brake,cap_voltage,motor_speed,odometer,range,battery_voltage,available_energy,charging_status,motor_temp,power_request
     
     int parsed = sscanf(line, 
-        "%31[^,],%d,%f,%15[^,],%d,%d,%d,%f,%f,%f,%d,%f,%f,%7[^,],%d,%f",
+        "%31[^,],%d,%f,%15[^,],%d,%d,%d,%f,%f,%f,%d,%f,%f,%7[^,],%d,%f,%f,%f,%f,%f,%d,%d",
         data->timestamp,        // 0: timestamp
         &data->soc,            // 1: soc
         &data->current,        // 2: current
@@ -268,12 +268,18 @@ int parse_csv_to_vehicle_data(const char *line, VehicleData *data) {
         &data->available_energy,// 12: available_energy
         temp_charging_status,  // 13: charging_status
         &data->motor_temp,     // 14: motor_temp
-        &data->power_request   // 15: power_request
+        &data->power_request,  // 15: power_request
+        &data->latitude,       // 16: gps_lat (REAL GPS!)
+        &data->longitude,      // 17: gps_lon (REAL GPS!)
+        &data->gps_altitude,   // 18: gps_alt (NEW FIELD - add to VehicleData struct)
+        &data->gps_speed,      // 19: gps_speed (NEW FIELD)
+        &data->gps_satellites, // 20: gps_sats (NEW FIELD)
+        &data->gps_valid       // 21: gps_valid (NEW FIELD)
     );
-    
+        
     printf("[DEBUG] Successfully parsed %d fields from CSV\n", parsed);
     
-    if (parsed == 16) {  // We need exactly 16 fields
+    if (parsed >= 16) {  // We need exactly 16 fields
         // Copy gear
         strncpy(data->gear, temp_gear, sizeof(data->gear) - 1);
         data->gear[sizeof(data->gear) - 1] = '\0';
@@ -284,24 +290,20 @@ int parse_csv_to_vehicle_data(const char *line, VehicleData *data) {
         } else {
             data->charging_status = (uint8_t)strtol(temp_charging_status, NULL, 16);
         }
+
+        // Check if we have GPS data (fields 16-21)
+        if (parsed >= 22 && data->gps_valid == 1) {
+            data->has_location = true;
+            printf("[DEBUG] REAL GPS DATA FOUND: Lat=%.6f, Lon=%.6f, Alt=%.1f, Speed=%.1f, Sats=%d\n",
+                   data->latitude, data->longitude, data->gps_altitude, data->gps_speed, data->gps_satellites);
+        } else {
+            data->has_location = false;
+            printf("[DEBUG] No valid GPS data in CSV (parsed=%d, gps_valid=%d)\n", parsed, data->gps_valid);
+        }
         
-        printf("[DEBUG] COMPLETE DATA PARSED:\n");
-        printf("  Timestamp: %s\n", data->timestamp);
-        printf("  SOC: %d%%\n", data->soc);
-        printf("  Current: %.1fA\n", data->current);
-        printf("  Gear: %s\n", data->gear);
-        printf("  Motor Active: %d\n", data->motor_active);
-        printf("  Accelerator: %d\n", data->accelerator);
-        printf("  Brake: %d\n", data->brake);
-        printf("  Cap Voltage: %.1fV\n", data->cap_voltage);
-        printf("  Motor Speed: %.1f km/h\n", data->motor_speed);
-        printf("  Odometer: %.1f km\n", data->odometer);
-        printf("  Range: %d km\n", data->range);
-        printf("  Battery Voltage: %.1fV\n", data->battery_voltage);
-        printf("  Available Energy: %.1f kWh\n", data->available_energy);
-        printf("  Charging Status: 0x%02X\n", data->charging_status);
-        printf("  Motor Temp: %d°C\n", data->motor_temp);
-        printf("  Power Request: %.1f kW\n", data->power_request);
+        printf("[DEBUG] VEHICLE DATA: SOC=%d%%, Speed=%.1fkm/h, Gear=%s, GPS=%s\n", 
+               data->soc, data->motor_speed, data->gear, 
+               data->has_location ? "REAL" : "NONE");
         
         return 0;  // Success
     }
@@ -426,22 +428,30 @@ int main(int argc, char *argv[]) {
                     strcpy(current_csv_file, csv_filename);
                     printf("[SendToCloud] Now monitoring: %s\n", csv_filename);
                 }
-                
+
                 // Read latest data from CSV
                 VehicleData vehicle_data = {0};
                 if (read_latest_csv_data(csv_filename, &vehicle_data) == 0) {
-                    // Add location data if configured
-                    if (config.use_location) {
+                    // FIXED: Use REAL GPS data from CSV if available, otherwise fallback to config
+                    if (!vehicle_data.has_location && config.use_location) {
+                        // Only use hardcoded location if no real GPS available
                         vehicle_data.latitude = config.latitude;
                         vehicle_data.longitude = config.longitude;
                         vehicle_data.has_location = true;
+                        printf("[SendToCloud] Using fallback location: %.6f, %.6f\n", 
+                               config.latitude, config.longitude);
+                    } else if (vehicle_data.has_location) {
+                        printf("[SendToCloud] Using REAL GPS: %.6f, %.6f (Sats: %d, Valid: %s)\n", 
+                               vehicle_data.latitude, vehicle_data.longitude, 
+                               vehicle_data.gps_satellites, vehicle_data.gps_valid ? "YES" : "NO");
                     }
                     
-                    // Send to ThingsBoard
+                    // Send to ThingsBoard with real or fallback location
                     if (tb_send_vehicle_data(&vehicle_data) == 0) {
-                        printf("[%s] Sent: SOC=%d%%, Speed=%.1fkm/h, Gear=%s, Range=%d\n",
+                        printf("[%s] Sent: SOC=%d%%, Speed=%.1fkm/h, GPS=%.6f,%.6f, Range=%dkm\n",
                                vehicle_data.timestamp, vehicle_data.soc, 
-                               vehicle_data.motor_speed, vehicle_data.gear, vehicle_data.range);
+                               vehicle_data.motor_speed, vehicle_data.latitude, 
+                               vehicle_data.longitude, vehicle_data.range);
                     } else {
                         printf("[SendToCloud] Failed to send data: %s\n", tb_get_last_error());
                         
