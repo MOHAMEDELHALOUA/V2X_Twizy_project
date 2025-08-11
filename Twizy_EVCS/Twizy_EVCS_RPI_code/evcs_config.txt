@@ -1,0 +1,30 @@
+# HELECAR EVCS Configuration File
+# ThingsBoard MQTT Settings
+broker_ip=demo.thingsboard.io
+broker_port=1883
+device_token=4gj4bsa89ahi0gkeo3ah
+check_interval=2
+
+# EVCS Station Information
+evcs_name=HELECAR_ChargingStation
+latitude=33.986107
+longitude=-6.724805
+fast_charge=false
+plug_type=Type_F_schuko_3Kwh
+cost_per_kwh=1.50
+number_of_slots=1
+slots_available=true
+
+# MQTT Connection Settings
+keepalive=60
+qos=1
+max_retries=3
+retry_delay=5
+
+# Serial Communication
+serial_port=/dev/ttyUSB0
+baud_rate=115200
+
+# Charging Session Settings
+charging_current_threshold=0.5
+session_timeout=300

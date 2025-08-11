@@ -156,7 +156,6 @@ int write_gps_buffer_to_file(const char *filename) {
     }
     
     fprintf(fpt, "timestamp,latitude,longitude,altitude,speed_kmh,satellites,hdop,datetime,valid\n");
-    
     pthread_mutex_lock(&csv_buffer.csv_mutex);
     
     if (csv_buffer.gps_is_full) {

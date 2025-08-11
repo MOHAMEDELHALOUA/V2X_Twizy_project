@@ -563,7 +563,7 @@ MergedCANData create_merged_can_data() {
         merged.gps_longitude = latest_gps_source->gps_lon;
         merged.gps_altitude = latest_gps_source->gps_alt;
         merged.gps_speed = latest_gps_source->gps_speed;
-        merged.gps_satellites = 0;  // Not in CSV, set to 0
+        merged.gps_satellites = latest_gps_source->gps_satellites;  // Not in CSV, set to 0
         merged.gps_valid = latest_gps_source->gps_valid;
     } else {
         // No GPS data available

@@ -1,0 +1,72 @@
+# ThingsBoard Map: Data Sources vs Overlays
+
+## 📊 Additional Data Sources (DEVICES/SENSORS)
+**What it adds**: More moving dots, markers, routes
+
+### Single Vehicle Setup:
+```
+🗺️ Map
+└── 📍 HELECAR_TwizyData
+    ├── Current position: 33.986160, -6.724923
+    ├── Route trail (blue line)
+    └── Tooltip: SOC 88%, Speed 0 km/h
+```
+
+### Multi-Vehicle Fleet Setup:
+```
+🗺️ Map
+├── 📍 HELECAR_TwizyData (Your car - Blue)
+│   └── Route: Home → Work
+├── 🚌 HELECAR_BusData (Bus - Red)  
+│   └── Route: Station A → Station B
+└── ⚡ ChargingStations (Static - Green)
+    ├── Station 1: Available
+    └── Station 2: Occupied
+```
+
+## 🎨 Overlays (VISUAL LAYERS)
+**What it adds**: Transparent layers over the map
+
+### Weather + Traffic Setup:
+```
+🗺️ Base Map (Streets)
+├── 🌧️ Weather Overlay (Rain clouds - semi-transparent)
+├── 🚦 Traffic Overlay (Red/green roads)
+├── 🏭 Air Quality Overlay (Color zones)
+└── 📍 Your Vehicle Data (on top of all layers)
+```
+
+## 🤔 Which Should You Choose?
+
+### For Your HELECAR Twizy:
+
+#### ✅ Additional Data Sources - Use When:
+- Adding other vehicles to track
+- Adding charging stations locations  
+- Adding delivery/pickup points
+- Showing multiple time periods of same route
+- Fleet management (multiple cars)
+
+#### ✅ Overlays - Use When:
+- Want to see weather conditions while driving
+- Need traffic information overlay
+- Want satellite imagery + street map hybrid
+- Adding custom business zones/territories
+- Environmental data (air quality, noise levels)
+
+## 🎯 Recommendation for Your Use Case:
+
+**START SIMPLE**: Just use your vehicle data first
+```
+🗺️ Route Map
+└── 📊 Data Source: HELECAR_TwizyData
+    ├── latitude, longitude
+    ├── soc, motor_speed  
+    └── timestamp
+```
+
+**EXPAND LATER**: Add overlays/sources as needed
+- Traffic overlay for route optimization
+- Weather overlay for trip planning  
+- Charging stations as additional data source
+- Other family vehicles as additional data sources

@@ -102,7 +102,7 @@ void create_default_config() {
     fprintf(file, "\n");
     fprintf(file, "# File Settings\n");
     fprintf(file, "csv_pattern=merged_can_data_*.csv\n");
-    fprintf(file, "check_interval=4\n");
+    fprintf(file, "check_interval=2\n");
     fprintf(file, "\n");
     fprintf(file, "# Location Settings (optional)\n");
     fprintf(file, "use_location=true\n");
@@ -239,66 +239,90 @@ int find_latest_csv_file(const char *pattern, char *result) {
 //}
 
 // CORRECTED: Parse CSV line and create VehicleData - REPLACE your existing function with this
+
+
 int parse_csv_to_vehicle_data(const char *line, VehicleData *data) {
     printf("[DEBUG] Parsing line: %s", line);
-    
-    char temp_gear[16];
-    char temp_charging_status[8];
     
     // Initialize all fields to zero/default values
     memset(data, 0, sizeof(VehicleData));
     
-    // Your exact CSV format (16 fields):
-    // timestamp,soc,current,gear,motor_active,accelerator,brake,cap_voltage,motor_speed,odometer,range,battery_voltage,available_energy,charging_status,motor_temp,power_request
+    // Use token-based parsing for reliability
+    char *line_copy = strdup(line);
+    if (!line_copy) return -1;
     
-    int parsed = sscanf(line, 
-        "%31[^,],%d,%f,%15[^,],%d,%d,%d,%f,%f,%f,%d,%f,%f,%7[^,],%d,%f,%f,%f,%f,%f,%d,%d",
-        data->timestamp,        // 0: timestamp
-        &data->soc,            // 1: soc
-        &data->current,        // 2: current
-        temp_gear,             // 3: gear
-        &data->motor_active,   // 4: motor_active
-        &data->accelerator,    // 5: accelerator
-        &data->brake,          // 6: brake
-        &data->cap_voltage,    // 7: cap_voltage
-        &data->motor_speed,    // 8: motor_speed
-        &data->odometer,       // 9: odometer
-        &data->range,          // 10: range
-        &data->battery_voltage,// 11: battery_voltage
-        &data->available_energy,// 12: available_energy
-        temp_charging_status,  // 13: charging_status
-        &data->motor_temp,     // 14: motor_temp
-        &data->power_request,  // 15: power_request
-        &data->latitude,       // 16: gps_lat (REAL GPS!)
-        &data->longitude,      // 17: gps_lon (REAL GPS!)
-        &data->gps_altitude,   // 18: gps_alt (NEW FIELD - add to VehicleData struct)
-        &data->gps_speed,      // 19: gps_speed (NEW FIELD)
-        &data->gps_satellites, // 20: gps_sats (NEW FIELD)
-        &data->gps_valid       // 21: gps_valid (NEW FIELD)
-    );
+    char *token;
+    char *saveptr;
+    int field = 0;
+    char temp_gear[32] = {0};
+    char temp_charging_status[32] = {0};
+    
+    token = strtok_r(line_copy, ",", &saveptr);
+    
+    while (token != NULL && field < 22) {
+        // Trim whitespace
+        while (*token == ' ' || *token == '\t') token++;
+        char *end = token + strlen(token) - 1;
+        while (end > token && (*end == ' ' || *end == '\t' || *end == '\n' || *end == '\r')) {
+            *end = '\0';
+            end--;
+        }
         
-    printf("[DEBUG] Successfully parsed %d fields from CSV\n", parsed);
+        switch (field) {
+            case 0:  strncpy(data->timestamp, token, sizeof(data->timestamp) - 1); break;
+            case 1:  data->soc = atoi(token); break;
+            case 2:  data->current = atof(token); break;
+            case 3:  strncpy(temp_gear, token, sizeof(temp_gear) - 1); break;
+            case 4:  data->motor_active = atoi(token); break;
+            case 5:  data->accelerator = atoi(token); break;
+            case 6:  data->brake = atoi(token); break;
+            case 7:  data->cap_voltage = atof(token); break;
+            case 8:  data->motor_speed = atof(token); break;
+            case 9:  data->odometer = atof(token); break;
+            case 10: data->range = atoi(token); break;
+            case 11: data->battery_voltage = atof(token); break;
+            case 12: data->available_energy = atof(token); break;
+            case 13: strncpy(temp_charging_status, token, sizeof(temp_charging_status) - 1); break;
+            case 14: data->motor_temp = atoi(token); break;
+            case 15: data->power_request = atof(token); break;
+            case 16: data->latitude = atof(token); break;        // GPS latitude
+            case 17: data->longitude = atof(token); break;       // GPS longitude  
+            case 18: data->gps_altitude = atof(token); break;    // GPS altitude
+            case 19: data->gps_speed = atof(token); break;       // GPS speed
+            case 20: data->gps_satellites = atoi(token); break; // GPS satellites
+            case 21: data->gps_valid = atoi(token); break;       // GPS valid
+        }
+        
+        field++;
+        token = strtok_r(NULL, ",", &saveptr);
+    }
     
-    if (parsed >= 16) {  // We need exactly 16 fields
+    free(line_copy);
+    
+    printf("[DEBUG] Successfully parsed %d fields from CSV\n", field);
+    
+    if (field >= 16) {  // At least basic vehicle data
         // Copy gear
         strncpy(data->gear, temp_gear, sizeof(data->gear) - 1);
         data->gear[sizeof(data->gear) - 1] = '\0';
         
-        // Parse charging status (remove 0x prefix if present)
+        // Parse charging status
         if (strncmp(temp_charging_status, "0x", 2) == 0) {
             data->charging_status = (uint8_t)strtol(temp_charging_status + 2, NULL, 16);
         } else {
             data->charging_status = (uint8_t)strtol(temp_charging_status, NULL, 16);
         }
-
-        // Check if we have GPS data (fields 16-21)
-        if (parsed >= 22 && data->gps_valid == 1) {
+        
+        // Check GPS data (fields 16-21)
+        if (field >= 22 && data->latitude != 0.0 && data->longitude != 0.0) {
             data->has_location = true;
-            printf("[DEBUG] REAL GPS DATA FOUND: Lat=%.6f, Lon=%.6f, Alt=%.1f, Speed=%.1f, Sats=%d\n",
-                   data->latitude, data->longitude, data->gps_altitude, data->gps_speed, data->gps_satellites);
+            printf("[DEBUG] REAL GPS DATA FOUND: Lat=%.6f, Lon=%.6f, Alt=%.1f, Speed=%.1f, Sats=%d, Valid=%d\n",
+                   data->latitude, data->longitude, data->gps_altitude, 
+                   data->gps_speed, data->gps_satellites, data->gps_valid);
         } else {
             data->has_location = false;
-            printf("[DEBUG] No valid GPS data in CSV (parsed=%d, gps_valid=%d)\n", parsed, data->gps_valid);
+            printf("[DEBUG] No GPS data: fields=%d, lat=%.6f, lon=%.6f\n", 
+                   field, data->latitude, data->longitude);
         }
         
         printf("[DEBUG] VEHICLE DATA: SOC=%d%%, Speed=%.1fkm/h, Gear=%s, GPS=%s\n", 
@@ -308,9 +332,10 @@ int parse_csv_to_vehicle_data(const char *line, VehicleData *data) {
         return 0;  // Success
     }
     
-    printf("[DEBUG] Parse failed - only %d fields parsed (need exactly 16)\n", parsed);
+    printf("[DEBUG] Parse failed - only %d fields parsed\n", field);
     return -1;  // Parse error
 }
+
 // Read latest data from CSV file
 int read_latest_csv_data(const char *filename, VehicleData *data) {
     FILE *file = fopen(filename, "r");
