@@ -1,4 +1,4 @@
-// EVCS_ESP32_V2G.ino - PZEM-004T Power Meter + V2G Communication
+// EVCS_ESP32_V2G_Enhanced.ino - PZEM-004T + V2G with Session Management
 #include <PZEM004Tv30.h>
 #include <cmath>
 #include <Arduino.h>
@@ -19,6 +19,11 @@
 #define MAX_CHARGING_POWER 3000.0f   // Max 3kW (Type F)
 #define CURRENT_THRESHOLD 0.5f       // Minimum current to detect vehicle
 
+// V2G Session Management
+#define V2G_SESSION_TIMEOUT_MS 30000     // 30 seconds without charging = end session
+#define V2G_COMMUNICATION_TIMEOUT_MS 15000  // 15 seconds without V2G messages = disconnect
+#define SESSION_END_DELAY_MS 5000        // 5 seconds delay after charging stops before ending session
+
 // Timing
 unsigned long last_reading = 0;
 unsigned long last_v2g_send = 0;
@@ -30,6 +35,12 @@ short charging_status = 0;
 bool vehicle_connected = false;
 float session_start_energy = 0.0f;
 unsigned long session_start_time = 0;
+
+// V2G Session Management Variables
+unsigned long last_charging_time = 0;          // Last time current > threshold
+unsigned long last_v2g_received = 0;           // Last time we received V2G data
+unsigned long charging_stopped_time = 0;       // When charging stopped
+bool session_ending = false;                   // Flag to indicate session is ending
 
 // Initialize the PZEM sensor using Hardware Serial2
 PZEM004Tv30 pzem(Serial2, PZEM_RX_PIN, PZEM_TX_PIN);
@@ -46,6 +57,7 @@ typedef struct {
     bool charging_available;       // Slot available for charging
     uint32_t session_id;           // Unique session identifier
     unsigned long timestamp;       // Message timestamp
+    bool session_active;           // NEW: Indicates if session is still active
 } evcs_to_vehicle_t;
 
 // Struct to receive from Vehicle (Vehicle -> EVCS)
@@ -74,25 +86,27 @@ esp_now_peer_info_t peerInfo;
 // Current session data
 uint32_t current_session_id = 0;
 bool session_active = false;
+bool v2g_connected = false;
 
 // Function prototypes
 void init_esp_now();
 void on_data_sent(const uint8_t *mac_addr, esp_now_send_status_t status);
 void on_data_received(const uint8_t *mac, const uint8_t *incoming_data, int len);
 void send_v2g_data();
-void handle_vehicle_connection();
-void handle_charging_session();
 void start_charging_session();
 void end_charging_session();
+void handle_charging_session();
 void update_evcs_data();
 void print_vehicle_data();
 void print_session_info();
+void check_session_timeouts();
+void disconnect_v2g_session();
 
 void setup() {
     Serial.begin(115200);
-    Serial.println("HELECAR EVCS - V2G Communication System");
-    Serial.println("=======================================");
-    Serial.println("Features: PZEM-004T + ESP-NOW V2G");
+    Serial.println("HELECAR EVCS - V2G Communication System with Session Management");
+    Serial.println("==============================================================");
+    Serial.println("Features: PZEM-004T + ESP-NOW V2G + Auto Session Timeout");
     Serial.println();
     
     // Initialize WiFi in Station mode for ESP-NOW
@@ -117,12 +131,16 @@ void setup() {
     evcs_data.charging_available = true;
     evcs_data.current_energy_delivered = 0.0f;
     evcs_data.current_cost = 0.0f;
+    evcs_data.session_active = false;
     
     // Generate initial session ID
     current_session_id = millis();
     evcs_data.session_id = current_session_id;
     
     Serial.println("EVCS V2G system initialized and ready!");
+    Serial.println("Session Management:");
+    Serial.printf("  - V2G timeout: %d seconds\n", V2G_COMMUNICATION_TIMEOUT_MS / 1000);
+    Serial.printf("  - Session timeout: %d seconds after charging stops\n", SESSION_END_DELAY_MS / 1000);
     Serial.println("Waiting for vehicle connection...");
     Serial.println();
     
@@ -158,14 +176,22 @@ void loop() {
         // Determine charging status based on current
         bool currently_charging = (current > CURRENT_THRESHOLD);
         
-        if (currently_charging && !vehicle_connected) {
-            // Vehicle just connected
-            vehicle_connected = true;
-            start_charging_session();
-        } else if (!currently_charging && vehicle_connected) {
-            // Vehicle disconnected
-            vehicle_connected = false;
-            end_charging_session();
+        // Update last charging time if currently charging
+        if (currently_charging) {
+            last_charging_time = currentTime;
+            if (!vehicle_connected) {
+                // Vehicle just connected
+                vehicle_connected = true;
+                start_charging_session();
+            }
+        } else {
+            // Not charging - check if this is a recent change
+            if (vehicle_connected && !session_ending) {
+                // Vehicle was charging but stopped
+                charging_stopped_time = currentTime;
+                session_ending = true;
+                Serial.println("⚠️ Charging stopped - starting session timeout");
+            }
         }
         
         // Update charging status
@@ -175,6 +201,9 @@ void loop() {
         if (session_active) {
             handle_charging_session();
         }
+        
+        // Check for session timeouts
+        check_session_timeouts();
         
         // Send data to Raspberry Pi (original format)
         Serial.print("EVSE");
@@ -198,13 +227,62 @@ void loop() {
         Serial.println();
     }
     
-    // Send V2G data every 5 seconds when vehicle is connected
-    if (vehicle_connected && (currentTime - last_v2g_send >= V2G_SEND_INTERVAL)) {
+    // Send V2G data every 5 seconds when V2G is connected and session is active
+    if (v2g_connected && session_active && (currentTime - last_v2g_send >= V2G_SEND_INTERVAL)) {
         last_v2g_send = currentTime;
         send_v2g_data();
     }
     
     delay(100);
+}
+
+void check_session_timeouts() {
+    unsigned long currentTime = millis();
+    
+    // Check V2G communication timeout
+    if (v2g_connected && session_active) {
+        if (currentTime - last_v2g_received > V2G_COMMUNICATION_TIMEOUT_MS) {
+            Serial.println("⚠️ V2G communication timeout - disconnecting vehicle");
+            disconnect_v2g_session();
+        }
+    }
+    
+    // Check session end timeout after charging stops
+    if (session_ending && (currentTime - charging_stopped_time > SESSION_END_DELAY_MS)) {
+        Serial.println("⏰ Session timeout reached - ending session");
+        end_charging_session();
+    }
+    
+    // Check for session timeout without any charging activity
+    if (session_active && (currentTime - last_charging_time > V2G_SESSION_TIMEOUT_MS)) {
+        Serial.println("⚠️ Session timeout - no charging activity");
+        end_charging_session();
+    }
+}
+
+void disconnect_v2g_session() {
+    if (v2g_connected) {
+        Serial.println("🔌 DISCONNECTING V2G SESSION 🔌");
+        Serial.printf("Vehicle MAC: %02X:%02X:%02X:%02X:%02X:%02X\n",
+                     vehicle_mac[0], vehicle_mac[1], vehicle_mac[2],
+                     vehicle_mac[3], vehicle_mac[4], vehicle_mac[5]);
+        
+        // Remove the vehicle as a peer
+        esp_now_del_peer(vehicle_mac);
+        
+        // Reset V2G connection
+        v2g_connected = false;
+        vehicle_data_received = false;
+        memset(vehicle_mac, 0xFF, 6);  // Reset to broadcast
+        
+        // Update EVCS data to indicate session ended
+        evcs_data.session_active = false;
+        evcs_data.charging_available = true;
+        
+        Serial.println("V2G session disconnected");
+        Serial.println("Ready for new vehicle connection");
+        Serial.println("================================\n");
+    }
 }
 
 void init_esp_now() {
@@ -246,6 +324,9 @@ void on_data_received(const uint8_t *mac, const uint8_t *incoming_data, int len)
         return;
     }
     
+    // Update last V2G received time
+    last_v2g_received = millis();
+    
     // Copy received data
     memcpy(&vehicle_data, incoming_data, sizeof(vehicle_to_evcs_t));
     memcpy(vehicle_data.vehicle_mac, mac, 6);
@@ -254,29 +335,57 @@ void on_data_received(const uint8_t *mac, const uint8_t *incoming_data, int len)
     // Print received vehicle data
     print_vehicle_data();
     
-    // Update vehicle MAC if it's a new vehicle
-    bool is_new_vehicle = false;
-    for (int i = 0; i < 6; i++) {
-        if (vehicle_mac[i] != mac[i]) {
-            is_new_vehicle = true;
-            break;
+    // Check if this is a new vehicle or existing vehicle
+    bool is_new_vehicle = !v2g_connected;
+    if (v2g_connected) {
+        // Check if MAC address changed
+        for (int i = 0; i < 6; i++) {
+            if (vehicle_mac[i] != mac[i]) {
+                is_new_vehicle = true;
+                break;
+            }
         }
     }
     
-    if (is_new_vehicle) {
-        Serial.println("[V2G] New vehicle detected, updating peer MAC");
-        memcpy(vehicle_mac, mac, 6);
+    if (is_new_vehicle && session_active) {
+        // New vehicle connecting during active session
+        Serial.println("[V2G] New vehicle detected during active session");
         
-        // Remove old peer and add new one
-        esp_now_del_peer(peerInfo.peer_addr);
+        // Remove old peer if exists
+        if (v2g_connected) {
+            esp_now_del_peer(vehicle_mac);
+        }
+        
+        // Update to new vehicle
+        memcpy(vehicle_mac, mac, 6);
+        v2g_connected = true;
+        
+        // Add new peer
         memcpy(peerInfo.peer_addr, vehicle_mac, 6);
         esp_now_add_peer(&peerInfo);
+        
+        Serial.printf("[V2G] Connected to vehicle: %02X:%02X:%02X:%02X:%02X:%02X\n",
+                     vehicle_mac[0], vehicle_mac[1], vehicle_mac[2],
+                     vehicle_mac[3], vehicle_mac[4], vehicle_mac[5]);
+    } else if (!v2g_connected && session_active) {
+        // First V2G connection for this session
+        memcpy(vehicle_mac, mac, 6);
+        v2g_connected = true;
+        
+        // Add as peer
+        memcpy(peerInfo.peer_addr, vehicle_mac, 6);
+        esp_now_add_peer(&peerInfo);
+        
+        Serial.println("[V2G] 🚗 V2G CONNECTION ESTABLISHED 🚗");
+        Serial.printf("Vehicle MAC: %02X:%02X:%02X:%02X:%02X:%02X\n",
+                     vehicle_mac[0], vehicle_mac[1], vehicle_mac[2],
+                     vehicle_mac[3], vehicle_mac[4], vehicle_mac[5]);
     }
     
     // Handle vehicle requests
     if (vehicle_data.stop_charging && session_active) {
         Serial.println("[V2G] Vehicle requested to stop charging");
-        end_charging_session();
+        // Don't end session immediately, wait for physical disconnect
     }
 }
 
@@ -296,15 +405,18 @@ void send_v2g_data() {
 void start_charging_session() {
     if (!session_active) {
         session_active = true;
+        session_ending = false;
         session_start_time = millis();
         session_start_energy = pzem.energy();
         current_session_id++;
         evcs_data.session_id = current_session_id;
+        evcs_data.session_active = true;
         
         Serial.println("\n🔌 CHARGING SESSION STARTED 🔌");
         Serial.printf("Session ID: %u\n", current_session_id);
         Serial.printf("Start Energy: %.3f kWh\n", session_start_energy);
         Serial.printf("Start Time: %lu ms\n", session_start_time);
+        Serial.println("Waiting for V2G connection...");
         Serial.println("=====================================\n");
     }
 }
@@ -312,6 +424,9 @@ void start_charging_session() {
 void end_charging_session() {
     if (session_active) {
         session_active = false;
+        session_ending = false;
+        vehicle_connected = false;
+        
         float final_energy = pzem.energy();
         float energy_delivered = final_energy - session_start_energy;
         float total_cost = energy_delivered * CHARGING_RATE_PER_KWH;
@@ -326,9 +441,14 @@ void end_charging_session() {
                      energy_delivered / (session_duration / 3600000.0f));
         Serial.println("=====================================\n");
         
+        // Disconnect V2G session
+        disconnect_v2g_session();
+        
         // Reset session data
         evcs_data.current_energy_delivered = 0.0f;
         evcs_data.current_cost = 0.0f;
+        evcs_data.session_active = false;
+        evcs_data.charging_available = true;
     }
 }
 
@@ -342,6 +462,7 @@ void handle_charging_session() {
 
 void update_evcs_data() {
     evcs_data.charging_available = !session_active;
+    evcs_data.session_active = session_active;
     evcs_data.timestamp = millis();
 }
 
@@ -358,15 +479,16 @@ void print_vehicle_data() {
     Serial.printf("Desired SOC: %.1f%%\n", vehicle_data.desired_soc);
     Serial.printf("Ready to Charge: %s\n", vehicle_data.ready_to_charge ? "YES" : "NO");
     Serial.printf("Stop Charging: %s\n", vehicle_data.stop_charging ? "YES" : "NO");
-    Serial.printf("Session ID: %u\n", vehicle_data.session_id);
+    Serial.printf("Session ID: %lu\n", vehicle_data.session_id);
     Serial.println("===============================\n");
 }
 
 void print_session_info() {
     if (session_active) {
-        Serial.printf("[V2G] Session Energy: %.3f kWh | Cost: %.2f | Duration: %lu min\n",
+        Serial.printf("[V2G] Session Energy: %.3f kWh | Cost: %.2f | Duration: %lu min | V2G: %s\n",
                      evcs_data.current_energy_delivered,
                      evcs_data.current_cost,
-                     (millis() - session_start_time) / 60000);
+                     (millis() - session_start_time) / 60000,
+                     v2g_connected ? "Connected" : "Disconnected");
     }
 }

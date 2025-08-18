@@ -1,4 +1,5 @@
 ///////////////////////////////////////////// FIXED ESP32(1) code to send real CAN data
+///
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_system.h"
@@ -18,19 +19,75 @@
 // Buffer size
 #define BUF_SIZE 256
 
-// Structure to receive ESP-NOW data - MUST MATCH sender exactly
+// V2G Communication Interval
+#define V2G_SEND_INTERVAL_MS 5000  // Send V2G data every 5 seconds
+
+// Debug control - set to false for production (clean serial communication)
+#define DEBUG_PRINTS false
+
+// ===== UPDATED CAN DATA STRUCTURE (for Jetson communication with real battery data) =====
 typedef struct {
-    unsigned short SOC;        
-    float speedKmh;
-    float odometerKm;
-    float displaySpeed;
+    unsigned short SOC;        // From CAN 0x155
+    float speedKmh;           // From CAN 0x19F
+    float odometerKm;         // From CAN 0x5D7
+    float displaySpeed;       // From GPS
+    
+    // NEW: Real battery data from CAN
+    float battery_voltage;    // From CAN 0x425 - Real battery voltage
+    float battery_current;    // From CAN 0x155 - Real battery current
+    float available_energy;   // From CAN 0x425 - Real available energy
+    uint8_t charging_status;  // From CAN 0x425 - Real charging status
+    
     uint8_t MacAddress[6];     // Sender's MAC
 } Item;
 
+// ===== V2G DATA STRUCTURES (for EVCS communication) =====
+
+// Data to receive from EVCS (EVCS -> Vehicle)
+typedef struct {
+    uint8_t evcs_mac[6];           // EVCS MAC address
+    float ac_voltage;              // AC voltage available (V)
+    float max_current;             // Maximum current available (A)
+    float max_power;               // Maximum power available (W)
+    float cost_per_kwh;            // Cost per kWh
+    float current_energy_delivered; // Total energy delivered this session (kWh)
+    float current_cost;            // Current session cost
+    bool charging_available;       // Slot available for charging
+    uint32_t session_id;           // Unique session identifier
+    unsigned long timestamp;       // Message timestamp
+} evcs_to_vehicle_t;
+
+// Data to send to EVCS (Vehicle -> EVCS)
+typedef struct {
+    uint8_t vehicle_mac[6];        // Vehicle MAC address
+    uint16_t battery_soc;          // State of Charge (0-100%)
+    float battery_voltage;         // Battery voltage (V)
+    float battery_current;         // Current battery current (A)
+    float battery_capacity;        // Total battery capacity (kWh)
+    float desired_soc;             // Desired SOC (0-100%)
+    bool ready_to_charge;          // Vehicle ready to start charging
+    bool stop_charging;            // Vehicle wants to stop charging
+    uint32_t session_id;           // Session ID (should match EVCS)
+    unsigned long timestamp;       // Message timestamp
+} vehicle_to_evcs_t;
+
+// Global variables
 Item incomingReadings;
 Item receivedItem; // Item received from jetson with real CAN data
 Item lastValidCanData; // Store last valid CAN data to send
 QueueHandle_t NowUSBQueue;
+
+// V2G specific variables
+evcs_to_vehicle_t evcs_data;
+vehicle_to_evcs_t vehicle_data;
+bool evcs_connected = false;
+uint8_t evcs_mac[6] = {0};
+unsigned long last_v2g_send = 0;
+
+// Vehicle configuration
+#define BATTERY_CAPACITY_KWH 6.1f    // Renault Twizy battery capacity
+#define BATTERY_VOLTAGE_NOMINAL 58.0f // Nominal battery voltage
+#define DESIRED_SOC_DEFAULT 80.0f     // Default desired SOC
 
 // Flag to indicate if we have valid CAN data
 bool hasValidCanData = false;
@@ -43,6 +100,24 @@ static void sendToJetson_usb(Item *data);
 void OnDataRecv(const esp_now_recv_info_t *recv_info, const uint8_t *incomingData, int len);
 esp_err_t init_esp_now(void);
 void updateCanDataFromReceived(const Item *received);
+
+// V2G specific functions
+void init_v2g_data();
+void update_v2g_data_from_can();
+void send_v2g_data_to_evcs();
+void process_evcs_data(const evcs_to_vehicle_t *data);
+void print_evcs_data(const evcs_to_vehicle_t *data);
+void print_vehicle_data(const vehicle_to_evcs_t *data);
+
+// Debug print function - only prints if DEBUG_PRINTS is enabled
+void debug_print(const char* format, ...) {
+    if (DEBUG_PRINTS) {
+        va_list args;
+        va_start(args, format);
+        vprintf(format, args);
+        va_end(args);
+    }
+}
 
 void app_main()
 {
@@ -74,7 +149,7 @@ void app_main()
     // Initialize ESP-NOW
     ESP_ERROR_CHECK(init_esp_now());
     
-    // Initialize with default values
+    // Initialize CAN data with default values
     memset(&receivedItem, 0, sizeof(receivedItem));
     memset(&lastValidCanData, 0, sizeof(lastValidCanData));
     
@@ -83,16 +158,138 @@ void app_main()
     lastValidCanData.speedKmh = 0.0;
     lastValidCanData.displaySpeed = 0.0;
     lastValidCanData.odometerKm = 0.0;
+    lastValidCanData.battery_voltage = BATTERY_VOLTAGE_NOMINAL;
+    lastValidCanData.battery_current = 0.0;
+    lastValidCanData.available_energy = 0.0;
+    lastValidCanData.charging_status = 0x00;
+    
+    // Initialize V2G data
+    init_v2g_data();
     
     // Create communication tasks
     xTaskCreate(usb_serial_rx_task, "usb_serial_rx_task", 4096, NULL, 12, NULL);
     xTaskCreate(usb_serial_tx_task, "usb_serial_tx_task", 4096, NULL, 11, NULL);
     
-    printf("ESP32(1) started - will broadcast real CAN data from Jetson\n");
+    // Only essential startup message
+    debug_print("Vehicle ESP32 V2G started - Enhanced with Real CAN Battery Data\n");
+    debug_print("Vehicle MAC: %02X:%02X:%02X:%02X:%02X:%02X\n",
+                vehicle_data.vehicle_mac[0], vehicle_data.vehicle_mac[1],
+                vehicle_data.vehicle_mac[2], vehicle_data.vehicle_mac[3],
+                vehicle_data.vehicle_mac[4], vehicle_data.vehicle_mac[5]);
     
     while(1) {
+        unsigned long currentTime = pdTICKS_TO_MS(xTaskGetTickCount());
+        
+        // Send V2G data to EVCS every 5 seconds if we have an EVCS connection
+        if (evcs_connected && (currentTime - last_v2g_send >= V2G_SEND_INTERVAL_MS)) {
+            send_v2g_data_to_evcs();
+            last_v2g_send = currentTime;
+        }
+        
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
+}
+
+void init_v2g_data() {
+    // Get this ESP32's MAC address
+    esp_wifi_get_mac(WIFI_IF_STA, vehicle_data.vehicle_mac);
+    
+    // Initialize vehicle data with default values
+    vehicle_data.battery_soc = 50;  // Start with 50% SOC
+    vehicle_data.battery_voltage = BATTERY_VOLTAGE_NOMINAL;
+    vehicle_data.battery_current = 0.0f;
+    vehicle_data.battery_capacity = BATTERY_CAPACITY_KWH;
+    vehicle_data.desired_soc = DESIRED_SOC_DEFAULT;
+    vehicle_data.ready_to_charge = true;
+    vehicle_data.stop_charging = false;
+    vehicle_data.session_id = 0;
+    vehicle_data.timestamp = 0;
+    
+    debug_print("V2G Vehicle data initialized:\n");
+    debug_print("  Battery Capacity: %.1f kWh\n", vehicle_data.battery_capacity);
+    debug_print("  Battery Voltage: %.1f V\n", vehicle_data.battery_voltage);
+    debug_print("  Desired SOC: %.1f%%\n", vehicle_data.desired_soc);
+}
+
+// UPDATED: Now uses REAL CAN battery data instead of calculations
+void update_v2g_data_from_can() {
+    if (hasValidCanData) {
+        // Use REAL CAN data directly (no more estimates!)
+        vehicle_data.battery_soc = lastValidCanData.SOC;
+        vehicle_data.battery_voltage = lastValidCanData.battery_voltage;    // Real voltage from CAN 0x425
+        vehicle_data.battery_current = lastValidCanData.battery_current;    // Real current from CAN 0x155
+        
+        // Auto-stop charging if SOC reaches desired level
+        if (vehicle_data.battery_soc >= vehicle_data.desired_soc) {
+            vehicle_data.stop_charging = true;
+            vehicle_data.ready_to_charge = false;
+        } else if (vehicle_data.battery_soc < (vehicle_data.desired_soc - 5.0f)) {
+            // Resume charging if SOC drops 5% below desired
+            vehicle_data.stop_charging = false;
+            vehicle_data.ready_to_charge = true;
+        }
+        
+        vehicle_data.timestamp = pdTICKS_TO_MS(xTaskGetTickCount());
+    }
+}
+
+void send_v2g_data_to_evcs() {
+    if (!evcs_connected) {
+        return;
+    }
+    
+    // Update vehicle data with latest REAL CAN information
+    update_v2g_data_from_can();
+    
+    // Send data to EVCS
+    esp_err_t result = esp_now_send(evcs_mac, (uint8_t *)&vehicle_data, sizeof(vehicle_data));
+    
+    if (result == ESP_OK) {
+        debug_print("[V2G] Vehicle data sent to EVCS successfully\n");
+        print_vehicle_data(&vehicle_data);
+    } else {
+        debug_print("[V2G] Failed to send vehicle data to EVCS: %s\n", esp_err_to_name(result));
+    }
+}
+
+void process_evcs_data(const evcs_to_vehicle_t *data) {
+    // Store EVCS session ID for our responses
+    vehicle_data.session_id = data->session_id;
+    
+    // Print received EVCS data (only if debug enabled)
+    print_evcs_data(data);
+    
+    // Check if we should stop charging based on cost or other factors
+    if (data->current_cost > 10.0f) {  // Stop if cost exceeds 10 units
+        vehicle_data.stop_charging = true;
+        debug_print("[V2G] Stopping charging due to high cost: %.2f\n", data->current_cost);
+    }
+    
+    // Check if charging is available
+    if (!data->charging_available) {
+        debug_print("[V2G] Charging slot not available\n");
+        vehicle_data.ready_to_charge = false;
+    }
+}
+
+void print_evcs_data(const evcs_to_vehicle_t *data) {
+    debug_print("\n🔌 EVCS DATA RECEIVED 🔌\n");
+    debug_print("AC Voltage: %.1f V\n", data->ac_voltage);
+    debug_print("Max Current: %.1f A\n", data->max_current);
+    debug_print("Max Power: %.1f W\n", data->max_power);
+    debug_print("Cost per kWh: %.2f\n", data->cost_per_kwh);
+    debug_print("Energy Delivered: %.3f kWh\n", data->current_energy_delivered);
+    debug_print("Current Cost: %.2f\n", data->current_cost);
+    debug_print("Charging Available: %s\n", data->charging_available ? "YES" : "NO");
+    debug_print("Session ID: %lu\n", data->session_id);
+    debug_print("==========================\n\n");
+}
+
+void print_vehicle_data(const vehicle_to_evcs_t *data) {
+    debug_print("[V2G] Vehicle Data: SOC=%u%%, Voltage=%.1fV, Current=%.1fA, Ready=%s, Stop=%s\n",
+                data->battery_soc, data->battery_voltage, data->battery_current,
+                data->ready_to_charge ? "YES" : "NO",
+                data->stop_charging ? "YES" : "NO");
 }
 
 void init_usb_serial()
@@ -105,6 +302,7 @@ void init_usb_serial()
         .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
         .rx_flow_ctrl_thresh = 122,
         .source_clk = UART_SCLK_DEFAULT,
+        .flags = 0
     };
     
     ESP_ERROR_CHECK(uart_driver_install(UART_NUM, BUF_SIZE * 2, BUF_SIZE * 2, 0, NULL, 0));
@@ -135,6 +333,7 @@ static void sendToJetson_usb(Item *data)
     uart_write_bytes(UART_NUM, (const char*)data, sizeof(Item));
 }
 
+// CLEAN: Minimal RX task - no debug prints that interfere with Jetson
 static void usb_serial_rx_task(void *pvParameter)
 {
     uint8_t header[2] = {0};
@@ -145,7 +344,8 @@ static void usb_serial_rx_task(void *pvParameter)
         return;
     }
     
-    printf("USB Serial RX task started - waiting for CAN data from Jetson\n");
+    // Only essential startup message
+    debug_print("USB Serial RX task started - waiting for REAL CAN battery data from Jetson\n");
     
     while (1) {
         // Look for header bytes first
@@ -181,16 +381,13 @@ static void usb_serial_rx_task(void *pvParameter)
             // Copy received data to Item struct
             memcpy(&receivedItem, data, sizeof(Item));
             
-            // Update our CAN data store (NO VALIDATION)
+            // Update our CAN data store with REAL battery data (SILENT)
             updateCanDataFromReceived(&receivedItem);
             
             // Blink LED to indicate successful reception of CAN data
             gpio_set_level(LED_PIN, 1);
             vTaskDelay(pdMS_TO_TICKS(50));
             gpio_set_level(LED_PIN, 0);
-            
-            printf("Received CAN data from Jetson: SOC=%u%%, Speed=%.1fkm/h, Display=%.1fkm/h, Odo=%.1fkm\n",
-                   receivedItem.SOC, receivedItem.speedKmh, receivedItem.displaySpeed, receivedItem.odometerKm);
         }
         
         vTaskDelay(pdMS_TO_TICKS(10));
@@ -199,72 +396,109 @@ static void usb_serial_rx_task(void *pvParameter)
     free(data);
 }
 
-// NO VALIDATION - just use the data as-is
+// CLEAN: Silent update function - no prints to interfere with Jetson communication
 void updateCanDataFromReceived(const Item *received) {
-    // Copy all data directly without any validation
+    // Copy all data directly including new battery fields
     lastValidCanData = *received;
     hasValidCanData = true;
     
-    printf("Updated CAN data from Jetson: SOC=%u%%, Speed=%.1fkm/h, Display=%.1fkm/h, Odo=%.1fkm\n",
-           lastValidCanData.SOC, lastValidCanData.speedKmh, 
-           lastValidCanData.displaySpeed, lastValidCanData.odometerKm);
+    // Only debug print if enabled
+    debug_print("Updated CAN data: SOC=%u%%, V=%.1fV, I=%.1fA, E=%.1fkWh, Status=0x%02X\n",
+                lastValidCanData.SOC, lastValidCanData.battery_voltage, 
+                lastValidCanData.battery_current, lastValidCanData.available_energy,
+                lastValidCanData.charging_status);
 }
 
-// ESP-NOW callback - send REAL CAN data from Jetson
+// CLEAN: Minimal ESP-NOW callback - essential communication only
 void OnDataRecv(const esp_now_recv_info_t *recv_info, const uint8_t *incomingData, int len) {
-    if (len != sizeof(Item)) {
+    // Check if this is EVCS V2G data
+    if (len == sizeof(evcs_to_vehicle_t)) {
+        debug_print("[V2G] Received data from EVCS\n");
+        
+        // This is EVCS data
+        evcs_to_vehicle_t received_evcs_data;
+        memcpy(&received_evcs_data, incomingData, sizeof(evcs_to_vehicle_t));
+        
+        // Store EVCS MAC if this is a new EVCS
+        if (!evcs_connected) {
+            memcpy(evcs_mac, recv_info->src_addr, 6);
+            evcs_connected = true;
+            debug_print("[V2G] Connected to EVCS: %02X:%02X:%02X:%02X:%02X:%02X\n",
+                       evcs_mac[0], evcs_mac[1], evcs_mac[2], 
+                       evcs_mac[3], evcs_mac[4], evcs_mac[5]);
+            
+            // Add EVCS as peer
+            esp_now_peer_info_t peerInfo = {};
+            memcpy(peerInfo.peer_addr, evcs_mac, 6);
+            peerInfo.channel = 0;
+            peerInfo.encrypt = false;
+            
+            if (!esp_now_is_peer_exist(evcs_mac)) {
+                esp_now_add_peer(&peerInfo);
+            }
+        }
+        
+        // Process EVCS data
+        process_evcs_data(&received_evcs_data);
+        
         return;
     }
     
-    Item item;
-    memcpy(&item, incomingData, sizeof(Item));
-    memcpy(item.MacAddress, recv_info->src_addr, 6);  // Set sender MAC
-    
-    // Send response back to sender
-    esp_now_peer_info_t peerInfo = {};
-    memcpy(peerInfo.peer_addr, recv_info->src_addr, 6);
-    peerInfo.channel = 0;
-    peerInfo.encrypt = false;
-    
-    if (!esp_now_is_peer_exist(recv_info->src_addr)) {
-        if (esp_now_add_peer(&peerInfo) == ESP_OK) {
-            // Peer added successfully
+    // Check if this is enhanced CAN data with battery info
+    if (len == sizeof(Item)) {
+        debug_print("Received enhanced ESP-NOW data with battery info\n");
+        
+        Item item;
+        memcpy(&item, incomingData, sizeof(Item));
+        memcpy(item.MacAddress, recv_info->src_addr, 6);  // Set sender MAC
+        
+        // Send response back to sender
+        esp_now_peer_info_t peerInfo = {};
+        memcpy(peerInfo.peer_addr, recv_info->src_addr, 6);
+        peerInfo.channel = 0;
+        peerInfo.encrypt = false;
+        
+        if (!esp_now_is_peer_exist(recv_info->src_addr)) {
+            if (esp_now_add_peer(&peerInfo) == ESP_OK) {
+                // Peer added successfully
+            }
         }
+        
+        // Create response with REAL CAN data from Jetson
+        Item response;
+        
+        if (hasValidCanData) {
+            // Send real CAN data including battery info from Jetson
+            response = lastValidCanData;
+            debug_print("Broadcasting REAL CAN+Battery data: SOC=%u%%, V=%.1fV, I=%.1fA, E=%.1fkWh\n",
+                       response.SOC, response.battery_voltage, response.battery_current, response.available_energy);
+        } else {
+            // Send zeros if no CAN data available yet
+            memset(&response, 0, sizeof(response));
+            debug_print("No CAN data from Jetson yet, sending zeros\n");
+        }
+        
+        // Set this ESP32's MAC in response
+        uint8_t mac[6];
+        esp_wifi_get_mac(WIFI_IF_STA, mac);
+        memcpy(response.MacAddress, mac, 6);
+        
+        esp_err_t err = esp_now_send(recv_info->src_addr, (uint8_t *)&response, sizeof(response));
+        if (err == ESP_OK) {
+            debug_print("Enhanced CAN data sent successfully via ESP-NOW\n");
+        } else {
+            debug_print("Failed to send CAN data via ESP-NOW: %s\n", esp_err_to_name(err));
+        }
+        
+        // Forward received data from external ESP32 to Jetson via USB Serial
+        if (xQueueSend(NowUSBQueue, &item, 0) != pdTRUE) {
+            // Queue full, drop packet silently
+        }
+        
+        return;
     }
     
-    // Create response with REAL CAN data from Jetson
-    Item response;
-    
-    if (hasValidCanData) {
-        // Send real CAN data from Jetson
-        response = lastValidCanData;
-        printf("Broadcasting REAL CAN data from Jetson: SOC=%u%%, Speed=%.1fkm/h, Display=%.1fkm/h, Odo=%.1fkm\n",
-               response.SOC, response.speedKmh, response.displaySpeed, response.odometerKm);
-    } else {
-        // Send zeros if no CAN data available yet
-        response.SOC = 0;
-        response.speedKmh = 0.0;
-        response.displaySpeed = 0.0;
-        response.odometerKm = 0.0;
-        printf("No CAN data from Jetson yet, sending zeros\n");
-    }
-    
-    // Set this ESP32's MAC in response
-    uint8_t mac[6];
-    esp_wifi_get_mac(WIFI_IF_STA, mac);
-    memcpy(response.MacAddress, mac, 6);
-    
-    esp_err_t err = esp_now_send(recv_info->src_addr, (uint8_t *)&response, sizeof(response));
-    if (err == ESP_OK) {
-        printf("CAN data sent successfully via ESP-NOW to external ESP32\n");
-    } else {
-        printf("Failed to send CAN data via ESP-NOW: %s\n", esp_err_to_name(err));
-    }
-    
-    // Forward received data from external ESP32 to Jetson via USB Serial
-    if (xQueueSend(NowUSBQueue, &item, 0) != pdTRUE) {
-        // Queue full, drop packet silently
-    }
+    debug_print("Received unknown data format, length: %d\n", len);
 }
 
 // Initialize ESP-NOW
