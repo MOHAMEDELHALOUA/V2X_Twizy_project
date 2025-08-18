@@ -3,12 +3,13 @@
 broker_ip=demo.thingsboard.io
 broker_port=1883
 device_token=4gj4bsa89ahi0gkeo3ah
-check_interval=2
+check_interval=4
 
 # EVCS Station Information
 evcs_name=HELECAR_ChargingStation
-latitude=33.986107
-longitude=-6.724805
+//33.986242, -6.725006
+latitude=33.986242
+longitude=-6.725006
 fast_charge=false
 plug_type=Type_F_schuko_3Kwh
 cost_per_kwh=1.50
