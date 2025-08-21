@@ -29,20 +29,49 @@ char parsed_filename[256];
 char esp_now_filename[256];
 char v2g_log_filename[256];
 
-// Enhanced Item structure with real CAN battery data
+//// Enhanced Item structure with real CAN battery data
+//typedef struct {
+//    unsigned short SOC;        // From CAN 0x155
+//    float speedKmh;           // From CAN 0x19F  
+//    float odometerKm;         // From CAN 0x5D7
+//    float displaySpeed;       // From GPS
+//    
+//    // NEW: Real battery data from CAN
+//    float battery_voltage;    // From CAN 0x425 - Real battery voltage
+//    float battery_current;    // From CAN 0x155 - Real battery current
+//    float available_energy;   // From CAN 0x425 - Real available energy
+//    uint8_t charging_status;  // From CAN 0x425 - Real charging status
+//    
+//    uint8_t MacAddress[6];
+//} Item;
+// ===== UPDATED ITEM STRUCTURE FOR V2V/V2G COMMUNICATION =====
 typedef struct {
-    unsigned short SOC;        // From CAN 0x155
-    float speedKmh;           // From CAN 0x19F  
-    float odometerKm;         // From CAN 0x5D7
-    float displaySpeed;       // From GPS
+    // Battery data (V2G critical)
+    unsigned short SOC;              // From CAN 0x155 - State of Charge %
+    float battery_voltage;           // From CAN 0x425 - Real battery voltage (V)
+    float battery_current;           // From CAN 0x155 - Real battery current (A)
+    float available_energy;          // From CAN 0x425 - Real available energy (kWh)
+    uint8_t charging_status;         // From CAN 0x425 - Real charging status
     
-    // NEW: Real battery data from CAN
-    float battery_voltage;    // From CAN 0x425 - Real battery voltage
-    float battery_current;    // From CAN 0x155 - Real battery current
-    float available_energy;   // From CAN 0x425 - Real available energy
-    uint8_t charging_status;  // From CAN 0x425 - Real charging status
+    // Vehicle dynamics (V2V critical)
+    float speedKmh;                  // From CAN 0x19F - Motor speed (km/h)
+    float acceleration;              // From CAN 0x59B - Accelerator percent (0-100%)
+    char gear[4];                    // From CAN 0x59B - Gear position (R/N/D)
+    uint8_t brake_status;            // From CAN 0x59B - Brake pressed (0/1)
     
-    uint8_t MacAddress[6];
+    // Vehicle position (V2V/V2G critical)
+    float gps_latitude;              // From GPS - Latitude (degrees)
+    float gps_longitude;             // From GPS - Longitude (degrees) 
+    float gps_altitude;              // From GPS - Altitude (meters)
+    
+    // V2G specific data
+    bool is_charging_detected;       // Charging detection flag
+    float desired_soc;               // Desired SOC for charging (%)
+    bool ready_to_charge;            // Vehicle ready for charging
+    
+    // Communication
+    uint8_t MacAddress[6];           // Sender's MAC address
+    uint32_t timestamp;              // Message timestamp
 } Item;
 
 // V2G Enhancement: Simple charging session tracking
@@ -588,29 +617,71 @@ void print_item(const Item *item) {
     // Silent mode - only CSV output
 }
 
+//void* printer_thread(void* arg) {
+//    FILE *fpt = fopen(esp_now_filename, "w+");
+//    if (!fpt) {
+//        perror("Failed to open ESP-NOW CSV file");
+//        return NULL;
+//    }
+//    fprintf(fpt, "MAC,SOC,Speed,DisplaySpeed,Odometer,BatteryVoltage,BatteryCurrent,AvailableEnergy,ChargingStatus\n");
+//    fflush(fpt);
+//    
+//    while (1) {
+//        Item item;
+//        dequeue(&item);
+//        print_item(&item);
+//        
+//        // Enhanced CSV output with real battery data
+//        for (int i = 0; i < 6; ++i) {
+//            fprintf(fpt, "%02X", item.MacAddress[i]);
+//            if (i < 5) fprintf(fpt, ":");
+//        }
+//        fprintf(fpt, ",%u,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,0x%02X\n", 
+//                item.SOC, item.speedKmh, item.displaySpeed, item.odometerKm,
+//                item.battery_voltage, item.battery_current, 
+//                item.available_energy, item.charging_status);
+//        fflush(fpt);
+//    }
+//    fclose(fpt);
+//    return NULL;
+//}
+
+// ===== UPDATED CSV OUTPUT FOR V2V/V2G DATA =====
 void* printer_thread(void* arg) {
     FILE *fpt = fopen(esp_now_filename, "w+");
     if (!fpt) {
-        perror("Failed to open ESP-NOW CSV file");
+        perror("Failed to open ESP-NOW V2V/V2G CSV file");
         return NULL;
     }
-    fprintf(fpt, "MAC,SOC,Speed,DisplaySpeed,Odometer,BatteryVoltage,BatteryCurrent,AvailableEnergy,ChargingStatus\n");
+    
+    // Updated CSV header for V2V/V2G data
+    fprintf(fpt, "MAC,SOC,BatteryVoltage,BatteryCurrent,AvailableEnergy,ChargingStatus,");
+    fprintf(fpt, "Speed,Acceleration,Gear,BrakeStatus,");
+    fprintf(fpt, "Latitude,Longitude,Altitude,GPSValid,");
+    fprintf(fpt, "IsCharging,DesiredSOC,ReadyToCharge,Timestamp\n");
     fflush(fpt);
     
     while (1) {
         Item item;
         dequeue(&item);
-        print_item(&item);
         
-        // Enhanced CSV output with real battery data
+        // MAC address
         for (int i = 0; i < 6; ++i) {
             fprintf(fpt, "%02X", item.MacAddress[i]);
             if (i < 5) fprintf(fpt, ":");
         }
-        fprintf(fpt, ",%u,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,0x%02X\n", 
-                item.SOC, item.speedKmh, item.displaySpeed, item.odometerKm,
-                item.battery_voltage, item.battery_current, 
+        
+        // V2V/V2G data output
+        fprintf(fpt, ",%u,%.1f,%.1f,%.1f,0x%02X,", 
+                item.SOC, item.battery_voltage, item.battery_current, 
                 item.available_energy, item.charging_status);
+        fprintf(fpt, "%.1f,%.0f,%s,%u,", 
+                item.speedKmh, item.acceleration, item.gear, item.brake_status);
+        fprintf(fpt, "%.6f,%.6f,%.1f,%u,", 
+                item.gps_latitude, item.gps_longitude, item.gps_altitude, item.gps_valid);
+        fprintf(fpt, "%s,%.0f,%s,%u\n",
+                item.is_charging_detected ? "YES" : "NO", item.desired_soc,
+                item.ready_to_charge ? "YES" : "NO", item.timestamp);
         fflush(fpt);
     }
     fclose(fpt);
@@ -675,45 +746,113 @@ void* can_reader_thread(void* arg) {
     return NULL;
 }
 
-// Enhanced sender thread with REAL CAN data
+//// Enhanced sender thread with REAL CAN data
+//void* can_to_esp32_sender_thread(void* arg) {
+//    printf("Sending REAL CAN battery data to ESP32\n");
+//    
+//    while (1) {
+//        MergedCANData merged = create_merged_can_data();
+//        
+//        if (merged.has_data) {
+//            Item can_item = {
+//                .SOC = (unsigned short)merged.soc,
+//                .speedKmh = merged.motor_speed,
+//                .odometerKm = merged.odometer,
+//                .displaySpeed = merged.gps_speed,  // Use GPS speed as display speed
+//                
+//                // NEW: Send REAL battery data from CAN
+//                .battery_voltage = merged.battery_voltage,      // Real voltage from CAN 0x425
+//                .battery_current = merged.current,              // Real current from CAN 0x155  
+//                .available_energy = merged.available_energy,    // Real energy from CAN 0x425
+//                .charging_status = merged.charging_status,      // Real charging status from CAN 0x425
+//                
+//                .MacAddress = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
+//            };
+//            
+//            uint8_t header[2] = { HEADER_BYTE_1, HEADER_BYTE_2 };
+//            write(serial_port, header, 2);
+//            write(serial_port, &can_item, sizeof(Item));
+//            
+//            // Debug output every 10 sends
+//            static int send_count = 0;
+//            send_count++;
+//            if (send_count % 10 == 0) {
+//                printf("Sent real CAN data [%d]: SOC=%d%%, V=%.1fV, I=%.1fA, E=%.1fkWh, Charging=%s\n",
+//                       send_count, can_item.SOC, can_item.battery_voltage, 
+//                       can_item.battery_current, can_item.available_energy, 
+//                       merged.is_charging_detected ? "YES" : "NO");
+//            }
+//        }
+//        
+//        sleep(3);
+//    }
+//    return NULL;
+//}
+
+// ===== UPDATED SENDING FUNCTION IN JETSON CODE =====
 void* can_to_esp32_sender_thread(void* arg) {
-    printf("Sending REAL CAN battery data to ESP32\n");
+    printf("Sending V2V/V2G CAN data to ESP32\n");
     
     while (1) {
         MergedCANData merged = create_merged_can_data();
         
         if (merged.has_data) {
-            Item can_item = {
+            Item v2v_v2g_item = {
+                // Battery data (V2G)
                 .SOC = (unsigned short)merged.soc,
-                .speedKmh = merged.motor_speed,
-                .odometerKm = merged.odometer,
-                .displaySpeed = merged.gps_speed,  // Use GPS speed as display speed
-                
-                // NEW: Send REAL battery data from CAN
                 .battery_voltage = merged.battery_voltage,      // Real voltage from CAN 0x425
                 .battery_current = merged.current,              // Real current from CAN 0x155  
                 .available_energy = merged.available_energy,    // Real energy from CAN 0x425
                 .charging_status = merged.charging_status,      // Real charging status from CAN 0x425
                 
-                .MacAddress = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
+                // Vehicle dynamics (V2V)
+                .speedKmh = merged.motor_speed,                 // From CAN 0x19F
+                .acceleration = (float)merged.accelerator,      // From CAN 0x59B (0-100%)
+                .brake_status = (uint8_t)merged.brake,          // From CAN 0x59B (0/1)
+                
+                // Vehicle position (V2V/V2G)
+                .gps_latitude = merged.gps_latitude,            // From GPS
+                .gps_longitude = merged.gps_longitude,          // From GPS
+                .gps_altitude = merged.gps_altitude,            // From GPS
+                .gps_valid = (uint8_t)merged.gps_valid,         // GPS validity
+                
+                // V2G specific
+                .is_charging_detected = merged.is_charging_detected,
+                .desired_soc = 80.0f,                           // Default desired SOC
+                .ready_to_charge = (merged.soc < 90),           // Ready if SOC < 90%
+                
+                // Communication
+                .MacAddress = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+                .timestamp = (uint32_t)time(NULL)
             };
+            
+            // Copy gear string (max 3 chars + null terminator)
+            strncpy(v2v_v2g_item.gear, merged.gear, 3);
+            v2v_v2g_item.gear[3] = '\0';
             
             uint8_t header[2] = { HEADER_BYTE_1, HEADER_BYTE_2 };
             write(serial_port, header, 2);
-            write(serial_port, &can_item, sizeof(Item));
+            write(serial_port, &v2v_v2g_item, sizeof(Item));
             
             // Debug output every 10 sends
             static int send_count = 0;
             send_count++;
             if (send_count % 10 == 0) {
-                printf("Sent real CAN data [%d]: SOC=%d%%, V=%.1fV, I=%.1fA, E=%.1fkWh, Charging=%s\n",
-                       send_count, can_item.SOC, can_item.battery_voltage, 
-                       can_item.battery_current, can_item.available_energy, 
-                       merged.is_charging_detected ? "YES" : "NO");
+                printf("Sent V2V/V2G data [%d]: SOC=%d%%, V=%.1fV, I=%.1fA, Speed=%.1fkm/h\n",
+                       send_count, v2v_v2g_item.SOC, v2v_v2g_item.battery_voltage, 
+                       v2v_v2g_item.battery_current, v2v_v2g_item.speedKmh);
+                printf("  Position: %.6f,%.6f Alt:%.1fm, Accel:%.0f%%, Brake:%s, Gear:%s\n",
+                       v2v_v2g_item.gps_latitude, v2v_v2g_item.gps_longitude, 
+                       v2v_v2g_item.gps_altitude, v2v_v2g_item.acceleration,
+                       v2v_v2g_item.brake_status ? "ON" : "OFF", v2v_v2g_item.gear);
+                printf("  Charging: %s, Ready: %s, Desired SOC: %.0f%%\n",
+                       v2v_v2g_item.is_charging_detected ? "YES" : "NO",
+                       v2v_v2g_item.ready_to_charge ? "YES" : "NO",
+                       v2v_v2g_item.desired_soc);
             }
         }
         
-        sleep(3);
+        sleep(3);  // Send every 3 seconds
     }
     return NULL;
 }

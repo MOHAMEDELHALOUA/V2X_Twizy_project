@@ -17,26 +17,44 @@
 // Buffer size
 #define BUF_SIZE 256
 
-// V2G Communication Interval
+// V2G/V2V Communication Interval
 #define V2G_SEND_INTERVAL_MS 5000  // Send V2G data every 5 seconds
+#define V2V_BROADCAST_INTERVAL_MS 2000  // Broadcast every 2 seconds
+
+unsigned long last_v2v_broadcast = 0;
 
 // Debug control - set to false for production (clean serial communication)
 #define DEBUG_PRINTS false
 
-// ===== UPDATED CAN DATA STRUCTURE (for Jetson communication with real battery data) =====
+// ===== UPDATED ITEM STRUCTURE IN ESP32 CODE =====
 typedef struct {
-    unsigned short SOC;        // From CAN 0x155
-    float speedKmh;           // From CAN 0x19F
-    float odometerKm;         // From CAN 0x5D7
-    float displaySpeed;       // From GPS
+    // Battery data (V2G critical)
+    unsigned short SOC;              // From CAN 0x155 - State of Charge %
+    float battery_voltage;           // From CAN 0x425 - Real battery voltage (V)
+    float battery_current;           // From CAN 0x155 - Real battery current (A)
+    float available_energy;          // From CAN 0x425 - Real available energy (kWh)
+    uint8_t charging_status;         // From CAN 0x425 - Real charging status
     
-    // NEW: Real battery data from CAN
-    float battery_voltage;    // From CAN 0x425 - Real battery voltage
-    float battery_current;    // From CAN 0x155 - Real battery current
-    float available_energy;   // From CAN 0x425 - Real available energy
-    uint8_t charging_status;  // From CAN 0x425 - Real charging status
+    // Vehicle dynamics (V2V critical)
+    float speedKmh;                  // From CAN 0x19F - Motor speed (km/h)
+    float acceleration;              // From CAN 0x59B - Accelerator percent (0-100%)
+    char gear[4];                    // From CAN 0x59B - Gear position (P/R/N/D)
+    uint8_t brake_status;            // From CAN 0x59B - Brake pressed (0/1)
     
-    uint8_t MacAddress[6];     // Sender's MAC
+    // Vehicle position (V2V/V2G critical)
+    float gps_latitude;              // From GPS - Latitude (degrees)
+    float gps_longitude;             // From GPS - Longitude (degrees) 
+    float gps_altitude;              // From GPS - Altitude (meters)
+    uint8_t gps_valid;               // GPS validity flag
+    
+    // V2G specific data
+    bool is_charging_detected;       // Charging detection flag
+    float desired_soc;               // Desired SOC for charging (%)
+    bool ready_to_charge;            // Vehicle ready for charging
+    
+    // Communication
+    uint8_t MacAddress[6];           // Sender's MAC address
+    uint32_t timestamp;              // Message timestamp
 } Item;
 
 // ===== V2G DATA STRUCTURES (for EVCS communication) =====
@@ -183,6 +201,12 @@ void app_main()
             send_v2g_data_to_evcs();
             last_v2g_send = currentTime;
         }
+
+        // NEW: V2V broadcast (every 2 seconds)
+        if (hasValidCanData && (currentTime - last_v2v_broadcast >= V2V_BROADCAST_INTERVAL_MS)) {
+            broadcast_v2v_data();
+            last_v2v_broadcast = currentTime;
+        }
         
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
@@ -209,25 +233,31 @@ void init_v2g_data() {
     debug_print("  Desired SOC: %.1f%%\n", vehicle_data.desired_soc);
 }
 
-// UPDATED: Now uses REAL CAN battery data instead of calculations
+// ===== UPDATED V2G DATA UPDATE FUNCTION =====
 void update_v2g_data_from_can() {
     if (hasValidCanData) {
-        // Use REAL CAN data directly (no more estimates!)
+        // Battery data for V2G
         vehicle_data.battery_soc = lastValidCanData.SOC;
-        vehicle_data.battery_voltage = lastValidCanData.battery_voltage;    // Real voltage from CAN 0x425
-        vehicle_data.battery_current = lastValidCanData.battery_current;    // Real current from CAN 0x155
+        vehicle_data.battery_voltage = lastValidCanData.battery_voltage;
+        vehicle_data.battery_current = lastValidCanData.battery_current;
+        
+        // V2G logic based on real data
+        vehicle_data.ready_to_charge = lastValidCanData.ready_to_charge;
         
         // Auto-stop charging if SOC reaches desired level
-        if (vehicle_data.battery_soc >= vehicle_data.desired_soc) {
+        if (vehicle_data.battery_soc >= lastValidCanData.desired_soc) {
             vehicle_data.stop_charging = true;
             vehicle_data.ready_to_charge = false;
-        } else if (vehicle_data.battery_soc < (vehicle_data.desired_soc - 5.0f)) {
-            // Resume charging if SOC drops 5% below desired
+        } else if (vehicle_data.battery_soc < (lastValidCanData.desired_soc - 5.0f)) {
             vehicle_data.stop_charging = false;
             vehicle_data.ready_to_charge = true;
         }
         
         vehicle_data.timestamp = pdTICKS_TO_MS(xTaskGetTickCount());
+        
+        debug_print("[V2G] Updated from CAN: SOC=%u%%, V=%.1fV, I=%.1fA, Ready=%s\n",
+                    vehicle_data.battery_soc, vehicle_data.battery_voltage, 
+                    vehicle_data.battery_current, vehicle_data.ready_to_charge ? "YES" : "NO");
     }
 }
 
@@ -395,102 +425,92 @@ static void usb_serial_rx_task(void *pvParameter)
 }
 
 // CLEAN: Silent update function - no prints to interfere with Jetson communication
+// ===== UPDATED CAN DATA UPDATE FUNCTION =====
 void updateCanDataFromReceived(const Item *received) {
-    // Copy all data directly including new battery fields
+    // Copy all V2V/V2G data
     lastValidCanData = *received;
     hasValidCanData = true;
     
-    // Only debug print if enabled
-    debug_print("Updated CAN data: SOC=%u%%, V=%.1fV, I=%.1fA, E=%.1fkWh, Status=0x%02X\n",
+    debug_print("Updated V2V/V2G data: SOC=%u%%, V=%.1fV, I=%.1fA, Speed=%.1fkm/h\n",
                 lastValidCanData.SOC, lastValidCanData.battery_voltage, 
-                lastValidCanData.battery_current, lastValidCanData.available_energy,
-                lastValidCanData.charging_status);
+                lastValidCanData.battery_current, lastValidCanData.speedKmh);
+    debug_print("  Position: %.6f,%.6f, Accel:%.0f%%, Brake:%s, Gear:%s\n",
+                lastValidCanData.gps_latitude, lastValidCanData.gps_longitude,
+                lastValidCanData.acceleration, 
+                lastValidCanData.brake_status ? "ON" : "OFF", lastValidCanData.gear);
+    debug_print("  Charging: %s, Ready: %s\n",
+                lastValidCanData.is_charging_detected ? "YES" : "NO",
+                lastValidCanData.ready_to_charge ? "YES" : "NO");
 }
-
 // CLEAN: Minimal ESP-NOW callback - essential communication only
+// ===== UPDATED ESP-NOW DATA RECEPTION FOR V2V =====
 void OnDataRecv(const esp_now_recv_info_t *recv_info, const uint8_t *incomingData, int len) {
     // Check if this is EVCS V2G data
     if (len == sizeof(evcs_to_vehicle_t)) {
         debug_print("[V2G] Received data from EVCS\n");
         
-        // This is EVCS data
         evcs_to_vehicle_t received_evcs_data;
         memcpy(&received_evcs_data, incomingData, sizeof(evcs_to_vehicle_t));
         
-        // Store EVCS MAC if this is a new EVCS
+        // Handle EVCS connection and data processing
         if (!evcs_connected) {
             memcpy(evcs_mac, recv_info->src_addr, 6);
             evcs_connected = true;
             debug_print("[V2G] Connected to EVCS: %02X:%02X:%02X:%02X:%02X:%02X\n",
                        evcs_mac[0], evcs_mac[1], evcs_mac[2], 
                        evcs_mac[3], evcs_mac[4], evcs_mac[5]);
-            
-            // Add EVCS as peer
-            esp_now_peer_info_t peerInfo = {};
-            memcpy(peerInfo.peer_addr, evcs_mac, 6);
-            peerInfo.channel = 0;
-            peerInfo.encrypt = false;
-            
-            if (!esp_now_is_peer_exist(evcs_mac)) {
-                esp_now_add_peer(&peerInfo);
-            }
         }
         
-        // Process EVCS data
         process_evcs_data(&received_evcs_data);
-        
         return;
     }
     
-    // Check if this is enhanced CAN data with battery info
+    // Check if this is V2V data from another vehicle
     if (len == sizeof(Item)) {
-        debug_print("Received enhanced ESP-NOW data with battery info\n");
+        debug_print("[V2V] Received vehicle data from: %02X:%02X:%02X:%02X:%02X:%02X\n",
+                   recv_info->src_addr[0], recv_info->src_addr[1], recv_info->src_addr[2],
+                   recv_info->src_addr[3], recv_info->src_addr[4], recv_info->src_addr[5]);
         
-        Item item;
-        memcpy(&item, incomingData, sizeof(Item));
-        memcpy(item.MacAddress, recv_info->src_addr, 6);  // Set sender MAC
+        Item received_vehicle_item;
+        memcpy(&received_vehicle_item, incomingData, sizeof(Item));
+        memcpy(received_vehicle_item.MacAddress, recv_info->src_addr, 6);
         
-        // Send response back to sender
+        // Process V2V data (collision avoidance, traffic info, etc.)
+        debug_print("[V2V] Other vehicle: SOC=%u%%, Speed=%.1fkm/h, Pos:%.6f,%.6f\n",
+                   received_vehicle_item.SOC, received_vehicle_item.speedKmh,
+                   received_vehicle_item.gps_latitude, received_vehicle_item.gps_longitude);
+        debug_print("[V2V] Brake:%s, Gear:%s, Charging:%s\n",
+                   received_vehicle_item.brake_status ? "ON" : "OFF",
+                   received_vehicle_item.gear,
+                   received_vehicle_item.is_charging_detected ? "YES" : "NO");
+        
+        // Add peer for future communication
         esp_now_peer_info_t peerInfo = {};
         memcpy(peerInfo.peer_addr, recv_info->src_addr, 6);
         peerInfo.channel = 0;
         peerInfo.encrypt = false;
         
         if (!esp_now_is_peer_exist(recv_info->src_addr)) {
-            if (esp_now_add_peer(&peerInfo) == ESP_OK) {
-                // Peer added successfully
+            esp_now_add_peer(&peerInfo);
+        }
+        
+        // Send our current vehicle data back for V2V communication
+        if (hasValidCanData) {
+            Item response = lastValidCanData;
+            uint8_t mac[6];
+            esp_wifi_get_mac(WIFI_IF_STA, mac);
+            memcpy(response.MacAddress, mac, 6);
+            response.timestamp = pdTICKS_TO_MS(xTaskGetTickCount());
+            
+            esp_err_t err = esp_now_send(recv_info->src_addr, (uint8_t *)&response, sizeof(response));
+            if (err == ESP_OK) {
+                debug_print("[V2V] Sent our vehicle data back successfully\n");
             }
         }
         
-        // Create response with REAL CAN data from Jetson
-        Item response;
-        
-        if (hasValidCanData) {
-            // Send real CAN data including battery info from Jetson
-            response = lastValidCanData;
-            debug_print("Broadcasting REAL CAN+Battery data: SOC=%u%%, V=%.1fV, I=%.1fA, E=%.1fkWh\n",
-                       response.SOC, response.battery_voltage, response.battery_current, response.available_energy);
-        } else {
-            // Send zeros if no CAN data available yet
-            memset(&response, 0, sizeof(response));
-            debug_print("No CAN data from Jetson yet, sending zeros\n");
-        }
-        
-        // Set this ESP32's MAC in response
-        uint8_t mac[6];
-        esp_wifi_get_mac(WIFI_IF_STA, mac);
-        memcpy(response.MacAddress, mac, 6);
-        
-        esp_err_t err = esp_now_send(recv_info->src_addr, (uint8_t *)&response, sizeof(response));
-        if (err == ESP_OK) {
-            debug_print("Enhanced CAN data sent successfully via ESP-NOW\n");
-        } else {
-            debug_print("Failed to send CAN data via ESP-NOW: %s\n", esp_err_to_name(err));
-        }
-        
-        // Forward received data from external ESP32 to Jetson via USB Serial
-        if (xQueueSend(NowUSBQueue, &item, 0) != pdTRUE) {
-            // Queue full, drop packet silently
+        // Forward to Jetson for logging/processing
+        if (xQueueSend(NowUSBQueue, &received_vehicle_item, 0) != pdTRUE) {
+            // Queue full - drop packet silently
         }
         
         return;
@@ -498,7 +518,6 @@ void OnDataRecv(const esp_now_recv_info_t *recv_info, const uint8_t *incomingDat
     
     debug_print("Received unknown data format, length: %d\n", len);
 }
-
 // Initialize ESP-NOW
 esp_err_t init_esp_now(void) {
     esp_err_t ret;
@@ -530,4 +549,20 @@ esp_err_t init_esp_now(void) {
     }
     
     return ESP_OK;
+}
+// New function for V2V broadcasting
+void broadcast_v2v_data() {
+    if (!hasValidCanData) return;
+    
+    Item v2v_data = lastValidCanData;
+    uint8_t mac[6];
+    esp_wifi_get_mac(WIFI_IF_STA, mac);
+    memcpy(v2v_data.MacAddress, mac, 6);
+    v2v_data.timestamp = pdTICKS_TO_MS(xTaskGetTickCount());
+    
+    // Broadcast to all nearby vehicles (use broadcast MAC)
+    uint8_t broadcast_mac[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+    esp_err_t result = esp_now_send(broadcast_mac, (uint8_t *)&v2v_data, sizeof(v2v_data));
+    
+    debug_print("[V2V] Broadcasted vehicle data to nearby vehicles\n");
 }
