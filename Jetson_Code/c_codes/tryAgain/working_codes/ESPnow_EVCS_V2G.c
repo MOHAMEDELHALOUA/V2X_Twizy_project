@@ -63,7 +63,8 @@ typedef struct {
     float gps_latitude;              // From GPS - Latitude (degrees)
     float gps_longitude;             // From GPS - Longitude (degrees) 
     float gps_altitude;              // From GPS - Altitude (meters)
-    
+    uint8_t gps_valid;   
+
     // V2G specific data
     bool is_charging_detected;       // Charging detection flag
     float desired_soc;               // Desired SOC for charging (%)
@@ -688,26 +689,26 @@ void* printer_thread(void* arg) {
     return NULL;
 }
 
-void* sender_thread(void* arg) {
-    while (1) {
-        Item item = {
-            .SOC = 85,
-            .speedKmh = 42.0,
-            .odometerKm = 1234.5,
-            .displaySpeed = 41.8,
-            .battery_voltage = 58.5,
-            .battery_current = -2.1,
-            .available_energy = 5.2,
-            .charging_status = 0x00,
-            .MacAddress = {0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x01}
-        };
-        uint8_t header[2] = { HEADER_BYTE_1, HEADER_BYTE_2 };
-        write(serial_port, header, 2);
-        write(serial_port, &item, sizeof(Item));
-        usleep(5000000); // 5 seconds
-    }
-    return NULL;
-}
+//void* sender_thread(void* arg) {
+//    while (1) {
+//        Item item = {
+//            .SOC = 85,
+//            .speedKmh = 42.0,
+//            .odometerKm = 1234.5,
+//            .displaySpeed = 41.8,
+//            .battery_voltage = 58.5,
+//            .battery_current = -2.1,
+//            .available_energy = 5.2,
+//            .charging_status = 0x00,
+//            .MacAddress = {0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x01}
+//        };
+//        uint8_t header[2] = { HEADER_BYTE_1, HEADER_BYTE_2 };
+//        write(serial_port, header, 2);
+//        write(serial_port, &item, sizeof(Item));
+//        usleep(5000000); // 5 seconds
+//    }
+//    return NULL;
+//}
 
 // Simple CAN reader thread with charging detection
 void* can_reader_thread(void* arg) {
@@ -911,7 +912,7 @@ int main(int argc, char *argv[]) {
     pthread_t rx_tid, tx_tid, print_tid, can_reader_tid, can_sender_tid;
     
     pthread_create(&rx_tid, NULL, receiver_thread, NULL);
-    pthread_create(&tx_tid, NULL, sender_thread, NULL);
+//    pthread_create(&tx_tid, NULL, sender_thread, NULL);
     pthread_create(&print_tid, NULL, printer_thread, NULL);
     pthread_create(&can_reader_tid, NULL, can_reader_thread, NULL);
     pthread_create(&can_sender_tid, NULL, can_to_esp32_sender_thread, NULL);

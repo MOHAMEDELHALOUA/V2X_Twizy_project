@@ -15,8 +15,8 @@
 #define EVCS_LONGITUDE -6.724805f
 
 // Configuration flags
-#define DEBUG_V2G false          // Set to true for V2G debugging
-#define DEBUG_PZEM false         // Set to true for PZEM debugging
+#define DEBUG_V2G true          // Set to true for V2G debugging
+#define DEBUG_PZEM true         // Set to true for PZEM debugging
 #define ENABLE_V2G true          // Set to false to disable V2G completely
 
 // Charging parameters
@@ -40,12 +40,35 @@ unsigned long session_start_time = 0;
 PZEM004Tv30 pzem(Serial2, PZEM_RX_PIN, PZEM_TX_PIN);
 
 // Struct to send to Vehicle (EVCS -> Vehicle)
+//typedef struct {
+//    uint8_t evcs_mac[6];           // EVCS MAC address
+//    float ac_voltage;              // AC voltage available (V)
+//    float max_current;             // Maximum current available (A)
+//    float max_power;               // Maximum power available (W)
+//    float cost_per_kwh;            // Cost per kWh
+//    float current_energy_delivered; // Total energy delivered this session (kWh)
+//    float current_cost;            // Current session cost
+//    bool charging_available;       // Slot available for charging
+//    uint32_t session_id;           // Unique session identifier
+//    unsigned long timestamp;       // Message timestamp
+//} evcs_to_vehicle_t;
+
+// EVCS → Vehicle struct (with EVCS position)
 typedef struct {
     uint8_t evcs_mac[6];           // EVCS MAC address
+    
+    // EVCS Position (NEW - CRITICAL for distance calculation)
+    float evcs_latitude;           // EVCS GPS latitude
+    float evcs_longitude;          // EVCS GPS longitude
+    float evcs_altitude;           // EVCS GPS altitude (optional)
+    
+    // Charging specifications
     float ac_voltage;              // AC voltage available (V)
     float max_current;             // Maximum current available (A)
     float max_power;               // Maximum power available (W)
     float cost_per_kwh;            // Cost per kWh
+    
+    // Session information
     float current_energy_delivered; // Total energy delivered this session (kWh)
     float current_cost;            // Current session cost
     bool charging_available;       // Slot available for charging
@@ -54,15 +77,41 @@ typedef struct {
 } evcs_to_vehicle_t;
 
 // Struct to receive from Vehicle (Vehicle -> EVCS)
+//typedef struct {
+//    uint8_t vehicle_mac[6];        // Vehicle MAC address
+//    uint16_t battery_soc;          // State of Charge (0-100%)
+//    float battery_voltage;         // Battery voltage (V)
+//    float battery_current;         // Current battery current (A)
+//    float battery_capacity;        // Total battery capacity (kWh)
+//    float desired_soc;             // Desired SOC (0-100%)
+//    bool ready_to_charge;          // Vehicle ready to start charging
+//    bool stop_charging;            // Vehicle wants to stop charging
+//    uint32_t session_id;           // Session ID (should match EVCS)
+//    unsigned long timestamp;       // Message timestamp
+//} vehicle_to_evcs_t;
+
+// Vehicle → EVCS struct (with vehicle position)
 typedef struct {
     uint8_t vehicle_mac[6];        // Vehicle MAC address
+    
+    // Vehicle Position (NEW - for EVCS to know vehicle location)
+    float vehicle_latitude;        // Vehicle GPS latitude
+    float vehicle_longitude;       // Vehicle GPS longitude
+    float vehicle_altitude;        // Vehicle GPS altitude
+    uint8_t gps_valid;            // GPS validity flag (0=invalid, 1=valid)
+    
+    // Battery information
     uint16_t battery_soc;          // State of Charge (0-100%)
     float battery_voltage;         // Battery voltage (V)
     float battery_current;         // Current battery current (A)
     float battery_capacity;        // Total battery capacity (kWh)
     float desired_soc;             // Desired SOC (0-100%)
+    
+    // Charging control
     bool ready_to_charge;          // Vehicle ready to start charging
     bool stop_charging;            // Vehicle wants to stop charging
+    
+    // Communication
     uint32_t session_id;           // Session ID (should match EVCS)
     unsigned long timestamp;       // Message timestamp
 } vehicle_to_evcs_t;
@@ -112,46 +161,79 @@ void debug_pzem(const char* format, ...) {
         va_end(args);
     }
 }
+// DISTANCE CALCULATION FUNCTION
+float calculate_distance_between_points(float lat1, float lon1, float lat2, float lon2);
+
+//void setup() {
+//    Serial.begin(115200);
+//    
+//    // CRITICAL: Only send essential startup message to maintain Raspberry Pi compatibility
+//    if (DEBUG_V2G) {
+//        Serial.println("HELECAR EVCS - V2G Communication System");
+//        Serial.println("=======================================");
+//    }
+//    
+//    if (ENABLE_V2G) {
+//        // Initialize WiFi in Station mode for ESP-NOW
+//        WiFi.mode(WIFI_STA);
+//        
+//        // Get this ESP32's MAC address
+//        WiFi.macAddress(evcs_data.evcs_mac);
+//        
+//        if (DEBUG_V2G) {
+//            Serial.print("EVCS MAC Address: ");
+//            for (int i = 0; i < 6; i++) {
+//                Serial.printf("%02X", evcs_data.evcs_mac[i]);
+//                if (i < 5) Serial.print(":");
+//            }
+//            Serial.println();
+//        }
+//        
+//        // Initialize ESP-NOW
+//        init_esp_now();
+//        
+//        // Initialize EVCS data with default values
+//        evcs_data.max_current = 13.0f;        // 13A max for Type F
+//        evcs_data.max_power = MAX_CHARGING_POWER;
+//        evcs_data.cost_per_kwh = CHARGING_RATE_PER_KWH;
+//        evcs_data.charging_available = true;
+//        evcs_data.current_energy_delivered = 0.0f;
+//        evcs_data.current_cost = 0.0f;
+//        
+//        // Generate initial session ID
+//        current_session_id = millis();
+//        evcs_data.session_id = current_session_id;
+//    }
+//    
+//    delay(1000);
+//}
 
 void setup() {
     Serial.begin(115200);
     
-    // CRITICAL: Only send essential startup message to maintain Raspberry Pi compatibility
-    if (DEBUG_V2G) {
-        Serial.println("HELECAR EVCS - V2G Communication System");
-        Serial.println("=======================================");
-    }
-    
     if (ENABLE_V2G) {
-        // Initialize WiFi in Station mode for ESP-NOW
         WiFi.mode(WIFI_STA);
-        
-        // Get this ESP32's MAC address
         WiFi.macAddress(evcs_data.evcs_mac);
         
-        if (DEBUG_V2G) {
-            Serial.print("EVCS MAC Address: ");
-            for (int i = 0; i < 6; i++) {
-                Serial.printf("%02X", evcs_data.evcs_mac[i]);
-                if (i < 5) Serial.print(":");
-            }
-            Serial.println();
-        }
+        // Initialize EVCS data with POSITION (NEW)
+        evcs_data.evcs_latitude = EVCS_LATITUDE;      // 33.986107f
+        evcs_data.evcs_longitude = EVCS_LONGITUDE;    // -6.724805f
+        evcs_data.evcs_altitude = 0.0f;               // Set if known
         
-        // Initialize ESP-NOW
-        init_esp_now();
-        
-        // Initialize EVCS data with default values
-        evcs_data.max_current = 13.0f;        // 13A max for Type F
+        evcs_data.max_current = 13.0f;
         evcs_data.max_power = MAX_CHARGING_POWER;
         evcs_data.cost_per_kwh = CHARGING_RATE_PER_KWH;
         evcs_data.charging_available = true;
         evcs_data.current_energy_delivered = 0.0f;
         evcs_data.current_cost = 0.0f;
         
-        // Generate initial session ID
         current_session_id = millis();
         evcs_data.session_id = current_session_id;
+        
+        init_esp_now();
+        
+        debug_v2g("EVCS Position: %.6f, %.6f", 
+                 evcs_data.evcs_latitude, evcs_data.evcs_longitude);
     }
     
     delay(1000);
@@ -274,55 +356,6 @@ void on_data_sent(const uint8_t *mac_addr, esp_now_send_status_t status) {
     }
 }
 
-void on_data_received(const uint8_t *mac, const uint8_t *incoming_data, int len) {
-    if (!ENABLE_V2G) return;
-    
-    if (len != sizeof(vehicle_to_evcs_t)) {
-        debug_v2g("[V2G] ERROR: Unexpected data length: %d (expected %d)", 
-                 len, sizeof(vehicle_to_evcs_t));
-        return;
-    }
-    
-    // Copy received data
-    memcpy(&vehicle_data, incoming_data, sizeof(vehicle_to_evcs_t));
-    memcpy(vehicle_data.vehicle_mac, mac, 6);
-    vehicle_data_received = true;
-    
-    // Print received vehicle data (only in debug mode)
-    if (DEBUG_V2G) {
-        debug_v2g("[V2G] Vehicle MAC: %02X:%02X:%02X:%02X:%02X:%02X",
-                 vehicle_data.vehicle_mac[0], vehicle_data.vehicle_mac[1],
-                 vehicle_data.vehicle_mac[2], vehicle_data.vehicle_mac[3],
-                 vehicle_data.vehicle_mac[4], vehicle_data.vehicle_mac[5]);
-        debug_v2g("[V2G] Battery SOC: %u%%, Voltage: %.1f V, Current: %.1f A",
-                 vehicle_data.battery_soc, vehicle_data.battery_voltage, vehicle_data.battery_current);
-    }
-    
-    // Update vehicle MAC if it's a new vehicle
-    bool is_new_vehicle = false;
-    for (int i = 0; i < 6; i++) {
-        if (vehicle_mac[i] != mac[i]) {
-            is_new_vehicle = true;
-            break;
-        }
-    }
-    
-    if (is_new_vehicle) {
-        debug_v2g("[V2G] New vehicle detected, updating peer MAC");
-        memcpy(vehicle_mac, mac, 6);
-        
-        // Remove old peer and add new one
-        esp_now_del_peer(peerInfo.peer_addr);
-        memcpy(peerInfo.peer_addr, vehicle_mac, 6);
-        esp_now_add_peer(&peerInfo);
-    }
-    
-    // Handle vehicle requests
-    if (vehicle_data.stop_charging && session_active) {
-        debug_v2g("[V2G] Vehicle requested to stop charging");
-        end_charging_session();
-    }
-}
 
 void send_v2g_data() {
     if (!ENABLE_V2G) return;
@@ -380,9 +413,102 @@ void handle_charging_session() {
     evcs_data.current_cost = evcs_data.current_energy_delivered * CHARGING_RATE_PER_KWH;
 }
 
+//void update_evcs_data() {
+//    if (!ENABLE_V2G) return;
+//    
+//    evcs_data.charging_available = !session_active;
+//    evcs_data.timestamp = millis();
+//}
+//
 void update_evcs_data() {
     if (!ENABLE_V2G) return;
     
     evcs_data.charging_available = !session_active;
     evcs_data.timestamp = millis();
+    
+    // Position data always included (EVCS doesn't move)
+    evcs_data.evcs_latitude = EVCS_LATITUDE;
+    evcs_data.evcs_longitude = EVCS_LONGITUDE;
+    evcs_data.evcs_altitude = 0.0f;
 }
+
+void on_data_received(const uint8_t *mac, const uint8_t *incoming_data, int len) {
+    if (!ENABLE_V2G) return;
+    
+    if (len != sizeof(vehicle_to_evcs_t)) {
+        debug_v2g("[V2G] ERROR: Unexpected data length: %d (expected %d)", 
+                 len, sizeof(vehicle_to_evcs_t));
+        return;
+    }
+    
+    // Copy received data
+    memcpy(&vehicle_data, incoming_data, sizeof(vehicle_to_evcs_t));
+    memcpy(vehicle_data.vehicle_mac, mac, 6);
+    vehicle_data_received = true;
+    
+    // Print received vehicle data with POSITION (NEW)
+    if (DEBUG_V2G) {
+        debug_v2g("[V2G] Vehicle MAC: %02X:%02X:%02X:%02X:%02X:%02X",
+                 vehicle_data.vehicle_mac[0], vehicle_data.vehicle_mac[1],
+                 vehicle_data.vehicle_mac[2], vehicle_data.vehicle_mac[3],
+                 vehicle_data.vehicle_mac[4], vehicle_data.vehicle_mac[5]);
+        debug_v2g("[V2G] Vehicle Position: %.6f, %.6f (GPS: %s)",
+                 vehicle_data.vehicle_latitude, vehicle_data.vehicle_longitude,
+                 vehicle_data.gps_valid ? "Valid" : "Invalid");
+        debug_v2g("[V2G] Battery: SOC=%u%%, Voltage=%.1fV, Current=%.1fA",
+                 vehicle_data.battery_soc, vehicle_data.battery_voltage, vehicle_data.battery_current);
+        
+        // Calculate distance to vehicle (NEW FEATURE)
+        if (vehicle_data.gps_valid) {
+            float distance = calculate_distance_between_points(
+                EVCS_LATITUDE, EVCS_LONGITUDE,
+                vehicle_data.vehicle_latitude, vehicle_data.vehicle_longitude
+            );
+            debug_v2g("[V2G] Distance to vehicle: %.1f meters", distance);
+        }
+    }
+    
+    // Update vehicle MAC if it's a new vehicle
+    bool is_new_vehicle = false;
+    for (int i = 0; i < 6; i++) {
+        if (vehicle_mac[i] != mac[i]) {
+            is_new_vehicle = true;
+            break;
+        }
+    }
+    
+    if (is_new_vehicle) {
+        debug_v2g("[V2G] New vehicle detected, updating peer MAC");
+        memcpy(vehicle_mac, mac, 6);
+        
+        esp_now_del_peer(peerInfo.peer_addr);
+        memcpy(peerInfo.peer_addr, vehicle_mac, 6);
+        esp_now_add_peer(&peerInfo);
+    }
+    
+    // Handle vehicle requests
+    if (vehicle_data.stop_charging && session_active) {
+        debug_v2g("[V2G] Vehicle requested to stop charging");
+        end_charging_session();
+    }
+}
+// DISTANCE CALCULATION FUNCTION
+float calculate_distance_between_points(float lat1, float lon1, float lat2, float lon2) {
+    // Convert degrees to radians
+    float lat1_rad = lat1 * M_PI / 180.0f;
+    float lon1_rad = lon1 * M_PI / 180.0f;
+    float lat2_rad = lat2 * M_PI / 180.0f;
+    float lon2_rad = lon2 * M_PI / 180.0f;
+    
+    // Haversine formula
+    float dlat = lat2_rad - lat1_rad;
+    float dlon = lon2_rad - lon1_rad;
+    
+    float a = sin(dlat/2) * sin(dlat/2) + 
+              cos(lat1_rad) * cos(lat2_rad) * 
+              sin(dlon/2) * sin(dlon/2);
+    float c = 2 * atan2(sqrt(a), sqrt(1-a));
+    
+    return 6371000.0f * c;  // Distance in meters
+}
+
