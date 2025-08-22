@@ -25,7 +25,7 @@
 unsigned long last_v2v_broadcast = 0;
 
 // Debug control - set to false for production (clean serial communication)
-#define DEBUG_PRINTS true 
+#define DEBUG_PRINTS false 
 
 // Global variables to store EVCS position
 float received_evcs_latitude = 0.0f;
