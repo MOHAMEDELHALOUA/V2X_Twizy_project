@@ -1,0 +1,40 @@
+Processing nodemcuv2 (platform: espressif8266; board: nodemcuv2; framework: arduino)
+--------------------------------------------------------------------------------
+Verbose mode can be enabled via `-v, --verbose` option
+CONFIGURATION: https://docs.platformio.org/page/boards/espressif8266/nodemcuv2.html
+PLATFORM: Espressif 8266 (4.2.1) > NodeMCU 1.0 (ESP-12E Module)
+HARDWARE: ESP8266 80MHz, 80KB RAM, 4MB Flash
+PACKAGES: 
+ - framework-arduinoespressif8266 @ 3.30102.0 (3.1.2) 
+ - tool-esptool @ 1.413.0 (4.13) 
+ - tool-esptoolpy @ 1.30000.201119 (3.0.0) 
+ - toolchain-xtensa @ 2.100300.220621 (10.3.0)
+LDF: Library Dependency Finder -> https://bit.ly/configure-pio-ldf
+LDF Modes: Finder ~ chain, Compatibility ~ soft
+Library Manager: Installing ESP32-WiFi @ ^2.0.0
+Warning! Could not find the package with 'ESP32-WiFi @ ^2.0.0' requirements for your system 'linux_x86_64'
+Found 38 compatible libraries
+Scanning dependencies...
+Dependency Graph
+|-- PZEM-004T-v30 @ 1.1.2
+|-- ESP8266WiFi @ 1.0
+|-- EspSoftwareSerial @ 8.0.1
+Building in release mode
+Compiling .pio/build/nodemcuv2/src/main.cpp.o
+Archiving .pio/build/nodemcuv2/libd47/libESP8266WiFi.a
+Indexing .pio/build/nodemcuv2/libd47/libESP8266WiFi.a
+Compiling .pio/build/nodemcuv2/FrameworkArduino/IPAddress.cpp.o
+Compiling .pio/build/nodemcuv2/FrameworkArduino/LwipDhcpServer-NonOS.cpp.o
+Compiling .pio/build/nodemcuv2/FrameworkArduino/LwipDhcpServer.cpp.o
+Compiling .pio/build/nodemcuv2/FrameworkArduino/LwipIntf.cpp.o
+Compiling .pio/build/nodemcuv2/FrameworkArduino/LwipIntfCB.cpp.o
+Compiling .pio/build/nodemcuv2/FrameworkArduino/MD5Builder.cpp.o
+Compiling .pio/build/nodemcuv2/FrameworkArduino/Print.cpp.o
+Compiling .pio/build/nodemcuv2/FrameworkArduino/Schedule.cpp.o
+Compiling .pio/build/nodemcuv2/FrameworkArduino/StackThunk.cpp.o
+Compiling .pio/build/nodemcuv2/FrameworkArduino/Stream.cpp.o
+Compiling .pio/build/nodemcuv2/FrameworkArduino/StreamSend.cpp.o
+Compiling .pio/build/nodemcuv2/FrameworkArduino/Tone.cpp.o
+Compiling .pio/build/nodemcuv2/FrameworkArduino/TypeConversion.cpp.o
+Compiling .pio/build/nodemcuv2/FrameworkArduino/Updater.cpp.o
+Compiling .pio/build/nodemcuv2/FrameworkArduino/WMath.cpp.o
