@@ -819,8 +819,8 @@ void* can_to_esp32_sender_thread(void* arg) {
                 
                 // V2G specific
                 .is_charging_detected = merged.is_charging_detected,
-                .desired_soc = 80.0f,                           // Default desired SOC
-                .ready_to_charge = (merged.soc < 90),           // Ready if SOC < 90%
+                .desired_soc = 100.0f,                           // Default desired SOC
+                .ready_to_charge = (merged.is_charging_detected || merged.soc < 100),           // Ready if SOC < 90%
                 
                 // Communication
                 .MacAddress = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00},

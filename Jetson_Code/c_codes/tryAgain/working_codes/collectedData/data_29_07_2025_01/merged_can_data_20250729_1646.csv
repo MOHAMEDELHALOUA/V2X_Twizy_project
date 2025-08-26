@@ -1,0 +1,5 @@
+timestamp,soc,current,gear,motor_active,accelerator,brake,cap_voltage,motor_speed,odometer,range,battery_voltage,available_energy,charging_status,motor_temp,power_request
+1753803980.438421777,85,-1.0,Unknown,0,0,0,0.0,0.0,3510.1,30,57.5,5.2,0x0A,0,0.0
+1753803986.403236965,85,-1.0,Unknown,0,0,0,0.0,0.0,3510.1,30,57.5,5.2,0x0A,0,0.0
+1753803992.469961586,85,-1.0,Unknown,0,0,0,0.0,0.0,3510.1,30,57.5,5.2,0x0A,0,0.0
+1753803998.434736032,85,-1.0,Unknown,0,0,0,0.0,0.0,3510.1,30,57.5,5.2,0x0A,0,0.0

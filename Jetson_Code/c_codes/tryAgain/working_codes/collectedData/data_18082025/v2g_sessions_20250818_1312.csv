@@ -1,0 +1,2 @@
+timestamp,duration_min,start_soc,end_soc,soc_gained,start_energy,end_energy,energy_gained,max_current
+1755519924.695227219,12,96,99,3,5.8,5.9,0.1,-0.5

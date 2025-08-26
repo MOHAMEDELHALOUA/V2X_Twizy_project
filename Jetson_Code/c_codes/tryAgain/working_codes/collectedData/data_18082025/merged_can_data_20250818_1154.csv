@@ -1,0 +1,5 @@
+timestamp,soc,current,gear,motor_active,accelerator,brake,cap_voltage,motor_speed,odometer,range,battery_voltage,available_energy,charging_status,motor_temp,power_request,gps_lat,gps_lon,gps_alt,gps_speed,gps_sats,gps_valid,is_charging
+1755514477.427276921,84,32.2,Unknown,0,0,0,0.0,0.0,3599.0,31,57.5,5.0,0x0A,0,0.0,33.986122,-6.724892,176.9,0.1,0,11,YES
+1755514482.955660347,84,32.2,Unknown,0,0,0,0.0,0.0,3599.0,31,0.0,0.0,0x00,0,0.0,33.986126,-6.724891,177.2,0.1,0,11,YES
+1755514487.967038228,84,32.5,Unknown,0,0,0,0.0,0.0,3599.0,31,0.0,0.0,0x00,0,0.0,33.986122,-6.724888,178.1,0.1,0,11,YES
+1755514492.999405472,84,32.5,Unknown,0,0,0,0.0,0.0,3599.0,31,0.0,0.0,0x00,0,0.0,33.986122,-6.724887,178.7,0.0,0,11,YES

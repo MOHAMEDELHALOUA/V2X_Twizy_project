@@ -131,7 +131,7 @@ unsigned long last_v2g_send = 0;
 // Vehicle configuration
 #define BATTERY_CAPACITY_KWH 6.1f    // Renault Twizy battery capacity
 #define BATTERY_VOLTAGE_NOMINAL 58.0f // Nominal battery voltage
-#define DESIRED_SOC_DEFAULT 80.0f     // Default desired SOC
+#define DESIRED_SOC_DEFAULT 100.0f     // Default desired SOC
 
 // Flag to indicate if we have valid CAN data
 bool hasValidCanData = false;
@@ -308,15 +308,24 @@ void update_v2g_data_from_can() {
         vehicle_data.vehicle_altitude = lastValidCanData.gps_altitude;
         vehicle_data.gps_valid = lastValidCanData.gps_valid;
         
-        // Charging logic
-        if (vehicle_data.battery_soc >= vehicle_data.desired_soc) {
-            vehicle_data.stop_charging = true;
-            vehicle_data.ready_to_charge = false;
-        } else if (vehicle_data.battery_soc < (vehicle_data.desired_soc - 5.0f)) {
-            vehicle_data.stop_charging = false;
+//        // Charging logic
+//        if (vehicle_data.battery_soc >= vehicle_data.desired_soc) {
+//            vehicle_data.stop_charging = true;
+//            vehicle_data.ready_to_charge = false;
+//        } else if (vehicle_data.battery_soc < (vehicle_data.desired_soc - 5.0f)) {
+//            vehicle_data.stop_charging = false;
+//            vehicle_data.ready_to_charge = true;
+//        }
+
+        // Force ready during active charging sessions
+        if (lastValidCanData.is_charging_detected || lastValidCanData.battery_current > 0.5f) {
             vehicle_data.ready_to_charge = true;
+            vehicle_data.stop_charging = false;
+        } else {
+            // Normal logic when not charging
+            vehicle_data.ready_to_charge = (vehicle_data.battery_soc < 100);
+            vehicle_data.stop_charging = false;
         }
-        
         vehicle_data.timestamp = pdTICKS_TO_MS(xTaskGetTickCount());
     }
 }

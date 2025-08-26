@@ -13,7 +13,7 @@ longitude=-6.725006
 fast_charge=false
 plug_type=Type_F_schuko_3Kwh
 cost_per_kwh=1.50
-number_of_slots=1
+number_of_slots=2
 slots_available=true
 
 # MQTT Connection Settings

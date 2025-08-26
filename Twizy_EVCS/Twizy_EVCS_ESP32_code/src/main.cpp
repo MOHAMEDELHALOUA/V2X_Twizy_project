@@ -146,7 +146,7 @@ void debug_v2g(const char* format, ...) {
         va_start(args, format);
         char buffer[256];
         vsnprintf(buffer, sizeof(buffer), format, args);
-        Serial2.println(buffer);  // Send to Serial2 (different from Serial)
+        Serial.println(buffer);  // Send to Serial2 (different from Serial)
         va_end(args);
     }
 }
@@ -157,7 +157,7 @@ void debug_pzem(const char* format, ...) {
         va_start(args, format);
         char buffer[256];
         vsnprintf(buffer, sizeof(buffer), format, args);
-        Serial2.println(buffer);  // Send to Serial2 (different from Serial)
+        Serial.println(buffer);  // Send to Serial2 (different from Serial)
         va_end(args);
     }
 }
@@ -272,16 +272,13 @@ void loop() {
         
         if (ENABLE_V2G) {
             if (currently_charging && !vehicle_connected) {
-                // Vehicle just connected
                 vehicle_connected = true;
                 start_charging_session();
             } else if (!currently_charging && vehicle_connected) {
-                // Vehicle disconnected
                 vehicle_connected = false;
                 end_charging_session();
             }
             
-            // Handle charging session
             if (session_active) {
                 handle_charging_session();
             }
@@ -290,9 +287,12 @@ void loop() {
         // Update charging status
         charging_status = currently_charging ? 1 : 0;
         
-        // CRITICAL: Send data to Raspberry Pi in EXACT original format
-        // This MUST remain unchanged for Raspberry Pi compatibility
-        Serial.print("EVSE");
+        // CRITICAL: Send clean data to Raspberry Pi
+        Serial.flush();
+        delay(10);
+        
+        // Send formatted data (COMPLETE LINE)
+        Serial.print("EELAB_EVSE_slot_1");
         Serial.print(charging_status);
         Serial.print(" ");
         Serial.print(EVCS_LATITUDE, 6);
@@ -310,10 +310,12 @@ void loop() {
         Serial.print((int)frequency);
         Serial.print(" ");
         Serial.print(pf, 2);
-        Serial.println();
+        Serial.println();  // CRITICAL: Newline to complete the line
+        
+        Serial.flush();  // Ensure data is sent immediately
     }
     
-    // Send V2G data every 5 seconds when vehicle is connected (only if V2G enabled)
+    // Send V2G data every 5 seconds when vehicle is connected
     if (ENABLE_V2G && vehicle_connected && (currentTime - last_v2g_send >= V2G_SEND_INTERVAL)) {
         last_v2g_send = currentTime;
         send_v2g_data();
