@@ -21,8 +21,10 @@
 // V2G/V2V Communication Interval
 #define V2G_SEND_INTERVAL_MS 5000  // Send V2G data every 5 seconds
 #define V2V_BROADCAST_INTERVAL_MS 2000  // Broadcast every 2 seconds
+#define V2G_FALLBACK_INTERVAL_MS 10000  // Fallback broadcast every 10 seconds
 
 unsigned long last_v2v_broadcast = 0;
+unsigned long last_v2g_fallback = 0;
 
 // Debug control - set to false for production (clean serial communication)
 #define DEBUG_PRINTS false 
@@ -31,7 +33,6 @@ unsigned long last_v2v_broadcast = 0;
 float received_evcs_latitude = 0.0f;
 float received_evcs_longitude = 0.0f;
 bool evcs_position_known = false;
-
 
 // ===== UPDATED ITEM STRUCTURE IN ESP32 CODE =====
 typedef struct {
@@ -65,12 +66,11 @@ typedef struct {
 } Item;
 
 // ===== V2G DATA STRUCTURES (for EVCS communication) =====
-
 // Data to receive from EVCS (EVCS -> Vehicle)
 typedef struct {
     uint8_t evcs_mac[6];           // EVCS MAC address
     
-    // EVCS Position (ADD THESE FIELDS)
+    // EVCS Position
     float evcs_latitude;           // EVCS GPS latitude
     float evcs_longitude;          // EVCS GPS longitude
     float evcs_altitude;           // EVCS GPS altitude (optional)
@@ -93,7 +93,7 @@ typedef struct {
 typedef struct {
     uint8_t vehicle_mac[6];        // Vehicle MAC address
     
-    // Vehicle Position (ADD THESE FIELDS)
+    // Vehicle Position
     float vehicle_latitude;        // Vehicle GPS latitude
     float vehicle_longitude;       // Vehicle GPS longitude
     float vehicle_altitude;        // Vehicle GPS altitude
@@ -167,7 +167,6 @@ void debug_print(const char* format, ...) {
 float calculate_distance_between_points(float lat1, float lon1, float lat2, float lon2);
 //calculate_distance_to_evcs FUNCTION
 float calculate_distance_to_evcs();
-
 void broadcast_v2v_data();
 
 void app_main()
@@ -234,11 +233,31 @@ void app_main()
             send_v2g_data_to_evcs();
             last_v2g_send = currentTime;
         }
-
-        // NEW: V2V broadcast (every 2 seconds)
+        
+        // V2V broadcast (every 2 seconds)
         if (hasValidCanData && (currentTime - last_v2v_broadcast >= V2V_BROADCAST_INTERVAL_MS)) {
             broadcast_v2v_data();
             last_v2v_broadcast = currentTime;
+        }
+        
+        // FIXED: V2G fallback communication during charging
+        if (hasValidCanData && lastValidCanData.is_charging_detected && 
+            (currentTime - last_v2g_fallback >= V2G_FALLBACK_INTERVAL_MS)) {
+            
+            debug_print("[V2G] Fallback: Broadcasting vehicle data during charging\n");
+            
+            // Update vehicle data with latest CAN information
+            update_v2g_data_from_can();
+            
+            // Broadcast to find EVCS
+            uint8_t broadcast_mac[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+            esp_err_t result = esp_now_send(broadcast_mac, (uint8_t *)&vehicle_data, sizeof(vehicle_data));
+            
+            if (result == ESP_OK) {
+                debug_print("[V2G] Fallback broadcast sent successfully\n");
+            }
+            
+            last_v2g_fallback = currentTime;
         }
         
         vTaskDelay(pdMS_TO_TICKS(1000));
@@ -266,34 +285,6 @@ void init_v2g_data() {
     debug_print("  Desired SOC: %.1f%%\n", vehicle_data.desired_soc);
 }
 
-// ===== UPDATED V2G DATA UPDATE FUNCTION =====
-//void update_v2g_data_from_can() {
-//    if (hasValidCanData) {
-//        // Battery data for V2G
-//        vehicle_data.battery_soc = lastValidCanData.SOC;
-//        vehicle_data.battery_voltage = lastValidCanData.battery_voltage;
-//        vehicle_data.battery_current = lastValidCanData.battery_current;
-//        
-//        // V2G logic based on real data
-//        vehicle_data.ready_to_charge = lastValidCanData.ready_to_charge;
-//        
-//        // Auto-stop charging if SOC reaches desired level
-//        if (vehicle_data.battery_soc >= lastValidCanData.desired_soc) {
-//            vehicle_data.stop_charging = true;
-//            vehicle_data.ready_to_charge = false;
-//        } else if (vehicle_data.battery_soc < (lastValidCanData.desired_soc - 5.0f)) {
-//            vehicle_data.stop_charging = false;
-//            vehicle_data.ready_to_charge = true;
-//        }
-//        
-//        vehicle_data.timestamp = pdTICKS_TO_MS(xTaskGetTickCount());
-//        
-//        debug_print("[V2G] Updated from CAN: SOC=%u%%, V=%.1fV, I=%.1fA, Ready=%s\n",
-//                    vehicle_data.battery_soc, vehicle_data.battery_voltage, 
-//                    vehicle_data.battery_current, vehicle_data.ready_to_charge ? "YES" : "NO");
-//    }
-//}
-
 // Updated V2G data function with vehicle position
 void update_v2g_data_from_can() {
     if (hasValidCanData) {
@@ -302,22 +293,13 @@ void update_v2g_data_from_can() {
         vehicle_data.battery_voltage = lastValidCanData.battery_voltage;
         vehicle_data.battery_current = lastValidCanData.battery_current;
         
-        // Vehicle position data (NEW)
+        // Vehicle position data
         vehicle_data.vehicle_latitude = lastValidCanData.gps_latitude;
         vehicle_data.vehicle_longitude = lastValidCanData.gps_longitude;
         vehicle_data.vehicle_altitude = lastValidCanData.gps_altitude;
         vehicle_data.gps_valid = lastValidCanData.gps_valid;
         
-//        // Charging logic
-//        if (vehicle_data.battery_soc >= vehicle_data.desired_soc) {
-//            vehicle_data.stop_charging = true;
-//            vehicle_data.ready_to_charge = false;
-//        } else if (vehicle_data.battery_soc < (vehicle_data.desired_soc - 5.0f)) {
-//            vehicle_data.stop_charging = false;
-//            vehicle_data.ready_to_charge = true;
-//        }
-
-        // Force ready during active charging sessions
+        // FIXED: Charging readiness logic
         if (lastValidCanData.is_charging_detected || lastValidCanData.battery_current > 0.5f) {
             vehicle_data.ready_to_charge = true;
             vehicle_data.stop_charging = false;
@@ -349,28 +331,8 @@ void send_v2g_data_to_evcs() {
     }
 }
 
-//void process_evcs_data(const evcs_to_vehicle_t *data) {
-//    // Store EVCS session ID for our responses
-//    vehicle_data.session_id = data->session_id;
-//    
-//    // Print received EVCS data (only if debug enabled)
-//    print_evcs_data(data);
-//    
-//    // Check if we should stop charging based on cost or other factors
-//    if (data->current_cost > 10.0f) {  // Stop if cost exceeds 10 units
-//        vehicle_data.stop_charging = true;
-//        debug_print("[V2G] Stopping charging due to high cost: %.2f\n", data->current_cost);
-//    }
-//    
-//    // Check if charging is available
-//    if (!data->charging_available) {
-//        debug_print("[V2G] Charging slot not available\n");
-//        vehicle_data.ready_to_charge = false;
-//    }
-//}
-
 void process_evcs_data(const evcs_to_vehicle_t *data) {
-    // Store EVCS position from received data (NEW)
+    // Store EVCS position from received data
     received_evcs_latitude = data->evcs_latitude;
     received_evcs_longitude = data->evcs_longitude;
     evcs_position_known = true;
@@ -381,7 +343,7 @@ void process_evcs_data(const evcs_to_vehicle_t *data) {
     debug_print("[V2G] EVCS Position received: %.6f, %.6f\n", 
                received_evcs_latitude, received_evcs_longitude);
     
-    // Calculate distance to EVCS (NEW)
+    // Calculate distance to EVCS
     if (hasValidCanData && lastValidCanData.gps_valid) {
         float distance = calculate_distance_to_evcs();
         debug_print("[V2G] Distance to EVCS: %.1f meters\n", distance);
@@ -400,7 +362,6 @@ void process_evcs_data(const evcs_to_vehicle_t *data) {
         vehicle_data.ready_to_charge = false;
     }
 }
-
 
 void print_evcs_data(const evcs_to_vehicle_t *data) {
     debug_print("\n🔌 EVCS DATA RECEIVED 🔌\n");
@@ -463,7 +424,7 @@ static void sendToJetson_usb(Item *data)
     uart_write_bytes(UART_NUM, (const char*)data, sizeof(Item));
 }
 
-// CLEAN: Minimal RX task - no debug prints that interfere with Jetson
+// FIXED: Enhanced RX task with better error handling
 static void usb_serial_rx_task(void *pvParameter)
 {
     uint8_t header[2] = {0};
@@ -526,15 +487,12 @@ static void usb_serial_rx_task(void *pvParameter)
     free(data);
 }
 
-// CLEAN: Silent update function - no prints to interfere with Jetson communication
-// ===== UPDATED CAN DATA UPDATE FUNCTION =====
-//updateCanDataFromReceived TO HANDLE GPS VALIDITY
 void updateCanDataFromReceived(const Item *received) {
     // Copy all V2V/V2G data
     lastValidCanData = *received;
     
-    // FIX: Ensure GPS validity is properly handled
-    lastValidCanData.gps_valid = received->gps_valid;  // Make sure this maps correctly
+    // Ensure GPS validity is properly handled
+    lastValidCanData.gps_valid = received->gps_valid;
     
     hasValidCanData = true;
     
@@ -545,8 +503,8 @@ void updateCanDataFromReceived(const Item *received) {
                 lastValidCanData.gps_latitude, lastValidCanData.gps_longitude,
                 lastValidCanData.gps_valid ? "YES" : "NO");
 }
-// CLEAN: Minimal ESP-NOW callback - essential communication only
-// ===== UPDATED ESP-NOW DATA RECEPTION FOR V2V =====
+
+// FIXED: Enhanced ESP-NOW data reception with proper peer management
 void OnDataRecv(const esp_now_recv_info_t *recv_info, const uint8_t *incomingData, int len) {
     // Check if this is EVCS V2G data
     if (len == sizeof(evcs_to_vehicle_t)) {
@@ -555,16 +513,36 @@ void OnDataRecv(const esp_now_recv_info_t *recv_info, const uint8_t *incomingDat
         evcs_to_vehicle_t received_evcs_data;
         memcpy(&received_evcs_data, incomingData, sizeof(evcs_to_vehicle_t));
         
-        // Handle EVCS connection and data processing
+        // FIXED: Handle EVCS connection and add peer properly
         if (!evcs_connected) {
             memcpy(evcs_mac, recv_info->src_addr, 6);
             evcs_connected = true;
+            
+            // CRITICAL FIX: Add EVCS as peer for bidirectional communication
+            esp_now_peer_info_t evcs_peer = {};
+            memcpy(evcs_peer.peer_addr, evcs_mac, 6);
+            evcs_peer.channel = 0;
+            evcs_peer.encrypt = false;
+            
+            if (!esp_now_is_peer_exist(evcs_mac)) {
+                esp_err_t result = esp_now_add_peer(&evcs_peer);
+                debug_print("[V2G] Added EVCS peer: %s\n", 
+                           result == ESP_OK ? "SUCCESS" : "FAILED");
+            }
+            
             debug_print("[V2G] Connected to EVCS: %02X:%02X:%02X:%02X:%02X:%02X\n",
                        evcs_mac[0], evcs_mac[1], evcs_mac[2], 
                        evcs_mac[3], evcs_mac[4], evcs_mac[5]);
         }
         
         process_evcs_data(&received_evcs_data);
+        
+        // CRITICAL FIX: Send immediate response to EVCS
+        if (hasValidCanData) {
+            debug_print("[V2G] Sending immediate response to EVCS\n");
+            send_v2g_data_to_evcs();
+        }
+        
         return;
     }
     
@@ -621,6 +599,7 @@ void OnDataRecv(const esp_now_recv_info_t *recv_info, const uint8_t *incomingDat
     
     debug_print("Received unknown data format, length: %d\n", len);
 }
+
 // Initialize ESP-NOW
 esp_err_t init_esp_now(void) {
     esp_err_t ret;
@@ -653,7 +632,8 @@ esp_err_t init_esp_now(void) {
     
     return ESP_OK;
 }
-// New function for V2V broadcasting
+
+// V2V broadcasting function
 void broadcast_v2v_data() {
     if (!hasValidCanData) return;
     
@@ -670,7 +650,7 @@ void broadcast_v2v_data() {
     debug_print("[V2V] Broadcasted vehicle data to nearby vehicles\n");
 }
 
-//  DISTANCE CALCULATION FUNCTION
+// Distance calculation function
 float calculate_distance_between_points(float lat1, float lon1, float lat2, float lon2) {
     // Convert degrees to radians
     float lat1_rad = lat1 * M_PI / 180.0f;
@@ -690,7 +670,7 @@ float calculate_distance_between_points(float lat1, float lon1, float lat2, floa
     return 6371000.0f * c;  // Distance in meters
 }
 
-//calculate_distance_to_evcs FUNCTION
+// Calculate distance to EVCS function
 float calculate_distance_to_evcs() {
     if (!hasValidCanData || !lastValidCanData.gps_valid || !evcs_position_known) {
         return 999.0f;  // Return large distance if no GPS data
