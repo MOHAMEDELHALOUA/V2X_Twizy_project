@@ -183,7 +183,7 @@ Intended for standalone deployment where only one charging point exists.
 ##  Compilation and Execution Instructions
 
 ### 1. `CAN_data_Receive_with_threads.c`
-```bash
+
 gcc CAN_data_Receive_with_threads.c -o CAN_with_thread_out -lpthread /dev/ttyUSBx
 
 
