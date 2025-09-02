@@ -188,13 +188,13 @@ Intended for standalone deployment where only one charging point exists.
 
   Replace /dev/ttyUSBx with the actual port connected to ESP32(1). 
      
-### 2. 'ESPnow_EVCS_V2G.c'
+### 2. `ESPnow_EVCS_V2G.c`
 
     gcc ESPnow_EVCS_V2G.c parseCANFrame.c -o ESPnow_v2g_v2v_out -lpthread /dev/ttyUSBx
 
   Replace /dev/ttyUSBx with the actual port connected to ESP32(2). 
 
-### 3.'Send2Server.c'
+### 3. `Send2Server.c`
 
     gcc Send2Server.c -o SendToCloud -lpaho-mqtt3c -lm
 
