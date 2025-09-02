@@ -8,7 +8,7 @@ The architecture consists of two main components:
 
 ---
 
-## 🚗 Vehicle-Side Software Architecture
+##  Vehicle-Side Software Architecture
 
 ### 1. `ESP32_CANSniffer/src/main.cpp`  
 **ESP32 (1) – CAN and GPS Data Collector**
@@ -97,7 +97,7 @@ Contains essential connection parameters for `Send2Server.c`:
 - Device token
 - Other authentication details
 
-> ⚠️ If the server changes, this file must be updated accordingly.
+> !! If the server changes, this file must be updated accordingly.
 
 ---
 
@@ -109,7 +109,7 @@ Contains essential connection parameters for `Send2Server.c`:
 
 ---
 
-## 🔌 Electrical Vehicle Charging Station (EVCS) Software
+##  Electrical Vehicle Charging Station (EVCS) Software
 
 ### 1. `Twizy_EVCS/Twizy_EVCS_ESP32_code/src/main.cpp`  
 **EVCS – Main ESP32 Controller (Slot 1)**
@@ -160,8 +160,8 @@ Runs on the Raspberry Pi connected to the dual-slot EVCS.
 - Sends aggregated JSON reports to a cloud IoT platform (e.g., ThingsBoard) via MQTT.
 - Supports configuration files, multi-threading, graceful shutdown, and error recovery.
 
-> ✅ Configured as a systemd service named `twizy_evcs.service` on EELAB's EVCS1.  
-> 🔧 Recommended to deploy the same service on other EVCS Raspberry Pis.
+>  Configured as a systemd service named `twizy_evcs.service` on EELAB's EVCS1.  
+>  Recommended to deploy the same service on other EVCS Raspberry Pis.
 
 ---
 
@@ -180,8 +180,30 @@ Intended for standalone deployment where only one charging point exists.
 
 ---
 
-## 🛠️ Compilation and Execution Instructions
+##  Compilation and Execution Instructions
 
 ### 1. `CAN_data_Receive_with_threads.c`
 ```bash
 gcc CAN_data_Receive_with_threads.c -o CAN_with_thread_out -lpthread /dev/ttyUSBx
+
+
+
+## Project Hierarchy Overview
+
+This table summarizes the key software components used in the Twizy V2X system.
+
+| Component | Source Files |
+|---------|--------------|
+| **Vehicle** | |
+| - ESP32 (1) – CAN & GPS Collector | `ESP32_CANSniffer/src/main.cpp` |
+| - ESP32 (2) – V2V/V2G Communication | `V2X_esp_master/src/main.cpp` |
+| - Jetson Nano – V2X Bridge | `Jetson_Code/c_codes/tryAgain/working_codes/ESPnow_EVCS_V2G.c` |
+| - Jetson Nano – CAN/GPS Logger | `Jetson_Code/c_codes/tryAgain/working_codes/CAN_data_Receive_with_threads.c` |
+| - Jetson Nano – Cloud Uploader | `Jetson_Code/c_codes/tryAgain/working_codes/Send2Server.c` |
+| - Jetson Nano – CAN Parser Library | `Jetson_Code/c_codes/tryAgain/working_codes/parseCANFrame.c` |
+| - Jetson Nano – MQTT Config | `Jetson_Code/c_codes/tryAgain/working_codes/mqtt_config.txt` |
+| **EVCS** | |
+| - EV Charging Slot (Slot 1) | `Twizy_EVCS/Twizy_EVCS_ESP32_code/src/main.cpp` |
+| - Small Device Slot (Slot 2) | `Twizy_EVCS/Twizy_EVCS_ESP32_slot2_code/src/main.cpp` |
+| - Dual-Slot RPi Monitor | `Twizy_EVCS/Twizy_EVCS_RPI_code/EVCS_Monitor_Dual_Slot.c` |
+| - Single-Slot RPi Monitor | `Twizy_EVCS/Twizy_EVCS_RPI_code/Twizy_EVCS_RPI.c` |
