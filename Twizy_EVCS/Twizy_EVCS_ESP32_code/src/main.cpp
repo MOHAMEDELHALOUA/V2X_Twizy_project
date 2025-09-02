@@ -11,8 +11,8 @@
 #define PZEM_TX_PIN 17  // ESP32 TX (Connect to PZEM RX)
 
 // Fixed EVCS Location (Charging Station doesn't move)
-#define EVCS_LATITUDE  33.986107f
-#define EVCS_LONGITUDE -6.724805f
+#define EVCS_LATITUDE  33.986242f
+#define EVCS_LONGITUDE -6.724995f 
 
 // Configuration flags
 #define DEBUG_V2G true          // Set to true for V2G debugging
@@ -292,7 +292,7 @@ void loop() {
         delay(10);
         
         // Send formatted data (COMPLETE LINE)
-        Serial.print("EELAB_EVSE_slot_1");
+        Serial.print("EELAB_EVCS2_slot_1 ");
         Serial.print(charging_status);
         Serial.print(" ");
         Serial.print(EVCS_LATITUDE, 6);

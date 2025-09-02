@@ -63,6 +63,14 @@ typedef struct {
     // Communication
     uint8_t MacAddress[6];           // Sender's MAC address
     uint32_t timestamp;              // Message timestamp
+    
+    // V2G other FIELDS:
+    float evcs_session_cost;      // Maps to current_cost
+    float evcs_cost_per_kwh;      // Maps to cost_per_kwh  
+    float evcs_max_power;         // Maps to max_power
+    uint32_t evcs_session_id;     // Maps to session_id
+    bool evcs_charging_available; // Maps to charging_available
+  // 
 } Item;
 
 // ===== V2G DATA STRUCTURES (for EVCS communication) =====
@@ -152,6 +160,8 @@ void send_v2g_data_to_evcs();
 void process_evcs_data(const evcs_to_vehicle_t *data);
 void print_evcs_data(const evcs_to_vehicle_t *data);
 void print_vehicle_data(const vehicle_to_evcs_t *data);
+
+void convertEvcsDataToItem(const evcs_to_vehicle_t *evcs_data, Item *item);
 
 // Debug print function - only prints if DEBUG_PRINTS is enabled
 void debug_print(const char* format, ...) {
@@ -361,6 +371,10 @@ void process_evcs_data(const evcs_to_vehicle_t *data) {
         debug_print("[V2G] Charging slot not available\n");
         vehicle_data.ready_to_charge = false;
     }
+    // Convert and queue for Jetson logging
+    Item evcs_item;
+    convertEvcsDataToItem(data, &evcs_item);
+    xQueueSend(NowUSBQueue, &evcs_item, 0);
 }
 
 void print_evcs_data(const evcs_to_vehicle_t *data) {
@@ -682,4 +696,27 @@ float calculate_distance_to_evcs() {
     float lon2 = received_evcs_longitude;
     
     return calculate_distance_between_points(lat1, lon1, lat2, lon2);
+}
+
+void convertEvcsDataToItem(const evcs_to_vehicle_t *evcs_data, Item *item) {
+    memset(item, 0, sizeof(Item));
+    
+    // Standard fields
+    item->SOC = 0xFFFF;  // EVCS marker
+    item->gps_latitude = evcs_data->evcs_latitude;
+    item->gps_longitude = evcs_data->evcs_longitude;
+    item->gps_altitude = evcs_data->evcs_altitude;
+    item->battery_voltage = evcs_data->ac_voltage;
+    item->battery_current = evcs_data->max_current;
+    item->available_energy = evcs_data->current_energy_delivered;
+    item->timestamp = evcs_data->timestamp;
+    memcpy(item->MacAddress, evcs_data->evcs_mac, 6);
+    
+    // NEW: Map to dedicated EVCS fields
+    item->evcs_session_cost = evcs_data->current_cost;
+    item->evcs_cost_per_kwh = evcs_data->cost_per_kwh;
+    item->evcs_max_power = evcs_data->max_power;
+    item->evcs_session_id = evcs_data->session_id;
+    item->evcs_charging_available = evcs_data->charging_available;
+    item->gps_valid = evcs_data->charging_available ? 1 : 0;
 }

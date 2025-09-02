@@ -45,34 +45,63 @@ char v2g_log_filename[256];
 //    uint8_t MacAddress[6];
 //} Item;
 // ===== UPDATED ITEM STRUCTURE FOR V2V/V2G COMMUNICATION =====
-typedef struct {
-    // Battery data (V2G critical)
-    unsigned short SOC;              // From CAN 0x155 - State of Charge %
-    float battery_voltage;           // From CAN 0x425 - Real battery voltage (V)
-    float battery_current;           // From CAN 0x155 - Real battery current (A)
-    float available_energy;          // From CAN 0x425 - Real available energy (kWh)
-    uint8_t charging_status;         // From CAN 0x425 - Real charging status
-    
-    // Vehicle dynamics (V2V critical)
-    float speedKmh;                  // From CAN 0x19F - Motor speed (km/h)
-    float acceleration;              // From CAN 0x59B - Accelerator percent (0-100%)
-    char gear[4];                    // From CAN 0x59B - Gear position (R/N/D)
-    uint8_t brake_status;            // From CAN 0x59B - Brake pressed (0/1)
-    
-    // Vehicle position (V2V/V2G critical)
-    float gps_latitude;              // From GPS - Latitude (degrees)
-    float gps_longitude;             // From GPS - Longitude (degrees) 
-    float gps_altitude;              // From GPS - Altitude (meters)
-    uint8_t gps_valid;   
+//typedef struct {
+//    // Battery data (V2G critical)
+//    unsigned short SOC;              // From CAN 0x155 - State of Charge %
+//    float battery_voltage;           // From CAN 0x425 - Real battery voltage (V)
+//    float battery_current;           // From CAN 0x155 - Real battery current (A)
+//    float available_energy;          // From CAN 0x425 - Real available energy (kWh)
+//    uint8_t charging_status;         // From CAN 0x425 - Real charging status
+//    
+//    // Vehicle dynamics (V2V critical)
+//    float speedKmh;                  // From CAN 0x19F - Motor speed (km/h)
+//    float acceleration;              // From CAN 0x59B - Accelerator percent (0-100%)
+//    char gear[4];                    // From CAN 0x59B - Gear position (R/N/D)
+//    uint8_t brake_status;            // From CAN 0x59B - Brake pressed (0/1)
+//    
+//    // Vehicle position (V2V/V2G critical)
+//    float gps_latitude;              // From GPS - Latitude (degrees)
+//    float gps_longitude;             // From GPS - Longitude (degrees) 
+//    float gps_altitude;              // From GPS - Altitude (meters)
+//    uint8_t gps_valid;   
+//
+//    // V2G specific data
+//    bool is_charging_detected;       // Charging detection flag
+//    float desired_soc;               // Desired SOC for charging (%)
+//    bool ready_to_charge;            // Vehicle ready for charging
+//    
+//    // Communication
+//    uint8_t MacAddress[6];           // Sender's MAC address
+//    uint32_t timestamp;              // Message timestamp
+//} Item;
 
-    // V2G specific data
-    bool is_charging_detected;       // Charging detection flag
-    float desired_soc;               // Desired SOC for charging (%)
-    bool ready_to_charge;            // Vehicle ready for charging
+typedef struct {
+    // Existing fields...
+    unsigned short SOC;
+    float battery_voltage;
+    float battery_current;
+    float available_energy;
+    uint8_t charging_status;
+    float speedKmh;
+    float acceleration;
+    char gear[4];
+    uint8_t brake_status;
+    float gps_latitude;
+    float gps_longitude; 
+    float gps_altitude;
+    uint8_t gps_valid;
+    bool is_charging_detected;
+    float desired_soc;
+    bool ready_to_charge;
+    uint8_t MacAddress[6];
+    uint32_t timestamp;
     
-    // Communication
-    uint8_t MacAddress[6];           // Sender's MAC address
-    uint32_t timestamp;              // Message timestamp
+    // ADD THESE NEW FIELDS for EVCS data mapping:
+    float evcs_session_cost;      // Maps to current_cost
+    float evcs_cost_per_kwh;      // Maps to cost_per_kwh  
+    float evcs_max_power;         // Maps to max_power
+    uint32_t evcs_session_id;     // Maps to session_id
+    bool evcs_charging_available; // Maps to charging_available
 } Item;
 
 // V2G Enhancement: Simple charging session tracking
@@ -648,6 +677,47 @@ void print_item(const Item *item) {
 //}
 
 // ===== UPDATED CSV OUTPUT FOR V2V/V2G DATA =====
+//void* printer_thread(void* arg) {
+//    FILE *fpt = fopen(esp_now_filename, "w+");
+//    if (!fpt) {
+//        perror("Failed to open ESP-NOW V2V/V2G CSV file");
+//        return NULL;
+//    }
+//    
+//    // Updated CSV header for V2V/V2G data
+//    fprintf(fpt, "MAC,SOC,BatteryVoltage,BatteryCurrent,AvailableEnergy,ChargingStatus,");
+//    fprintf(fpt, "Speed,Acceleration,Gear,BrakeStatus,");
+//    fprintf(fpt, "Latitude,Longitude,Altitude,GPSValid,");
+//    fprintf(fpt, "IsCharging,DesiredSOC,ReadyToCharge,Timestamp\n");
+//    fflush(fpt);
+//    
+//    while (1) {
+//        Item item;
+//        dequeue(&item);
+//        
+//        // MAC address
+//        for (int i = 0; i < 6; ++i) {
+//            fprintf(fpt, "%02X", item.MacAddress[i]);
+//            if (i < 5) fprintf(fpt, ":");
+//        }
+//        
+//        // V2V/V2G data output
+//        fprintf(fpt, ",%u,%.1f,%.1f,%.1f,0x%02X,", 
+//                item.SOC, item.battery_voltage, item.battery_current, 
+//                item.available_energy, item.charging_status);
+//        fprintf(fpt, "%.1f,%.0f,%s,%u,", 
+//                item.speedKmh, item.acceleration, item.gear, item.brake_status);
+//        fprintf(fpt, "%.6f,%.6f,%.1f,%u,", 
+//                item.gps_latitude, item.gps_longitude, item.gps_altitude, item.gps_valid);
+//        fprintf(fpt, "%s,%.0f,%s,%u\n",
+//                item.is_charging_detected ? "YES" : "NO", item.desired_soc,
+//                item.ready_to_charge ? "YES" : "NO", item.timestamp);
+//        fflush(fpt);
+//    }
+//    fclose(fpt);
+//    return NULL;
+//}
+
 void* printer_thread(void* arg) {
     FILE *fpt = fopen(esp_now_filename, "w+");
     if (!fpt) {
@@ -655,16 +725,32 @@ void* printer_thread(void* arg) {
         return NULL;
     }
     
-    // Updated CSV header for V2V/V2G data
+    // Updated CSV header with EVCS fields
     fprintf(fpt, "MAC,SOC,BatteryVoltage,BatteryCurrent,AvailableEnergy,ChargingStatus,");
     fprintf(fpt, "Speed,Acceleration,Gear,BrakeStatus,");
     fprintf(fpt, "Latitude,Longitude,Altitude,GPSValid,");
-    fprintf(fpt, "IsCharging,DesiredSOC,ReadyToCharge,Timestamp\n");
+    fprintf(fpt, "IsCharging,DesiredSOC,ReadyToCharge,Timestamp,");
+    fprintf(fpt, "DataType,EVCSSessionCost,EVCSCostPerKWH,EVCSMaxPower,EVCSSessionID,EVCSChargingAvailable\n");
     fflush(fpt);
     
     while (1) {
         Item item;
         dequeue(&item);
+        
+        // Determine data type
+        bool is_evcs_data = (item.SOC == 0xFFFF);
+        
+        // Print debug info
+        if (is_evcs_data) {
+            printf("[V2G] EVCS Data Received - MAC: %02X:%02X:%02X:%02X:%02X:%02X\n",
+                   item.MacAddress[0], item.MacAddress[1], item.MacAddress[2],
+                   item.MacAddress[3], item.MacAddress[4], item.MacAddress[5]);
+            printf("[V2G] Session: Energy=%.3fkWh, Cost=%.2f, Rate=%.2f/kWh, ID=%u, Available=%s\n",
+                   item.available_energy, item.evcs_session_cost, item.evcs_cost_per_kwh,
+                   item.evcs_session_id, item.evcs_charging_available ? "YES" : "NO");
+            printf("[V2G] EVCS Position: %.6f, %.6f, Voltage=%.1fV, MaxCurrent=%.1fA\n",
+                   item.gps_latitude, item.gps_longitude, item.battery_voltage, item.battery_current);
+        }
         
         // MAC address
         for (int i = 0; i < 6; ++i) {
@@ -672,7 +758,7 @@ void* printer_thread(void* arg) {
             if (i < 5) fprintf(fpt, ":");
         }
         
-        // V2V/V2G data output
+        // Standard fields
         fprintf(fpt, ",%u,%.1f,%.1f,%.1f,0x%02X,", 
                 item.SOC, item.battery_voltage, item.battery_current, 
                 item.available_energy, item.charging_status);
@@ -680,9 +766,16 @@ void* printer_thread(void* arg) {
                 item.speedKmh, item.acceleration, item.gear, item.brake_status);
         fprintf(fpt, "%.6f,%.6f,%.1f,%u,", 
                 item.gps_latitude, item.gps_longitude, item.gps_altitude, item.gps_valid);
-        fprintf(fpt, "%s,%.0f,%s,%u\n",
+        fprintf(fpt, "%s,%.0f,%s,%u,",
                 item.is_charging_detected ? "YES" : "NO", item.desired_soc,
                 item.ready_to_charge ? "YES" : "NO", item.timestamp);
+        
+        // EVCS-specific fields
+        fprintf(fpt, "%s,%.2f,%.2f,%.1f,%u,%s\n",
+                is_evcs_data ? "EVCS" : "V2V",
+                item.evcs_session_cost, item.evcs_cost_per_kwh, item.evcs_max_power,
+                item.evcs_session_id, item.evcs_charging_available ? "YES" : "NO");
+        
         fflush(fpt);
     }
     fclose(fpt);
