@@ -1,0 +1,46 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0" version="28.1.2">
+  <diagram name="Page-1" id="gZIA_Ub2pcKf5VjxKOue">
+    <mxGraphModel dx="717" dy="424" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="QbVwNlhIaQfR2N9UCHv--16" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;dashed=1;dashPattern=8 8;" vertex="1" parent="1">
+          <mxGeometry x="80" y="40" width="520" height="320" as="geometry" />
+        </mxCell>
+        <mxCell id="QbVwNlhIaQfR2N9UCHv--2" value="&lt;b&gt;Jetson nano&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="465" y="170" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="QbVwNlhIaQfR2N9UCHv--6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="QbVwNlhIaQfR2N9UCHv--3" target="QbVwNlhIaQfR2N9UCHv--2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="QbVwNlhIaQfR2N9UCHv--7" value="USB_1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="QbVwNlhIaQfR2N9UCHv--6">
+          <mxGeometry x="-0.1512" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="QbVwNlhIaQfR2N9UCHv--3" value="ESP32(1)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="260" y="260" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="QbVwNlhIaQfR2N9UCHv--4" value="MCP2515" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="100" y="260" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="QbVwNlhIaQfR2N9UCHv--5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="QbVwNlhIaQfR2N9UCHv--4">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="260" y="290" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="QbVwNlhIaQfR2N9UCHv--9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="QbVwNlhIaQfR2N9UCHv--8" target="QbVwNlhIaQfR2N9UCHv--2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="QbVwNlhIaQfR2N9UCHv--10" value="USB_2" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="QbVwNlhIaQfR2N9UCHv--9">
+          <mxGeometry x="-0.3067" y="1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="QbVwNlhIaQfR2N9UCHv--8" value="ESP32(2)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="260" y="60" width="120" height="60" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
